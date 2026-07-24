@@ -1,0 +1,259 @@
+<div class="container-fluid p-0">
+  
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">Project Manager Workspace</h2>
+      <p class="text-muted mb-0">Sarah Miller &bull; Track project lifecycles, milestones, budgets, and workforce allocations.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-primary d-flex align-items-center gap-2" (click)="downloadReport('pdf', 'Overview_Report')">
+        <i class="bi bi-file-earmark-pdf"></i> Export Overview
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Managed Projects" [value]="managedProjects().length" icon="bi-briefcase-fill" colorType="primary"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Total Budget Pool" [value]="'$' + (totalBudget() | number:'1.0-0')" icon="bi-wallet2" colorType="success"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Actual Expenditures" [value]="'$' + (totalSpent() | number:'1.0-0')" icon="bi-cash-stack" colorType="info"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Average Completion" [value]="averageProgress() + '%'" icon="bi-percent" colorType="warning" trendValue="+4.2%" trendDirection="up"></app-dashboard-card>
+    </div>
+  </div>
+
+  <!-- Dynamic Views -->
+  @if (activeModule === 'projects') {
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Projects Oversight</h5>
+            
+            <div class="d-flex flex-column gap-4">
+              @for (proj of managedProjects(); track proj.id) {
+                <div class="p-3 border rounded-3 bg-light-subtle d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                  <div class="d-flex gap-3 align-items-center">
+                    <img [src]="proj.image" alt="Project image" class="rounded-3 object-fit-cover" style="width: 70px; height: 70px;">
+                    <div>
+                      <h6 class="fw-bold text-dark mb-1">{{ proj.name }}</h6>
+                      <p class="text-muted mb-0 small"><i class="bi bi-geo-alt me-1"></i>{{ proj.location }}</p>
+                      <small class="badge mt-1" 
+                             [class.bg-success]="proj.status === 'Completed'"
+                             [class.bg-primary]="proj.status === 'In Progress'"
+                             [class.bg-warning]="proj.status === 'Planning'"
+                             [class.bg-danger]="proj.status === 'Delayed'">
+                        {{ proj.status }}
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="flex-grow-1 mx-md-4" style="max-width: 250px;">
+                    <div class="d-flex justify-content-between mb-1 small text-muted">
+                      <span>Progress</span>
+                      <span class="fw-bold">{{ proj.progress }}%</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-primary" [style.width.%]="proj.progress"></div>
+                    </div>
+                  </div>
+
+                  <div class="text-start text-md-end">
+                    <div class="fw-bold text-dark small">Budget: ${{ proj.budget | number:'1.0-0' }}</div>
+                    <small class="text-muted d-block small">Spent: ${{ proj.spent | number:'1.0-0' }}</small>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <!-- Project Issues panel -->
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Project Issues (Sarah's Projects)</h5>
+            @if (projectIssues().length === 0) {
+              <p class="text-muted small">No active issues on your projects.</p>
+            } @else {
+              <div class="list-group list-group-flush">
+                @for (issue of projectIssues(); track issue.id) {
+                  <div class="list-group-item px-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="badge text-uppercase" 
+                            [class.bg-danger]="issue.severity === 'Critical' || issue.severity === 'High'"
+                            [class.bg-warning]="issue.severity === 'Medium'"
+                            [class.bg-info]="issue.severity === 'Low'">
+                        {{ issue.severity }} Severity
+                      </span>
+                      <small class="text-muted">{{ issue.reportedDate }}</small>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1">{{ issue.title }}</h6>
+                    <p class="text-muted small mb-0">{{ issue.description }}</p>
+                    <small class="text-primary d-block mt-1">Project: {{ issue.projectName }}</small>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'team') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Assigned Team Members</h5>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Member</th>
+                <th>Role</th>
+                <th>Assigned Project</th>
+                <th>Phone</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (member of teamMembers(); track member.id) {
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <img [src]="member.avatar" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                      <span class="fw-bold text-dark">{{ member.name }}</span>
+                    </div>
+                  </td>
+                  <td>{{ member.role }}</td>
+                  <td>{{ member.assignedProject }}</td>
+                  <td>{{ member.phone }}</td>
+                  <td>
+                    <span class="badge"
+                          [class.bg-success]="member.status === 'Active'"
+                          [class.bg-warning]="member.status === 'On Leave'"
+                          [class.bg-danger]="member.status === 'Inactive'">
+                      {{ member.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'timeline') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-4">Milestones & Timelines</h5>
+        <div class="timeline-stepper position-relative ps-4 border-start border-2 border-primary-subtle py-2">
+          
+          <div class="timeline-step position-relative mb-4">
+            <div class="step-marker bg-primary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Excavation Complete (P-101)</h6>
+            <p class="text-muted small mb-0">Foundation and shoring successfully finalized on site.</p>
+            <small class="badge bg-success-subtle text-success mt-1">Completed</small>
+          </div>
+
+          <div class="timeline-step position-relative mb-4">
+            <div class="step-marker bg-primary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Structural Steel L1-L10 Erection</h6>
+            <p class="text-muted small mb-0">Contractor Apex Metalworks actively erecting support frames.</p>
+            <small class="badge bg-primary-subtle text-primary mt-1">In Progress (55%)</small>
+          </div>
+
+          <div class="timeline-step position-relative mb-4">
+            <div class="step-marker bg-secondary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Curtain Wall Glass Installation</h6>
+            <p class="text-muted small mb-0">Requires delivery of custom double-glazed panels from transit ports.</p>
+            <small class="badge bg-secondary-subtle text-secondary mt-1">Pending Shipment</small>
+          </div>
+
+          <div class="timeline-step position-relative">
+            <div class="step-marker bg-secondary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Handover & Client Commissioning</h6>
+            <p class="text-muted small mb-0">Scheduled for November 2027.</p>
+            <small class="badge bg-secondary-subtle text-secondary mt-1">Planning</small>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'budget') {
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <app-chart type="bar" 
+                   title="Budget Utilization ($ Millions)" 
+                   [labels]="['Vanguard Tower', 'Riverfront II', 'Metro Transit', 'Eco-Resort']" 
+                   [data]="[12.5, 8.2, 15.0, 5.4]" 
+                   [customColors]="['#0d6efd', '#198754', '#ffc107', '#dc3545']">
+        </app-chart>
+      </div>
+      <div class="col-lg-6">
+        <app-chart type="line" 
+                   title="Sarah's Actual Spent Accumulation ($ Millions)" 
+                   [labels]="['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']" 
+                   [data]="[1.2, 2.5, 3.8, 5.0, 7.2, 9.5, 11.3]">
+        </app-chart>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'reports') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Project Management Reports & Downloads</h5>
+        <p class="text-muted small">Select a report criteria template to download compiled operational and inventory spreadsheets.</p>
+        
+        <div class="list-group list-group-flush">
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+            <div>
+              <h6 class="fw-bold text-dark mb-1">Financial Reconciliation Statement</h6>
+              <p class="text-muted mb-0 small">Overview of project cost forecasts, real expenditures, variances, and purchase orders.</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm" (click)="downloadReport('pdf', 'Financial_Statement')">PDF</button>
+              <button class="btn btn-outline-success btn-sm" (click)="downloadReport('xlsx', 'Financial_Statement')">Excel</button>
+            </div>
+          </div>
+
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+            <div>
+              <h6 class="fw-bold text-dark mb-1">Site Safety & Incident Ledger</h6>
+              <p class="text-muted mb-0 small">All documented hazards, correction notices, and safety inspection checkpoints.</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm" (click)="downloadReport('pdf', 'Safety_Ledger')">PDF</button>
+              <button class="btn btn-outline-success btn-sm" (click)="downloadReport('xlsx', 'Safety_Ledger')">Excel</button>
+            </div>
+          </div>
+
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+            <div>
+              <h6 class="fw-bold text-dark mb-1">Workforce Allocation Log</h6>
+              <p class="text-muted mb-0 small">Timesheet totals, subcontractor work packages, and contractor capacity indices.</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm" (click)="downloadReport('pdf', 'Workforce_Log')">PDF</button>
+              <button class="btn btn-outline-success btn-sm" (click)="downloadReport('xlsx', 'Workforce_Log')">Excel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

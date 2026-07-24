@@ -1,0 +1,254 @@
+<div class="container-fluid p-0">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">Contractor Work Station</h2>
+      <p class="text-muted mb-0">{{ contractorName }} &bull; Track structural work scopes, crew rosters, and inventory supplies.</p>
+    </div>
+    <div>
+      <span class="badge bg-secondary p-2 fs-6 border rounded-3 text-dark bg-light">
+        Corporate Status: <i class="bi bi-shield-fill-check text-success ms-1"></i> Active
+      </span>
+    </div>
+  </div>
+
+  <!-- KPI summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Work Packages Assigned" [value]="contractorWorkPackages().length" icon="bi-layout-text-sidebar" colorType="primary"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Material Requests" [value]="contractorRequests().length" icon="bi-truck" colorType="warning" subtitle="Pending & Approved"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Contractor Crew Size" [value]="contractorWorkers().length" icon="bi-people-fill" colorType="info" subtitle="On-site Workers"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Average Packages Done" value="62%" icon="bi-speedometer2" colorType="success" trendValue="+8%" trendDirection="up"></app-dashboard-card>
+    </div>
+  </div>
+
+  <!-- Modules views -->
+  @if (activeModule === 'work') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Assigned Work Packages</h5>
+        <p class="text-muted small">Update completion progress slider to report structural updates to the Project Manager.</p>
+
+        <div class="d-flex flex-column gap-3">
+          @for (wp of contractorWorkPackages(); track wp.id) {
+            <div class="p-3 border rounded-3 bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h6 class="fw-bold text-dark mb-0">{{ wp.title }}</h6>
+                  <span class="badge" 
+                        [class.bg-success]="wp.status === 'Completed'"
+                        [class.bg-primary]="wp.status === 'In Progress'"
+                        [class.bg-warning]="wp.status === 'Pending'">
+                    {{ wp.status }}
+                  </span>
+                </div>
+                <p class="text-muted small mb-2">{{ wp.description }}</p>
+                <small class="text-secondary d-block" style="font-size: 11px;">
+                  Timeline: {{ wp.startDate }} &bull; {{ wp.endDate }}
+                </small>
+              </div>
+
+              <div class="d-flex flex-column align-items-start align-items-md-end gap-2" style="width: 250px;">
+                <div class="d-flex justify-content-between w-100 mb-1 small text-muted">
+                  <span>Report Progress</span>
+                  <span class="fw-bold">{{ wp.progress }}%</span>
+                </div>
+                <!-- Interactive slider range -->
+                <input type="range" 
+                       class="form-range" 
+                       min="0" 
+                       max="100" 
+                       step="5"
+                       [value]="wp.progress" 
+                       #progressSlider
+                       (change)="updatePackageProgress(wp.id, +progressSlider.value)">
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'workers') {
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Add Subcontractor Worker</h5>
+            
+            <form (ngSubmit)="addWorkerToRoster()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Worker Name</label>
+                <input type="text" name="workerName" [(ngModel)]="newWorkerName" required class="form-control" placeholder="e.g. Robert Miller">
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Trade Role / Specialty</label>
+                <select class="form-select form-control" name="workerRole" [(ngModel)]="newWorkerRole" required>
+                  @for (role of workerRoles; track role) {
+                    <option [value]="role">{{ role }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Contact Phone</label>
+                <input type="tel" name="workerPhone" [(ngModel)]="newWorkerPhone" required class="form-control" placeholder="e.g. +1 555-010-2211">
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2.5">
+                <i class="bi bi-person-plus me-1"></i> Register Worker
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Active Roster & Contact Info</h5>
+            
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light text-muted uppercase small">
+                  <tr>
+                    <th>Worker</th>
+                    <th>Trade Role</th>
+                    <th>Phone</th>
+                    <th>Project Site</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (worker of contractorWorkers(); track worker.id) {
+                    <tr>
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <img [src]="worker.avatar" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                          <span class="fw-bold text-dark">{{ worker.name }}</span>
+                        </div>
+                      </td>
+                      <td>{{ worker.role }}</td>
+                      <td>{{ worker.phone }}</td>
+                      <td>{{ worker.assignedProject }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'material_requests') {
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">File Material Dispatch Request</h5>
+            
+            <form (ngSubmit)="submitMaterialRequest()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Select Inventory Item</label>
+                <select class="form-select form-control" name="reqMaterialId" [(ngModel)]="reqMaterialId">
+                  @for (m of projectService.materials(); track m.id) {
+                    <option [value]="m.id">{{ m.name }} (Available: {{ m.inStock }} {{ m.unit }})</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Requested Dispatch Qty</label>
+                <input type="number" name="reqQty" [(ngModel)]="reqQty" min="1" class="form-control">
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2.5">
+                <i class="bi bi-truck me-1"></i> Submit Request
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Material Dispatch Request History</h5>
+            
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light text-muted uppercase small">
+                  <tr>
+                    <th>Item</th>
+                    <th>Qty Requested</th>
+                    <th>Date</th>
+                    <th>Approval Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (req of contractorRequests(); track req.id) {
+                    <tr>
+                      <td class="fw-bold text-dark">{{ req.materialName }}</td>
+                      <td>{{ req.quantity }}</td>
+                      <td>{{ req.requestDate }}</td>
+                      <td>
+                        <span class="badge" 
+                              [class.bg-warning]="req.status === 'Pending'"
+                              [class.bg-success]="req.status === 'Approved'"
+                              [class.bg-danger]="req.status === 'Rejected'">
+                          {{ req.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'progress') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4 text-center">
+        <h5 class="fw-bold text-dark text-start mb-4">Work Progress Analytics</h5>
+        
+        <div class="row g-4 justify-content-center">
+          <div class="col-md-5">
+            <div class="p-4 border rounded-3 bg-light">
+              <div class="fs-1 fw-bold text-primary mb-2">94%</div>
+              <h6 class="fw-bold text-dark">Concrete Placement Rate</h6>
+              <p class="text-muted small">Vance Concrete continues ahead of schedule on Level 8 columns.</p>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="p-4 border rounded-3 bg-light">
+              <div class="fs-1 fw-bold text-success mb-2">98.2%</div>
+              <h6 class="fw-bold text-dark">Safety Compliance Index</h6>
+              <p class="text-muted small">No structural safety warnings or hazard stops filed for Vance Concrete crew.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

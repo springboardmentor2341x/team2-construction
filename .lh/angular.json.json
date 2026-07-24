@@ -1,0 +1,46 @@
+{
+    "sourceFile": "angular.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 7,
+            "patches": [
+                {
+                    "date": 1784809936994,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1784809950476,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,8 @@\n-{\n+\"styles\": [\n+  \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n+  \"src/styles.css\"\n+]{\n   \"$schema\": \"./node_modules/@angular/cli/lib/config/schema.json\",\n   \"version\": 1,\n   \"cli\": {\n     \"packageManager\": \"npm\",\n@@ -72,12 +75,9 @@\n           \"defaultConfiguration\": \"development\"\n         },\n         \"test\": {\n           \"builder\": \"@angular/build:unit-test\"\n-          \"styles\": [\n-  \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n-  \"src/styles.css\"\n-]\n+          \n         }\n       }\n     }\n   }\n"
+                },
+                {
+                    "date": 1784809959410,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,8 +1,5 @@\n-\"styles\": [\n-  \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n-  \"src/styles.css\"\n-]{\n+{\n   \"$schema\": \"./node_modules/@angular/cli/lib/config/schema.json\",\n   \"version\": 1,\n   \"cli\": {\n     \"packageManager\": \"npm\",\n"
+                },
+                {
+                    "date": 1784810020095,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,10 +24,12 @@\n                 \"glob\": \"**/*\",\n                 \"input\": \"public\"\n               }\n             ],\n-            \"styles\": [\"src/material-theme.scss\", \"src/styles.css\"],\n-            \"server\": \"src/main.server.ts\",\n+\"styles\": [\n+  \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n+  \"src/styles.css\"\n+],            \"server\": \"src/main.server.ts\",\n             \"outputMode\": \"server\",\n             \"security\": {\n               \"allowedHosts\": []\n             },\n"
+                },
+                {
+                    "date": 1784810025312,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,9 +24,9 @@\n                 \"glob\": \"**/*\",\n                 \"input\": \"public\"\n               }\n             ],\n-\"styles\": [\n+            \"styles\": [\n   \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n   \"src/styles.css\"\n ],            \"server\": \"src/main.server.ts\",\n             \"outputMode\": \"server\",\n"
+                },
+                {
+                    "date": 1784810032258,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,10 +25,10 @@\n                 \"input\": \"public\"\n               }\n             ],\n             \"styles\": [\n-  \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n-  \"src/styles.css\"\n+              \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n+              \"src/styles.css\"\n ],            \"server\": \"src/main.server.ts\",\n             \"outputMode\": \"server\",\n             \"security\": {\n               \"allowedHosts\": []\n"
+                },
+                {
+                    "date": 1784810039448,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -27,9 +27,10 @@\n             ],\n             \"styles\": [\n               \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n               \"src/styles.css\"\n-],            \"server\": \"src/main.server.ts\",\n+             ],            \n+             \"server\": \"src/main.server.ts\",\n             \"outputMode\": \"server\",\n             \"security\": {\n               \"allowedHosts\": []\n             },\n"
+                },
+                {
+                    "date": 1784810053110,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -27,10 +27,10 @@\n             ],\n             \"styles\": [\n               \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n               \"src/styles.css\"\n-             ],            \n-             \"server\": \"src/main.server.ts\",\n+          ],            \n+            \"server\": \"src/main.server.ts\",\n             \"outputMode\": \"server\",\n             \"security\": {\n               \"allowedHosts\": []\n             },\n"
+                }
+            ],
+            "date": 1784809936994,
+            "name": "Commit-0",
+            "content": "{\n  \"$schema\": \"./node_modules/@angular/cli/lib/config/schema.json\",\n  \"version\": 1,\n  \"cli\": {\n    \"packageManager\": \"npm\",\n    \"analytics\": \"b544ce08-655a-4543-bbc7-9ca5b2694375\"\n  },\n  \"newProjectRoot\": \"projects\",\n  \"projects\": {\n    \"buildtrack-Team2\": {\n      \"projectType\": \"application\",\n      \"schematics\": {},\n      \"root\": \"\",\n      \"sourceRoot\": \"src\",\n      \"prefix\": \"app\",\n      \"architect\": {\n        \"build\": {\n          \"builder\": \"@angular/build:application\",\n          \"options\": {\n            \"browser\": \"src/main.ts\",\n            \"tsConfig\": \"tsconfig.app.json\",\n            \"assets\": [\n              {\n                \"glob\": \"**/*\",\n                \"input\": \"public\"\n              }\n            ],\n            \"styles\": [\"src/material-theme.scss\", \"src/styles.css\"],\n            \"server\": \"src/main.server.ts\",\n            \"outputMode\": \"server\",\n            \"security\": {\n              \"allowedHosts\": []\n            },\n            \"ssr\": {\n              \"entry\": \"src/server.ts\"\n            }\n          },\n          \"configurations\": {\n            \"production\": {\n              \"budgets\": [\n                {\n                  \"type\": \"initial\",\n                  \"maximumWarning\": \"500kB\",\n                  \"maximumError\": \"1MB\"\n                },\n                {\n                  \"type\": \"anyComponentStyle\",\n                  \"maximumWarning\": \"4kB\",\n                  \"maximumError\": \"8kB\"\n                }\n              ],\n              \"outputHashing\": \"all\"\n            },\n            \"development\": {\n              \"optimization\": false,\n              \"extractLicenses\": false,\n              \"sourceMap\": true\n            }\n          },\n          \"defaultConfiguration\": \"production\"\n        },\n        \"serve\": {\n          \"builder\": \"@angular/build:dev-server\",\n          \"configurations\": {\n            \"production\": {\n              \"buildTarget\": \"buildtrack-Team2:build:production\"\n            },\n            \"development\": {\n              \"buildTarget\": \"buildtrack-Team2:build:development\"\n            }\n          },\n          \"defaultConfiguration\": \"development\"\n        },\n        \"test\": {\n          \"builder\": \"@angular/build:unit-test\"\n          \"styles\": [\n  \"node_modules/bootstrap/dist/css/bootstrap.min.css\",\n  \"src/styles.css\"\n]\n        }\n      }\n    }\n  }\n}\n"
+        }
+    ]
+}

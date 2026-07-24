@@ -1,0 +1,49 @@
+.app-layout-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+}
+
+.main-content {
+  margin-top: 70px;
+  margin-left: 260px;
+  flex: 1;
+  background-color: #f1f5f9; /* Slate 100 - Sleek light background */
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: calc(100vh - 70px);
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 70px;
+}
+
+.content-viewport {
+  animation: fadeInViewport 0.3s ease-out;
+}
+
+@keyframes fadeInViewport {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments for mobile/tablet */
+@media (max-width: 900px) {
+  .main-content {
+    margin-left: 70px !important; /* Force narrow sidebar margin by default on smaller screens */
+  }
+  
+  .main-content.sidebar-collapsed {
+    margin-left: 0px !important; /* Toggle to completely hidden on mobile/tablet */
+  }
+}

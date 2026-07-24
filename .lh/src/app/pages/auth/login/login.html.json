@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/app/pages/auth/login/login.html",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1784811075354,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1784811075354,
+            "name": "Commit-0",
+            "content": "<div class=\"login-container\">\n\n    <div class=\"login-left\">\n        <div class=\"overlay\">\n            <h1>BuildTrack</h1>\n            <p>Construction Project Management & Site Monitoring Platform</p>\n\n            <div class=\"features\">\n                <div>✔ Manage Projects</div>\n                <div>✔ Track Workforce</div>\n                <div>✔ Monitor Site Progress</div>\n                <div>✔ Secure Role-Based Access</div>\n            </div>\n        </div>\n    </div>\n\n    <div class=\"login-right\">\n\n        <div class=\"login-card\">\n\n            <h2>Welcome Back</h2>\n            <p>Please login to continue</p>\n\n            <form>\n\n                <div class=\"form-group\">\n                    <label>Email Address</label>\n                    <input\n                        type=\"email\"\n                        class=\"form-control\"\n                        placeholder=\"Enter your email\">\n                </div>\n\n                <div class=\"form-group mt-3\">\n                    <label>Password</label>\n                    <input\n                        type=\"password\"\n                        class=\"form-control\"\n                        placeholder=\"Enter your password\">\n                </div>\n\n                <div class=\"options mt-3\">\n\n                    <div>\n                        <input type=\"checkbox\">\n                        Remember Me\n                    </div>\n\n                    <a routerLink=\"/forgot-password\">\n                        Forgot Password?\n                    </a>\n\n                </div>\n\n                <button class=\"btn btn-primary w-100 mt-4\">\n                    Login\n                </button>\n\n                <div class=\"register\">\n\n                    Don't have an account?\n\n                    <a routerLink=\"/register\">\n                        Register\n                    </a>\n\n                </div>\n\n            </form>\n\n        </div>\n\n    </div>\n\n</div>"
+        }
+    ]
+}

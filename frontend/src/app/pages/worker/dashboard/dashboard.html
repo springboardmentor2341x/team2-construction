@@ -1,0 +1,208 @@
+<div class="container-fluid p-0">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">Worker Access Terminal</h2>
+      <p class="text-muted mb-0">{{ workerName }} &bull; Workforce Contractor: <strong>Vance Concrete Ltd</strong></p>
+    </div>
+    <div>
+      <button class="btn d-flex align-items-center gap-2 px-3 py-2 border rounded-pill" 
+              [class.btn-success]="isClockedIn()"
+              [class.btn-outline-danger]="!isClockedIn()"
+              (click)="toggleClock()">
+        <i class="bi bi-clock-fill"></i>
+        <span>{{ isClockedIn() ? 'Clocked In (' + clockInTime() + ')' : 'Clocked Out' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Clock Status" 
+                          [value]="isClockedIn() ? 'Active' : 'Offline'" 
+                          icon="bi-check-circle-fill" 
+                          [colorType]="isClockedIn() ? 'success' : 'danger'"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Assigned Tasks" [value]="workerTasks().length" icon="bi-card-checklist" colorType="primary"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Active Project Site" value="Vanguard Tower" icon="bi-building-fill" colorType="info"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Net Pay (Current Period)" value="$3,500" icon="bi-receipt" colorType="warning" subtitle="Processing"></app-dashboard-card>
+    </div>
+  </div>
+
+  <!-- Modules views -->
+  @if (activeModule === 'attendance') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4 text-center">
+        <h5 class="fw-bold text-dark text-start mb-4">Shift Attendance Clock</h5>
+
+        <div class="p-5 border rounded-3 bg-light d-flex flex-column align-items-center justify-content-center mx-auto" style="max-width: 500px;">
+          <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+            <i class="bi bi-person-check-fill fs-2"></i>
+          </div>
+          
+          @if (isClockedIn()) {
+            <h4 class="fw-bold text-success mb-2">Shift In Progress</h4>
+            <p class="text-muted small">You clocked in today at <strong>{{ clockInTime() }}</strong>.</p>
+            <button class="btn btn-danger btn-lg px-4 mt-3" (click)="toggleClock()">
+              <i class="bi bi-box-arrow-left me-1"></i> Clock Out Now
+            </button>
+          } @else {
+            <h4 class="fw-bold text-dark mb-2">Ready to Start Shift?</h4>
+            <p class="text-muted small">Please punch in below to record your check-in time and attendance.</p>
+            <button class="btn btn-success btn-lg px-5 mt-3" (click)="toggleClock()">
+              <i class="bi bi-box-arrow-right me-1"></i> Clock In Now
+            </button>
+          }
+        </div>
+
+        <div class="mt-4 text-start">
+          <h6 class="fw-bold text-dark mb-3">Attendance History (Current Month)</h6>
+          <div class="list-group list-group-flush">
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 small bg-transparent">
+              <span>July 23, 2026</span>
+              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Checked In / Out (8h 15m)</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 small bg-transparent">
+              <span>July 22, 2026</span>
+              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Checked In / Out (8h 00m)</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 small bg-transparent">
+              <span>July 21, 2026</span>
+              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Checked In / Out (8h 30m)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'tasks') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Assigned Tasks Checklist</h5>
+        
+        <div class="d-flex flex-column gap-3">
+          @for (task of workerTasks(); track task.id) {
+            <div class="p-3 border rounded-3 bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+              <div>
+                <h6 class="fw-bold text-dark mb-1">{{ task.title }}</h6>
+                <p class="text-muted small mb-2">{{ task.description }}</p>
+                <small class="text-secondary d-block" style="font-size: 11px;">
+                  Timeline: {{ task.startDate }} &bull; {{ task.endDate }}
+                </small>
+              </div>
+
+              <div class="d-flex gap-2">
+                @if (task.status === 'Pending') {
+                  <button class="btn btn-primary btn-sm px-3" (click)="updateTaskStatus(task.id, 'In Progress')">Start Work</button>
+                } @else if (task.status === 'In Progress') {
+                  <button class="btn btn-outline-primary btn-sm px-2" disabled>Running...</button>
+                  <button class="btn btn-success btn-sm px-3" (click)="updateTaskStatus(task.id, 'Completed')">Complete</button>
+                } @else {
+                  <span class="badge bg-success py-2 px-3"><i class="bi bi-check-lg me-1"></i>Finished</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'status') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Log Daily Status Report</h5>
+        <p class="text-muted small">Submit a brief summary of structural tasks, cable paths, or concrete installations you completed during your shift.</p>
+        
+        <form (ngSubmit)="submitStatusReport()">
+          <div class="form-group mb-3">
+            <label class="form-label fw-semibold small text-muted">Daily Work Summary</label>
+            <textarea name="comment" [(ngModel)]="statusComment" required rows="5" class="form-control" placeholder="Describe the structural work you did today..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary px-4 py-2">
+            <i class="bi bi-send-fill me-1"></i> File Daily Update
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'payslips') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">My Salary Payslips</h5>
+        
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Pay Month</th>
+                <th>Basic Salary</th>
+                <th>Overtime Earnings</th>
+                <th>Deductions</th>
+                <th>Net Pay Out</th>
+                <th>Payment Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pay of workerPayslips(); track pay.id) {
+                <tr>
+                  <td class="fw-bold text-dark">{{ pay.month }}</td>
+                  <td>${{ pay.basicSalary | number }}</td>
+                  <td>${{ pay.overtimePay | number }}</td>
+                  <td class="text-danger">-${{ pay.deductions | number }}</td>
+                  <td class="fw-bold text-success">${{ pay.netPay | number }}</td>
+                  <td>
+                    <span class="badge"
+                          [class.bg-success]="pay.status === 'Paid'"
+                          [class.bg-warning]="pay.status === 'Processing'">
+                      {{ pay.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'notifications') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Site Bulletins & Notices</h5>
+        
+        <div class="list-group list-group-flush">
+          <div class="list-group-item px-0 py-3 bg-transparent">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="badge bg-danger">Safety Alert</span>
+              <small class="text-muted">July 22, 2026</small>
+            </div>
+            <h6 class="fw-bold text-dark">Required Hard Hat Area & Secure Tethering</h6>
+            <p class="text-muted small mb-0">Level 8 column work actively erecting steel beams. Hard hats and safety harness tethers are strictly mandatory on all upper platforms.</p>
+          </div>
+
+          <div class="list-group-item px-0 py-3 bg-transparent">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="badge bg-info">Weather Notice</span>
+              <small class="text-muted">July 20, 2026</small>
+            </div>
+            <h6 class="fw-bold text-dark">High Temperature Warning - Hydration Stations</h6>
+            <p class="text-muted small mb-0">Expected temperatures of 34°C. Electrolyte hydration packets and chilled water points are stocked on Level 3 and Level 6.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

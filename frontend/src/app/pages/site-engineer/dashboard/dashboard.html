@@ -1,0 +1,375 @@
+<div class="container-fluid p-0">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">Site Engineer Control Panel</h2>
+      <p class="text-muted mb-0">Alex Chen &bull; Active Site: <strong>{{ engineerProject()?.name }}</strong></p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill">
+        Site Progress: {{ engineerProject()?.progress }}%
+      </span>
+    </div>
+  </div>
+
+  <!-- KPI summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Daily Logs Filed" [value]="projectLogs().length" icon="bi-journal-text" colorType="primary"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Site Photos Feed" [value]="projectPhotos().length" icon="bi-camera" colorType="success"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Labour Attendance" [value]="attendanceRoster().length" icon="bi-people-fill" colorType="info" subtitle="Workers Checked In"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Active Site Issues" [value]="activeIssues().length" icon="bi-exclamation-triangle" colorType="danger" [subtitle]="activeIssues().length + ' Open hazards'"></app-dashboard-card>
+    </div>
+  </div>
+
+  <!-- Modules views -->
+  @if (activeModule === 'progress') {
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">File Daily Progress Report</h5>
+            
+            <form (ngSubmit)="submitDailyLog()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Weather Conditions</label>
+                <input type="text" name="weather" [(ngModel)]="logWeather" required class="form-control" placeholder="e.g. Sunny, 28°C">
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Detailed Work Completed</label>
+                <textarea name="workDone" [(ngModel)]="logWorkDone" required rows="4" class="form-control" placeholder="Specify tasks completed, levels framed, concrete pours..."></textarea>
+              </div>
+
+              <!-- Materials consumed adding section -->
+              <div class="border rounded p-3 mb-3 bg-light">
+                <span class="fw-semibold text-dark small d-block mb-2">Record Material Consumption</span>
+                
+                <div class="row g-2 align-items-end">
+                  <div class="col-7">
+                    <label class="small text-muted mb-1">Material Name</label>
+                    <select class="form-select text-xs-ls" name="matSelect" [(ngModel)]="selectedMaterialId">
+                      @for (mat of projectService.materials(); track mat.id) {
+                        <option [value]="mat.id">{{ mat.name }} ({{ mat.unit }})</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="col-3">
+                    <label class="small text-muted mb-1">Quantity</label>
+                    <input type="number" name="matQty" [(ngModel)]="materialQty" min="0" class="form-control">
+                  </div>
+                  <div class="col-2">
+                    <button type="button" class="btn btn-primary w-100 d-flex justify-content-center" (click)="addMaterialToLog()">
+                      <i class="bi bi-plus-lg"></i>
+                    </button>
+                  </div>
+                </div>
+
+                @if (tempMaterialsUsed.length > 0) {
+                  <ul class="list-group list-group-flush mt-3 border-top pt-2">
+                    @for (item of tempMaterialsUsed; track $index) {
+                      <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 py-1.5 small">
+                        <span>{{ item.materialName }}: <strong>{{ item.quantity }} {{ item.unit }}</strong></span>
+                        <button type="button" class="btn btn-link text-danger btn-sm p-0 border-0" (click)="removeMaterialFromLog($index)">
+                          <i class="bi bi-trash-fill"></i>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2.5">
+                <i class="bi bi-check-circle me-1"></i> Submit Report
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Recent Daily Progress Logs</h5>
+            
+            <div class="d-flex flex-column gap-3">
+              @for (log of projectLogs(); track log.id) {
+                <div class="p-3 border rounded-3 bg-light-subtle">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-primary">{{ log.date }}</span>
+                    <small class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">
+                      <i class="bi bi-cloud-sun me-1"></i>{{ log.weather }}
+                    </small>
+                  </div>
+                  <p class="text-dark small mb-2" style="white-space: pre-line;">{{ log.workDone }}</p>
+                  
+                  @if (log.materialsUsed && log.materialsUsed.length > 0) {
+                    <div class="border-top pt-2">
+                      <span class="text-muted d-block small mb-1 fw-semibold" style="font-size: 11px;">MATERIALS USED:</span>
+                      <div class="d-flex flex-wrap gap-2">
+                        @for (m of log.materialsUsed; track $index) {
+                          <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 text-xs">
+                            {{ m.materialName }}: {{ m.quantity }} {{ m.unit }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+                  <small class="text-muted d-block mt-2 text-end" style="font-size: 11px;">Filed by: {{ log.siteEngineer }}</small>
+                </div>
+              }
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'photos') {
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Upload Site Photo</h5>
+            
+            <form (ngSubmit)="submitSitePhoto()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Photo URL</label>
+                <input type="url" name="photoUrl" [(ngModel)]="photoUrl" required class="form-control" placeholder="https://images.unsplash.com/...">
+                <div class="form-text small mt-1">Preset image templates for demo:</div>
+                <div class="d-flex flex-column gap-1.5 mt-2">
+                  <button type="button" 
+                          class="btn btn-outline-secondary btn-sm text-start py-1 px-2.5" 
+                          style="font-size: 11px;" 
+                          (click)="photoUrl='https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=500'; photoCaption='Curtain wall fittings and column works.'">
+                    Steel Columns Level 8
+                  </button>
+                  <button type="button" 
+                          class="btn btn-outline-secondary btn-sm text-start py-1 px-2.5" 
+                          style="font-size: 11px;" 
+                          (click)="photoUrl='https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=500'; photoCaption='Workers tightening deck scaffold plates.'">
+                    Worker Scaffolding View
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Photo Caption</label>
+                <input type="text" name="caption" [(ngModel)]="photoCaption" required class="form-control" placeholder="e.g. Scaffolding structures checking L6">
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2.5">
+                <i class="bi bi-camera-fill me-1"></i> Log Photo Feed
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Active Photo Stream</h5>
+            
+            <div class="row g-3">
+              @for (photo of projectPhotos(); track photo.id) {
+                <div class="col-md-6">
+                  <div class="card border rounded-3 overflow-hidden shadow-sm h-100">
+                    <img [src]="photo.url" alt="Site photo" class="img-fluid object-fit-cover" style="height: 180px; width: 100%;">
+                    <div class="card-body p-3">
+                      <p class="card-text small text-dark fw-medium mb-2">{{ photo.caption }}</p>
+                      <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 11px;">
+                        <span>Uploaded by: {{ photo.uploadedBy }}</span>
+                        <span>{{ photo.date }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'attendance') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Site Workforce Checked In</h5>
+        <p class="text-muted small">Real-time attendance roster for subcontractors and laborers active today.</p>
+        
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Worker Name</th>
+                <th>Specialty/Role</th>
+                <th>Assigned Project</th>
+                <th>Phone</th>
+                <th>Work Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (w of attendanceRoster(); track w.id) {
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <img [src]="w.avatar" alt="Avatar" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
+                      <span class="fw-bold text-dark">{{ w.name }}</span>
+                    </div>
+                  </td>
+                  <td>{{ w.role }}</td>
+                  <td>{{ w.assignedProject }}</td>
+                  <td>{{ w.phone }}</td>
+                  <td>
+                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-bold">
+                      Checked In
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'materials') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Materials Inventory Status</h5>
+        
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Material</th>
+                <th>Quantity in Stock</th>
+                <th>Min Safety Buffer</th>
+                <th>Estimated Unit Cost</th>
+                <th>Stock Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of projectService.materials(); track m.id) {
+                <tr>
+                  <td class="fw-bold text-dark">{{ m.name }}</td>
+                  <td>{{ m.inStock }} {{ m.unit }}</td>
+                  <td>{{ m.reorderLevel }} {{ m.unit }}</td>
+                  <td>${{ m.costPerUnit }} / {{ m.unit }}</td>
+                  <td>
+                    @if (m.inStock <= m.reorderLevel) {
+                      <span class="badge bg-danger">Critical Reorder</span>
+                    } @else if (m.inStock <= m.reorderLevel * 1.5) {
+                      <span class="badge bg-warning text-dark">Buffer Low</span>
+                    } @else {
+                      <span class="badge bg-success">Optimal</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'issues') {
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Submit Issue / Hazard</h5>
+            
+            <form (ngSubmit)="submitIssue()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Issue Title</label>
+                <input type="text" name="issueTitle" [(ngModel)]="issueTitle" required class="form-control" placeholder="e.g. Scaffolding locking pin damaged">
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Severity Classification</label>
+                <select class="form-select form-control" name="severity" [(ngModel)]="issueSeverity" required>
+                  <option value="Low">Low (Administrative)</option>
+                  <option value="Medium">Medium (Correction needed)</option>
+                  <option value="High">High (Immediate check)</option>
+                  <option value="Critical">Critical (Stop Work Trigger)</option>
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Hazard Details</label>
+                <textarea name="desc" [(ngModel)]="issueDescription" required rows="4" class="form-control" placeholder="Describe the safety hazard, exact location, or inventory bottleneck..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-danger w-100 py-2.5">
+                <i class="bi bi-exclamation-triangle me-1"></i> Flag Issue
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Site Issues Log</h5>
+            
+            <div class="d-flex flex-column gap-3">
+              @for (issue of activeIssues(); track issue.id) {
+                <div class="p-3 border rounded-3" 
+                     [class.border-danger-subtle]="issue.status === 'Open'"
+                     [class.bg-danger-subtle]="issue.status === 'Open'"
+                     [class.border-success-subtle]="issue.status === 'Resolved'"
+                     [class.bg-light]="issue.status === 'Resolved'">
+                  
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge" 
+                          [class.bg-danger]="issue.severity === 'Critical' || issue.severity === 'High'"
+                          [class.bg-warning]="issue.severity === 'Medium'"
+                          [class.bg-info]="issue.severity === 'Low'">
+                      {{ issue.severity }} Severity
+                    </span>
+                    <span class="badge bg-light text-dark border">{{ issue.status }}</span>
+                  </div>
+
+                  <h6 class="fw-bold text-dark mb-1">{{ issue.title }}</h6>
+                  <p class="text-muted small mb-2">{{ issue.description }}</p>
+                  
+                  <div class="d-flex justify-content-between align-items-center border-top pt-2" style="font-size: 11px;">
+                    <span class="text-muted">Reported by: {{ issue.reportedBy }} &bull; {{ issue.reportedDate }}</span>
+                    @if (issue.status === 'Open') {
+                      <button class="btn btn-outline-success btn-xs py-1 px-2.5 rounded-pill" (click)="resolveIssue(issue.id)">
+                        Mark Resolved
+                      </button>
+                    }
+                  </div>
+
+                </div>
+              }
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

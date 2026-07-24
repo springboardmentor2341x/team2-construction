@@ -1,0 +1,11 @@
+.bg-primary-subtle {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+.bg-success-subtle {
+  background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.list-group-item {
+  border-color: rgba(0, 0, 0, 0.05);
+}

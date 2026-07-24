@@ -1,0 +1,26 @@
+{
+    "sourceFile": "src/app/app.html",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 2,
+            "patches": [
+                {
+                    "date": 1784810682035,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1784810705975,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -0,0 +1,7 @@\n+<div class=\"container mt-5\">\n+  <div class=\"card shadow p-4\">\n+    <h2 class=\"text-primary\">Bootstrap is Working! 🎉</h2>\n+    <p>Welcome to BuildTrack</p>\n+    <button class=\"btn btn-primary\">Click Me</button>\n+  </div>\n+</div>\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1784811208539,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,5 +3,6 @@\n     <h2 class=\"text-primary\">Bootstrap is Working! 🎉</h2>\n     <p>Welcome to BuildTrack</p>\n     <button class=\"btn btn-primary\">Click Me</button>\n   </div>\n-</div>\n\\ No newline at end of file\n+</div>\n+<router-outlet></router-outlet>\n\\ No newline at end of file\n"
+                }
+            ],
+            "date": 1784810682035,
+            "name": "Commit-0",
+            "content": ""
+        }
+    ]
+}

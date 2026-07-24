@@ -1,0 +1,28 @@
+.bg-light {
+  background-color: #f8fafc !important;
+}
+
+.text-xs {
+  font-size: 11px;
+}
+
+.btn-xs {
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+.bg-danger-subtle {
+  background-color: rgba(220, 53, 69, 0.03) !important;
+}
+
+.border-danger-subtle {
+  border-color: rgba(220, 53, 69, 0.15) !important;
+}
+
+.border-success-subtle {
+  border-color: rgba(25, 135, 84, 0.15) !important;
+}
+
+.list-group-item {
+  border-color: rgba(0, 0, 0, 0.05);
+}
