@@ -25,15 +25,15 @@ export class ClientDashboard {
     return this.queryParams()?.['module'] || 'progress';
   }
 
-  // Active Client Name (Emily Vanguard)
-  clientName = 'Emily Vanguard';
+  // Active Client Name (Abhishek S)
+  clientName = 'Abhishek S';
 
   // Form Fields - Feedback
   fbRating = 5;
   fbMessage = '';
   fbProjectName = 'Vanguard Heights Commercial Tower';
 
-  // Client Projects (Projects matching Vanguard Realty / Emily Vanguard)
+  // Client Projects (Projects matching Vanguard Realty / Abhishek S)
   clientProjects = computed(() => 
     this.projectService.projects().filter(p => p.clientName === 'Vanguard Realty')
   );
@@ -85,7 +85,7 @@ export class ClientDashboard {
     });
 
     this.fbMessage = ''; // reset
-    alert('Thank you! Your feedback has been submitted to Sarah Miller.');
+    alert('Thank you! Your feedback has been submitted to Shradha S.');
   }
 
   downloadDocument(docName: string) {

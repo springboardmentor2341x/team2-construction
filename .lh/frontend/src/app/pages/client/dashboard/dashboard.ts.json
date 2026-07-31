@@ -1,0 +1,34 @@
+{
+    "sourceFile": "frontend/src/app/pages/client/dashboard/dashboard.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 4,
+            "patches": [
+                {
+                    "date": 1785428842973,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1785428857042,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,9 +25,9 @@\n     return this.queryParams()?.['module'] || 'progress';\n   }\n \n   // Active Client Name (Emily Vanguard)\n-  clientName = '';\n+  clientName = 'Jyo';\n \n   // Form Fields - Feedback\n   fbRating = 5;\n   fbMessage = '';\n"
+                },
+                {
+                    "date": 1785428865189,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,9 +25,9 @@\n     return this.queryParams()?.['module'] || 'progress';\n   }\n \n   // Active Client Name (Emily Vanguard)\n-  clientName = 'Jyo';\n+  clientName = 'Priyanka P';\n \n   // Form Fields - Feedback\n   fbRating = 5;\n   fbMessage = '';\n"
+                },
+                {
+                    "date": 1785428935653,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,9 +24,9 @@\n   get activeModule(): string {\n     return this.queryParams()?.['module'] || 'progress';\n   }\n \n-  // Active Client Name (Emily Vanguard)\n+  // Active Client Name (Abhishek S)\n   clientName = 'Priyanka P';\n \n   // Form Fields - Feedback\n   fbRating = 5;\n"
+                },
+                {
+                    "date": 1785428950322,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,16 +25,16 @@\n     return this.queryParams()?.['module'] || 'progress';\n   }\n \n   // Active Client Name (Abhishek S)\n-  clientName = 'Priyanka P';\n+  clientName = 'Abhishek S';\n \n   // Form Fields - Feedback\n   fbRating = 5;\n   fbMessage = '';\n   fbProjectName = 'Vanguard Heights Commercial Tower';\n \n-  // Client Projects (Projects matching Vanguard Realty / Emily Vanguard)\n+  // Client Projects (Projects matching Vanguard Realty / Abhishek S)\n   clientProjects = computed(() => \n     this.projectService.projects().filter(p => p.clientName === 'Vanguard Realty')\n   );\n \n"
+                }
+            ],
+            "date": 1785428842973,
+            "name": "Commit-0",
+            "content": "import { Component, inject, signal, computed } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { ActivatedRoute, RouterModule } from '@angular/router';\nimport { toSignal } from '@angular/core/rxjs-interop';\nimport { ProjectService } from '../../../services/project.service';\nimport { AuthService } from '../../../services/auth.service';\nimport { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';\n\n@Component({\n  selector: 'app-client-dashboard',\n  standalone: true,\n  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent],\n  templateUrl: './dashboard.html',\n  styleUrl: './dashboard.css'\n})\nexport class ClientDashboard {\n  projectService = inject(ProjectService);\n  authService = inject(AuthService);\n  route = inject(ActivatedRoute);\n\n  queryParams = toSignal(this.route.queryParams);\n\n  get activeModule(): string {\n    return this.queryParams()?.['module'] || 'progress';\n  }\n\n  // Active Client Name (Emily Vanguard)\n  clientName = '';\n\n  // Form Fields - Feedback\n  fbRating = 5;\n  fbMessage = '';\n  fbProjectName = 'Vanguard Heights Commercial Tower';\n\n  // Client Projects (Projects matching Vanguard Realty / Emily Vanguard)\n  clientProjects = computed(() => \n    this.projectService.projects().filter(p => p.clientName === 'Vanguard Realty')\n  );\n\n  totalBudget = computed(() => \n    this.clientProjects().reduce((sum, p) => sum + p.budget, 0)\n  );\n\n  totalSpent = computed(() => \n    this.clientProjects().reduce((sum, p) => sum + p.spent, 0)\n  );\n\n  averageProgress = computed(() => {\n    const projs = this.clientProjects();\n    if (projs.length === 0) return 0;\n    return Math.round(projs.reduce((sum, p) => sum + p.progress, 0) / projs.length);\n  });\n\n  // Project Photos corresponding to client projects\n  clientPhotos = computed(() => \n    this.projectService.sitePhotos().filter(photo => \n      this.clientProjects().some(p => p.id === photo.projectId)\n    )\n  );\n\n  // Documents corresponding to client projects\n  clientDocuments = computed(() => \n    this.projectService.documents().filter(doc => \n      this.clientProjects().some(p => p.id === doc.projectId)\n    )\n  );\n\n  // Feedback history from this client\n  clientFeedbacks = computed(() => \n    this.projectService.feedback().filter(fb => fb.clientName === this.clientName)\n  );\n\n  submitFeedback() {\n    if (!this.fbMessage) {\n      alert('Feedback message cannot be empty.');\n      return;\n    }\n\n    this.projectService.submitFeedback({\n      clientName: this.clientName,\n      projectName: this.fbProjectName,\n      rating: Number(this.fbRating),\n      message: this.fbMessage\n    });\n\n    this.fbMessage = ''; // reset\n    alert('Thank you! Your feedback has been submitted to Sarah Miller.');\n  }\n\n  downloadDocument(docName: string) {\n    alert(`Downloading blueprint file: ${docName}. This is a simulated download.`);\n  }\n}\n"
+        }
+    ]
+}

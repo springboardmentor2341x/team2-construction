@@ -1,0 +1,18 @@
+{
+    "sourceFile": "frontend/src/app/pages/worker/dashboard/dashboard.ts",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1785431078278,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1785431078278,
+            "name": "Commit-0",
+            "content": "import { Component, inject, signal, computed } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { ActivatedRoute, RouterModule } from '@angular/router';\nimport { toSignal } from '@angular/core/rxjs-interop';\nimport { ProjectService } from '../../../services/project.service';\nimport { AuthService } from '../../../services/auth.service';\nimport { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';\n\n@Component({\n  selector: 'app-worker-dashboard',\n  standalone: true,\n  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent],\n  templateUrl: './dashboard.html',\n  styleUrl: './dashboard.css'\n})\nexport class WorkerDashboard {\n  projectService = inject(ProjectService);\n  authService = inject(AuthService);\n  route = inject(ActivatedRoute);\n\n  queryParams = toSignal(this.route.queryParams);\n\n  get activeModule(): string {\n    return this.queryParams()?.['module'] || 'attendance';\n  }\n\n  // Clock In / Out simulation state\n  isClockedIn = signal(false);\n  clockInTime = signal<string | null>(null);\n\n  // Form Fields - Daily Status Comment\n  statusComment = '';\n\n  // Filter tasks assigned to this worker (David Smith)\n  workerName = 'Jyoti S';\n\n  workerTasks = computed(() => \n    this.projectService.workPackages().filter(wp => wp.assignedTo === this.workerName)\n  );\n\n  // Filter payslips for this worker (David Smith's id is WF-01)\n  workerPayslips = computed(() => \n    this.projectService.payslips().filter(pay => pay.workerId === 'WF-01')\n  );\n\n  toggleClock() {\n    if (!this.isClockedIn()) {\n      this.isClockedIn.set(true);\n      const now = new Date();\n      this.clockInTime.set(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));\n      alert('Clocked In successfully! Your punch time has been logged.');\n    } else {\n      this.isClockedIn.set(false);\n      this.clockInTime.set(null);\n      alert('Clocked Out successfully! Your total hours have been calculated.');\n    }\n  }\n\n  submitStatusReport() {\n    if (!this.statusComment) {\n      alert('Please specify your daily work status summary.');\n      return;\n    }\n\n    // Simulate appending to the Daily Log\n    this.projectService.addDailyLog({\n      projectId: 'P-101',\n      date: new Date().toISOString().split('T')[0],\n      workDone: `Workforce Status Update [${this.workerName}]: ${this.statusComment}`,\n      weather: 'Cloudy, 22°C',\n      siteEngineer: 'Alex Chen',\n      materialsUsed: []\n    });\n\n    this.statusComment = '';\n    alert('Daily status update filed to Site Engineer!');\n  }\n\n  updateTaskStatus(wpId: string, status: 'Pending' | 'In Progress' | 'Completed') {\n    const progress = status === 'Completed' ? 100 : (status === 'In Progress' ? 50 : 0);\n    this.projectService.updateWorkPackageStatus(wpId, progress, status);\n    alert(`Task status updated to ${status}.`);\n  }\n}\n"
+        }
+    ]
+}

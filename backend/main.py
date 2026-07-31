@@ -103,12 +103,12 @@ def startup_event():
         # Users (Password: password123)
         pwd = get_password_hash("password123")
         users = [
-            User(id="u1", email="admin@buildtrack.com", password_hash=pwd, name="John Admin", role_id="r1", company="BuildTrack Corp", phone="+1 555-010-0000"),
-            User(id="u2", email="pm@buildtrack.com", password_hash=pwd, name="Sarah Miller", role_id="r2", company="Apex Builders", phone="+1 555-010-0001"),
-            User(id="u3", email="engineer@buildtrack.com", password_hash=pwd, name="Alex Chen", role_id="r3", company="Apex Builders", phone="+1 555-010-0002"),
-            User(id="u4", email="contractor@buildtrack.com", password_hash=pwd, name="Marcus Vance", role_id="r4", company="Vance Concrete Ltd", phone="+1 555-010-0003"),
-            User(id="u5", email="worker@buildtrack.com", password_hash=pwd, name="David Smith", role_id="r5", company="Vance Concrete Ltd", phone="+1 555-010-0004"),
-            User(id="u6", email="client@buildtrack.com", password_hash=pwd, name="Emily Vanguard", role_id="r6", company="Vanguard Realty", phone="+1 555-010-0005")
+            User(id="u1", email="admin@buildtrack.com", password_hash=pwd, name="Usha Admin", role_id="r1", company="BuildTrack Corp", phone="+1 555-010-0000"),
+            User(id="u2", email="pm@buildtrack.com", password_hash=pwd, name="Shradha S", role_id="r2", company="Apex Builders", phone="+1 555-010-0001"),
+            User(id="u3", email="engineer@buildtrack.com", password_hash=pwd, name="Sathvik S", role_id="r3", company="Apex Builders", phone="+1 555-010-0002"),
+            User(id="u4", email="contractor@buildtrack.com", password_hash=pwd, name="Gaurav K", role_id="r4", company="Vance Concrete Ltd", phone="+1 555-010-0003"),
+            User(id="u5", email="worker@buildtrack.com", password_hash=pwd, name="Jyoti S", role_id="r5", company="Vance Concrete Ltd", phone="+1 555-010-0004"),
+            User(id="u6", email="client@buildtrack.com", password_hash=pwd, name="Abhishek S", role_id="r6", company="Vanguard Realty", phone="+1 555-010-0005")
         ]
         db.add_all(users)
         db.flush()
@@ -190,8 +190,8 @@ def startup_event():
         db.add(SitePhoto(id="PH-1", project_id="P-101", url="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=500", caption="Framing status", uploaded_by_id="u3"))
         db.add(IssueReport(id="ISS-01", project_id="P-101", title="Leakage basement Retaining wall", description="Concrete waterproofing injection required.", severity="High", status="Open", reported_by_id="u3"))
         db.add(WorkerPayslip(id="PAY-001", worker_id="w1", month="June 2026", basic_salary=3200, overtime_pay=450, deductions=280, net_pay=3370, status="Paid", payment_date=datetime.datetime.utcnow()))
-        db.add(FeedbackMessage(id="FB-01", project_id="P-101", client_name="Emily Vanguard", rating=4, message="Progress is great!", date=datetime.datetime.utcnow()))
-        db.add(ProjectDocument(id="DOC-01", project_id="P-101", name="Framing_Blueprints.pdf", size="14.2 MB", type="pdf", uploaded_by="Sarah Miller"))
+        db.add(FeedbackMessage(id="FB-01", project_id="P-101", client_name="Abhishek S", rating=4, message="Progress is great!", date=datetime.datetime.utcnow()))
+        db.add(ProjectDocument(id="DOC-01", project_id="P-101", name="Framing_Blueprints.pdf", size="14.2 MB", type="pdf", uploaded_by="Shradha S"))
         
         db.commit()
         print("Database seeded successfully with SQLAlchemy models!")
@@ -200,3 +200,5 @@ def startup_event():
         print(f"Error seeding database: {e}")
     finally:
         db.close()
+
+ 

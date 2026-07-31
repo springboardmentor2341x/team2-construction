@@ -29,12 +29,12 @@ export class AdministratorDashboard {
 
   // Administrators custom user registry state (for role updates)
   usersRegistry = signal<User[]>([
-    { id: '1', email: 'admin@buildtrack.com', name: 'John Admin', role: 'admin', company: 'BuildTrack Corp' },
-    { id: '2', email: 'pm@buildtrack.com', name: 'Sarah Miller', role: 'project_manager', company: 'Apex Builders' },
-    { id: '3', email: 'engineer@buildtrack.com', name: 'Alex Chen', role: 'site_engineer', company: 'Apex Builders' },
-    { id: '4', email: 'contractor@buildtrack.com', name: 'Marcus Vance', role: 'contractor', company: 'Vance Concrete Ltd' },
-    { id: '5', email: 'worker@buildtrack.com', name: 'David Smith', role: 'worker', company: 'Vance Concrete Ltd' },
-    { id: '6', email: 'client@buildtrack.com', name: 'Emily Vanguard', role: 'client', company: 'Vanguard Realty' }
+    { id: '1', email: 'admin@buildtrack.com', name: 'Usha Admin', role: 'admin', company: 'BuildTrack Corp' },
+    { id: '2', email: 'pm@buildtrack.com', name: 'Shradha S', role: 'project_manager', company: 'Apex Builders' },
+    { id: '3', email: 'engineer@buildtrack.com', name: 'Sathvik S', role: 'site_engineer', company: 'Apex Builders' },
+    { id: '4', email: 'contractor@buildtrack.com', name: 'Gaurav K', role: 'contractor', company: 'Vance Concrete Ltd' },
+    { id: '5', email: 'worker@buildtrack.com', name: 'Jyoti S', role: 'worker', company: 'Vance Concrete Ltd' },
+    { id: '6', email: 'client@buildtrack.com', name: 'Abhishek S', role: 'client', company: 'Vanguard Realty' }
   ]);
 
   // Form Fields - User Management
@@ -48,7 +48,7 @@ export class AdministratorDashboard {
   newProjLocation = '';
   newProjClient = '';
   newProjBudget = 1000000;
-  newProjManager = 'Sarah Miller';
+  newProjManager = 'Shireen F';
   newProjDesc = '';
 
   // Form Fields - System Broadcast

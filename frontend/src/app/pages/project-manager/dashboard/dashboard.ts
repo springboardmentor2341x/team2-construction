@@ -24,9 +24,9 @@ export class ProjectManagerDashboard {
     return this.queryParams()?.['module'] || 'projects';
   }
 
-  // Filter projects managed by this user (Sarah Miller)
+  // Filter projects managed by this user (Shradha S)
   managedProjects = computed(() => 
-    this.projectService.projects().filter(p => p.manager === 'Sarah Miller')
+    this.projectService.projects().filter(p => p.manager === 'Shradha S')
   );
 
   totalBudget = computed(() => 

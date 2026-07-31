@@ -32,14 +32,14 @@ export class WorkerDashboard {
   // Form Fields - Daily Status Comment
   statusComment = '';
 
-  // Filter tasks assigned to this worker (David Smith)
-  workerName = 'David Smith';
+  // Filter tasks assigned to this worker (Jyoti S)
+  workerName = 'Jyoti S';
 
   workerTasks = computed(() => 
     this.projectService.workPackages().filter(wp => wp.assignedTo === this.workerName)
   );
 
-  // Filter payslips for this worker (David Smith's id is WF-01)
+  // Filter payslips for this worker (Jyoti S's id is WF-01)
   workerPayslips = computed(() => 
     this.projectService.payslips().filter(pay => pay.workerId === 'WF-01')
   );
@@ -69,7 +69,7 @@ export class WorkerDashboard {
       date: new Date().toISOString().split('T')[0],
       workDone: `Workforce Status Update [${this.workerName}]: ${this.statusComment}`,
       weather: 'Cloudy, 22°C',
-      siteEngineer: 'Alex Chen',
+      siteEngineer: 'Sathvik S',
       materialsUsed: []
     });
 

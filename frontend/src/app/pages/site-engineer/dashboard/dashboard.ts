@@ -93,7 +93,7 @@ export class SiteEngineerDashboard {
       date: new Date().toISOString().split('T')[0],
       workDone: this.logWorkDone,
       weather: this.logWeather,
-      siteEngineer: 'Alex Chen',
+      siteEngineer: 'Sathvik S',
       materialsUsed: this.tempMaterialsUsed.map(m => ({ materialName: m.materialName, quantity: m.quantity, unit: m.unit }))
     });
 
@@ -113,7 +113,7 @@ export class SiteEngineerDashboard {
       projectId: this.selectedProjectId,
       url: this.photoUrl,
       caption: this.photoCaption,
-      uploadedBy: 'Alex Chen'
+      uploadedBy: 'Sathvik S'
     });
 
     // Reset Form
@@ -134,7 +134,7 @@ export class SiteEngineerDashboard {
       title: this.issueTitle,
       description: this.issueDescription,
       severity: this.issueSeverity,
-      reportedBy: 'Alex Chen'
+      reportedBy: 'Sathvik S'
     });
 
     // Reset Form
