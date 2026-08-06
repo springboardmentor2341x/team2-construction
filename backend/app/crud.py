@@ -1,27 +1,57 @@
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.auth import hash_password
+
+# ==========================
+# PROJECT CRUD
+# ==========================
+
+def create_project(db: Session, project: schemas.ProjectCreate):
+    db_project = models.Project(**project.model_dump())
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    return db_project
 
 
+def get_projects(db: Session):
+    return db.query(models.Project).all()
+
+
+def update_project(db: Session, project_id: int, project: schemas.ProjectCreate):
+    db_project = db.query(models.Project).filter(models.Project.id == project_id).first()
+
+    if not db_project:
+        return None
+
+    for key, value in project.model_dump().items():
+        setattr(db_project, key, value)
+
+    db.commit()
+    db.refresh(db_project)
+    return db_project
+
+
+def delete_project(db: Session, project_id: int):
+    db_project = db.query(models.Project).filter(models.Project.id == project_id).first()
+
+    if db_project:
+        db.delete(db_project)
+        db.commit()
 # ==========================
 # USER CRUD
 # ==========================
 
 def create_user(db: Session, user: schemas.UserCreate):
-
-    db_user = models.User(
-        full_name=user.full_name,
-        email=user.email,
-        phone=user.phone,
-        password=user.password,
-        role=user.role
-    )
-
+    user_data = user.model_dump()
+    user_data["password"] = hash_password(user_data["password"])
+    db_user = models.User(**user_data)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-
     return db_user
-
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.User).filter(models.User.email == email).first()
 
 def get_users(db: Session):
     return db.query(models.User).all()
@@ -39,6 +69,79 @@ def create_milestone(db: Session, milestone: schemas.MilestoneCreate):
 
 def get_milestones(db: Session):
     return db.query(models.Milestone).all()
+# ==========================
+# PROJECT SCHEDULE CRUD
+# ==========================
+
+def create_project_schedule(
+    db: Session,
+    schedule: schemas.ProjectScheduleCreate
+):
+    db_schedule = models.ProjectSchedule(**schedule.model_dump())
+    db.add(db_schedule)
+    db.commit()
+    db.refresh(db_schedule)
+    return db_schedule
+
+
+def get_project_schedules(db: Session):
+    return db.query(models.ProjectSchedule).all()
+# ==========================
+# SITE ENGINEER ASSIGNMENT CRUD
+# ==========================
+
+def create_site_engineer_assignment(
+    db: Session,
+    assignment: schemas.SiteEngineerAssignmentCreate
+):
+    db_assignment = models.SiteEngineerAssignment(**assignment.model_dump())
+    db.add(db_assignment)
+    db.commit()
+    db.refresh(db_assignment)
+    return db_assignment
+
+
+def get_site_engineer_assignments(db: Session):
+    return db.query(models.SiteEngineerAssignment).all()
+# ==========================
+# CONTRACTOR ASSIGNMENT CRUD
+# ==========================
+
+def create_contractor_assignment(
+    db: Session,
+    assignment: schemas.ContractorAssignmentCreate
+):
+    db_assignment = models.ContractorAssignment(**assignment.model_dump())
+    db.add(db_assignment)
+    db.commit()
+    db.refresh(db_assignment)
+    return db_assignment
+
+
+def get_contractor_assignments(db: Session):
+    return db.query(models.ContractorAssignment).all()
+# ==========================
+# PROJECT STATUS
+# ==========================
+
+def update_project_status(
+    db: Session,
+    project_id: int,
+    status: str
+):
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id
+    ).first()
+
+    if not project:
+        return None
+
+    project.status = status
+
+    db.commit()
+    db.refresh(project)
+
+    return project
 # ==========================
 # RESOURCE CRUD
 # ==========================

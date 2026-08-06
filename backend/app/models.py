@@ -24,18 +24,29 @@ class User(Base):
 # ==========================
 # PROJECTS
 # ==========================
+
 class Project(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True)
+
+    project_code = Column(String(20), unique=True, nullable=False)
     name = Column(String(150), nullable=False)
+    category = Column(String(100), nullable=False)
+    client_name = Column(String(150), nullable=False)
+
     location = Column(String(200))
-    budget = Column(Float)
-    start_date = Column(Date)
-    end_date = Column(Date)
-    status = Column(String(50), default="Planning")
     description = Column(Text)
 
+    budget = Column(Float)
+
+    priority = Column(String(20), default="Medium")
+    status = Column(String(50), default="Planning")
+
+    start_date = Column(Date)
+    expected_completion_date = Column(Date)
+
+    project_manager = Column(String(150), nullable=True)
 
 # ==========================
 # PROJECT MILESTONES
@@ -44,13 +55,65 @@ class Milestone(Base):
     __tablename__ = "milestones"
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"))
-    title = Column(String(150))
+
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    title = Column(String(150), nullable=False)
     description = Column(Text)
-    due_date = Column(Date)
+
+    planned_date = Column(Date)
+    actual_completion_date = Column(Date, nullable=True)
+
     status = Column(String(50), default="Pending")
+# ==========================
+# PROJECT SCHEDULE
+# ==========================
+class ProjectSchedule(Base):
+    __tablename__ = "project_schedules"
 
+    id = Column(Integer, primary_key=True, index=True)
 
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    task_name = Column(String(150), nullable=False)
+    description = Column(Text)
+
+    start_date = Column(Date)
+    end_date = Column(Date)
+
+    status = Column(String(50), default="Pending")
+# ==========================
+# SITE ENGINEER ASSIGNMENT
+# ==========================
+
+class SiteEngineerAssignment(Base):
+    __tablename__ = "site_engineer_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    engineer_name = Column(String(150), nullable=False)
+
+    assigned_date = Column(Date)
+
+    status = Column(String(50), default="Assigned")
+# ==========================
+# CONTRACTOR ASSIGNMENT
+# ==========================
+class ContractorAssignment(Base):
+    __tablename__ = "contractor_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    contractor_name = Column(String(150), nullable=False)
+    specialization = Column(String(100), nullable=False)
+
+    assigned_date = Column(Date)
+
+    status = Column(String(50), default="Assigned")
 # ==========================
 # WORKERS
 # ==========================

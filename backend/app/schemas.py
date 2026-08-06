@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import date
 
 
 # ==========================
@@ -14,6 +15,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    email: EmailStr
     password: str
 
 
@@ -30,9 +32,18 @@ class UserResponse(UserBase):
 # ==========================
 
 class ProjectBase(BaseModel):
+    project_code: str
     name: str
+    category: str
+    client_name: str
     location: str
     description: Optional[str] = None
+    budget: float
+    priority: str
+    status: str = "Planning"
+    start_date: date
+    expected_completion_date: date
+    project_manager: Optional[str] = None
 
 
 class ProjectCreate(ProjectBase):
@@ -44,7 +55,6 @@ class Project(ProjectBase):
 
     class Config:
         from_attributes = True
-from datetime import date
 
 # ==========================
 # MILESTONE SCHEMAS
@@ -53,8 +63,9 @@ from datetime import date
 class MilestoneBase(BaseModel):
     project_id: int
     title: str
-    description: str | None = None
-    due_date: date
+    description: Optional[str] = None
+    planned_date: date
+    actual_completion_date: Optional[date] = None
     status: str = "Pending"
 
 
@@ -67,7 +78,69 @@ class Milestone(MilestoneBase):
 
     class Config:
         from_attributes = True
+# ==========================
+# PROJECT SCHEDULE SCHEMAS
+# ==========================
 
+class ProjectScheduleBase(BaseModel):
+    project_id: int
+    task_name: str
+    description: Optional[str] = None
+    start_date: date
+    end_date: date
+    status: str = "Pending"
+
+
+class ProjectScheduleCreate(ProjectScheduleBase):
+    pass
+
+
+class ProjectSchedule(ProjectScheduleBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# SITE ENGINEER ASSIGNMENT SCHEMAS
+# ==========================
+
+class SiteEngineerAssignmentBase(BaseModel):
+    project_id: int
+    engineer_name: str
+    assigned_date: date
+    status: str = "Assigned"
+
+
+class SiteEngineerAssignmentCreate(SiteEngineerAssignmentBase):
+    pass
+
+
+class SiteEngineerAssignment(SiteEngineerAssignmentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# CONTRACTOR ASSIGNMENT SCHEMAS
+# ==========================
+
+class ContractorAssignmentBase(BaseModel):
+    project_id: int
+    contractor_name: str
+    specialization: str
+    assigned_date: date
+    status: str = "Assigned"
+
+
+class ContractorAssignmentCreate(ContractorAssignmentBase):
+    pass
+
+
+class ContractorAssignment(ContractorAssignmentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
 # ==========================
 # RESOURCE SCHEMAS
 # ==========================
@@ -223,3 +296,20 @@ class Report(ReportBase):
 
     class Config:
         from_attributes = True
+
+# ==========================
+# AUTH SCHEMAS
+# ==========================
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class TokenData(BaseModel):
+    email: str | None = None

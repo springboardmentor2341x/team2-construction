@@ -1,8 +1,10 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends,HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
-from app import models, schemas, crud
+from app import schemas, crud
+from app.routers import user
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -14,21 +16,44 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Home Endpoint
+# ==========================
+# CORS
+# ==========================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include User Router
+app.include_router(user.router)
+
+# ==========================
+# HOME
+# ==========================
+
 @app.get("/")
 def home():
     return {
         "message": "Welcome to Construction Project Management API"
     }
 
-# Health Check Endpoint
+
 @app.get("/health")
 def health():
     return {
         "status": "Running"
     }
 
-# Create Project
+# ==========================
+# PROJECTS
+# ==========================
+
 @app.post("/projects", response_model=schemas.Project)
 def create_project(
     project: schemas.ProjectCreate,
@@ -36,10 +61,12 @@ def create_project(
 ):
     return crud.create_project(db=db, project=project)
 
-# Get All Projects
+
 @app.get("/projects", response_model=list[schemas.Project])
 def get_projects(db: Session = Depends(get_db)):
     return crud.get_projects(db)
+
+
 @app.put("/projects/{project_id}", response_model=schemas.Project)
 def update_project(
     project_id: int,
@@ -47,6 +74,8 @@ def update_project(
     db: Session = Depends(get_db)
 ):
     return crud.update_project(db, project_id, project)
+
+
 @app.delete("/projects/{project_id}")
 def delete_project(
     project_id: int,
@@ -54,8 +83,9 @@ def delete_project(
 ):
     crud.delete_project(db, project_id)
     return {"message": "Project deleted successfully"}
+
 # ==========================
-# USER APIs
+# USERS
 # ==========================
 
 @app.post("/users", response_model=schemas.UserResponse)
@@ -67,12 +97,11 @@ def create_user(
 
 
 @app.get("/users", response_model=list[schemas.UserResponse])
-def get_users(
-    db: Session = Depends(get_db)
-):
+def get_users(db: Session = Depends(get_db)):
     return crud.get_users(db)
+
 # ==========================
-# MILESTONE ENDPOINTS
+# MILESTONES
 # ==========================
 
 @app.post("/milestones", response_model=schemas.Milestone)
@@ -81,127 +110,85 @@ def create_milestone(
     db: Session = Depends(get_db)
 ):
     return crud.create_milestone(db=db, milestone=milestone)
-
-
-@app.get("/milestones", response_model=list[schemas.Milestone])
-def get_milestones(db: Session = Depends(get_db)):
-    return crud.get_milestones(db)
 # ==========================
-# RESOURCE ENDPOINTS
+# PROJECT SCHEDULE
 # ==========================
 
-@app.post("/resources", response_model=schemas.Resource)
-def create_resource(
-    resource: schemas.ResourceCreate,
+@app.post("/project-schedules", response_model=schemas.ProjectSchedule)
+def create_project_schedule(
+    schedule: schemas.ProjectScheduleCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_resource(db, resource)
+    return crud.create_project_schedule(db, schedule)
 
 
-@app.get("/resources", response_model=list[schemas.Resource])
-def get_resources(
+@app.get("/project-schedules", response_model=list[schemas.ProjectSchedule])
+def get_project_schedules(
     db: Session = Depends(get_db)
 ):
-    return crud.get_resources(db)
+    return crud.get_project_schedules(db)
 # ==========================
-# INVENTORY ENDPOINTS
-# ==========================
-
-@app.post("/inventory", response_model=schemas.Inventory)
-def create_inventory(
-    inventory: schemas.InventoryCreate,
-    db: Session = Depends(get_db)
-):
-    return crud.create_inventory(db, inventory)
-
-
-@app.get("/inventory", response_model=list[schemas.Inventory])
-def get_inventory(
-    db: Session = Depends(get_db)
-):
-    return crud.get_inventory(db)
-# ==========================
-# WORKER ENDPOINTS
+# SITE ENGINEER ASSIGNMENT
 # ==========================
 
-@app.post("/workers", response_model=schemas.Worker)
-def create_worker(
-    worker: schemas.WorkerCreate,
+@app.post(
+    "/site-engineers",
+    response_model=schemas.SiteEngineerAssignment
+)
+def create_site_engineer_assignment(
+    assignment: schemas.SiteEngineerAssignmentCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_worker(db, worker)
+    return crud.create_site_engineer_assignment(db, assignment)
 
 
-@app.get("/workers", response_model=list[schemas.Worker])
-def get_workers(
+@app.get(
+    "/site-engineers",
+    response_model=list[schemas.SiteEngineerAssignment]
+)
+def get_site_engineer_assignments(
     db: Session = Depends(get_db)
 ):
-    return crud.get_workers(db)
+    return crud.get_site_engineer_assignments(db)
 # ==========================
-# ATTENDANCE ENDPOINTS
-# ==========================
-
-@app.post("/attendance", response_model=schemas.Attendance)
-def create_attendance(
-    attendance: schemas.AttendanceCreate,
-    db: Session = Depends(get_db)
-):
-    return crud.create_attendance(db, attendance)
-
-
-@app.get("/attendance", response_model=list[schemas.Attendance])
-def get_attendance(
-    db: Session = Depends(get_db)
-):
-    return crud.get_attendance(db)
-# ==========================
-# PROCUREMENT ENDPOINTS
+# CONTRACTOR ASSIGNMENT
 # ==========================
 
-@app.post("/procurements", response_model=schemas.Procurement)
-def create_procurement(
-    procurement: schemas.ProcurementCreate,
+@app.post(
+    "/contractors",
+    response_model=schemas.ContractorAssignment
+)
+def create_contractor_assignment(
+    assignment: schemas.ContractorAssignmentCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_procurement(db, procurement)
+    return crud.create_contractor_assignment(db, assignment)
 
 
-@app.get("/procurements", response_model=list[schemas.Procurement])
-def get_procurements(
+@app.get(
+    "/contractors",
+    response_model=list[schemas.ContractorAssignment]
+)
+def get_contractor_assignments(
     db: Session = Depends(get_db)
 ):
-    return crud.get_procurements(db)
+    return crud.get_contractor_assignments(db)
 # ==========================
-# NOTIFICATION ENDPOINTS
-# ==========================
-
-@app.post("/notifications", response_model=schemas.Notification)
-def create_notification(
-    notification: schemas.NotificationCreate,
-    db: Session = Depends(get_db)
-):
-    return crud.create_notification(db, notification)
-
-
-@app.get("/notifications", response_model=list[schemas.Notification])
-def get_notifications(
-    db: Session = Depends(get_db)
-):
-    return crud.get_notifications(db)
-# ==========================
-# REPORT ENDPOINTS
+# PROJECT STATUS UPDATE
 # ==========================
 
-@app.post("/reports", response_model=schemas.Report)
-def create_report(
-    report: schemas.ReportCreate,
+@app.put("/projects/{project_id}/status", response_model=schemas.Project)
+def update_project_status(
+    project_id: int,
+    status: str,
     db: Session = Depends(get_db)
 ):
-    return crud.create_report(db, report)
+    project = crud.update_project_status(db, project_id, status)
 
+    if project is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
 
-@app.get("/reports", response_model=list[schemas.Report])
-def get_reports(
-    db: Session = Depends(get_db)
-):
-    return crud.get_reports(db)
+    return project
