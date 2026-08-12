@@ -41,9 +41,12 @@ export class SidebarComponent {
           { module: 'overview', label: 'Overview', icon: 'bi-grid-fill' },
           { module: 'users', label: 'Users', icon: 'bi-people-fill' },
           { module: 'projects', label: 'Projects', icon: 'bi-building-fill' },
+          { module: 'resources', label: 'Equipment Registry', icon: 'bi-truck' },
+          { module: 'allocations', label: 'Equipment Allocations', icon: 'bi-calendar2-range' },
+          { module: 'maintenance', label: 'Maintenance Hub', icon: 'bi-tools' },
           { module: 'workforce', label: 'Workforce', icon: 'bi-person-badge' },
           { module: 'contractors', label: 'Contractors', icon: 'bi-shield-check' },
-          { module: 'resources', label: 'Inventory', icon: 'bi-box-seam-fill' },
+          { module: 'inventory', label: 'Material Inventory', icon: 'bi-box-seam-fill' },
           { module: 'budget', label: 'Budget & Expenses', icon: 'bi-wallet-fill' },
           { module: 'reports', label: 'Reports', icon: 'bi-graph-up-arrow' },
           { module: 'notifications', label: 'Notifications', icon: 'bi-chat-dots-fill' },
@@ -52,14 +55,28 @@ export class SidebarComponent {
       case 'project_manager':
         return [
           { module: 'projects', label: 'Assigned Projects', icon: 'bi-building-fill' },
+          { module: 'resources', label: 'Equipment Catalog', icon: 'bi-truck' },
+          { module: 'allocations', label: 'Equipment Allocation', icon: 'bi-calendar2-range' },
+          { module: 'tracking', label: 'Machinery Tracking', icon: 'bi-geo-alt-fill' },
+          { module: 'utilization', label: 'Resource Utilization', icon: 'bi-speedometer2' },
+          { module: 'maintenance', label: 'Maintenance Hub', icon: 'bi-tools' },
+          { module: 'milestones', label: 'Milestones & Progress', icon: 'bi-flag-fill' },
+          { module: 'daily_feed', label: 'Daily Reports Feed', icon: 'bi-journal-check' },
+          { module: 'delays', label: 'Active Delays', icon: 'bi-hourglass-split' },
+          { module: 'activities', label: 'Site Activities', icon: 'bi-clipboard2-data-fill' },
+          { module: 'weekly', label: 'Weekly Analytics', icon: 'bi-calendar-week-fill' },
           { module: 'team', label: 'Team Members', icon: 'bi-people-fill' },
-          { module: 'timeline', label: 'Timeline', icon: 'bi-calendar-range' },
           { module: 'budget', label: 'Budget Progress', icon: 'bi-cash-coin' },
           { module: 'reports', label: 'Reports', icon: 'bi-file-earmark-bar-graph' }
         ];
       case 'site_engineer':
         return [
           { module: 'progress', label: 'Daily Progress', icon: 'bi-calendar-check-fill' },
+          { module: 'machinery_usage', label: 'Machinery Usage', icon: 'bi-speedometer2' },
+          { module: 'weekly', label: 'Weekly Summary', icon: 'bi-calendar-week-fill' },
+          { module: 'milestones', label: 'Milestones', icon: 'bi-flag-fill' },
+          { module: 'delays', label: 'Delay Tracking', icon: 'bi-hourglass-split' },
+          { module: 'activities', label: 'Site Activity Logs', icon: 'bi-clipboard2-data-fill' },
           { module: 'photos', label: 'Site Photos', icon: 'bi-images' },
           { module: 'attendance', label: 'Attendance Logs', icon: 'bi-person-check-fill' },
           { module: 'materials', label: 'Materials Used', icon: 'bi-bricks' },

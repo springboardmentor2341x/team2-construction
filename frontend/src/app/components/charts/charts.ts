@@ -15,6 +15,12 @@ interface BarItem {
   color: string;
 }
 
+interface GroupedBarGroup {
+  label: string;
+  bar1: { heightPercent: number; value: number; color: string };
+  bar2: { heightPercent: number; value: number; color: string };
+}
+
 interface DonutSegment {
   dashArray: string;
   dashOffset: number;
@@ -33,10 +39,13 @@ interface DonutSegment {
   styleUrl: './charts.css'
 })
 export class ChartsComponent implements OnInit, OnChanges {
-  @Input() type: 'line' | 'bar' | 'donut' = 'line';
+  @Input() type: 'line' | 'bar' | 'donut' | 'grouped-bar' = 'line';
   @Input() title: string = '';
   @Input() labels: string[] = [];
   @Input() data: number[] = [];
+  @Input() data2: number[] = [];
+  @Input() dataLabel: string = 'Committed';
+  @Input() data2Label: string = 'Spent';
   @Input() customColors: string[] = [];
 
   // Default theme colors
@@ -48,6 +57,7 @@ export class ChartsComponent implements OnInit, OnChanges {
   areaD: string = '';
   
   bars: BarItem[] = [];
+  groupedBars: GroupedBarGroup[] = [];
   
   donutSegments: DonutSegment[] = [];
   donutTotal: number = 0;
@@ -64,7 +74,7 @@ export class ChartsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['data'] || changes['labels'] || changes['type']) {
+    if (changes['data'] || changes['data2'] || changes['labels'] || changes['type']) {
       this.processData();
     }
   }
@@ -76,6 +86,8 @@ export class ChartsComponent implements OnInit, OnChanges {
       this.generateLineChart();
     } else if (this.type === 'bar') {
       this.generateBarChart();
+    } else if (this.type === 'grouped-bar') {
+      this.generateGroupedBarChart();
     } else if (this.type === 'donut') {
       this.generateDonutChart();
     }
@@ -130,6 +142,26 @@ export class ChartsComponent implements OnInit, OnChanges {
         color
       };
     });
+  }
+
+  generateGroupedBarChart() {
+    const allVals = [...this.data, ...(this.data2 || [])];
+    const maxVal = Math.max(...allVals) || 1;
+    const color1 = this.customColors[0] || '#0d6efd';
+    const color2 = this.customColors[1] || '#20c997';
+    this.groupedBars = this.labels.map((lbl, i) => ({
+      label: lbl,
+      bar1: {
+        heightPercent: Math.max(6, ((this.data[i] || 0) / maxVal) * 100),
+        value: this.data[i] || 0,
+        color: color1
+      },
+      bar2: {
+        heightPercent: Math.max(6, ((this.data2[i] || 0) / maxVal) * 100),
+        value: this.data2[i] || 0,
+        color: color2
+      }
+    }));
   }
 
   generateDonutChart() {

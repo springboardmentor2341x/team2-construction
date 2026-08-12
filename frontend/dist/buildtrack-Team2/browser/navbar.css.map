@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/components/navbar/navbar.css"],
+  "sourcesContent": [".navbar {\n  height: 70px;\n  z-index: 1040;\n}\n\n.btn-light {\n  background-color: #f8f9fa;\n  transition: all 0.2s ease-in-out;\n}\n\n.btn-light:hover, .btn-light.active {\n  background-color: #e9ecef;\n  transform: scale(1.05);\n}\n\n.max-height-300 {\n  max-height: 300px;\n}\n\n.dropdown-menu {\n  animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);\n  display: block;\n}\n\n.dropdown-item {\n  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;\n  font-size: 14px;\n}\n\n.dropdown-item:hover {\n  background-color: #f1f3f9;\n}\n\n@keyframes dropdownFadeIn {\n  from {\n    opacity: 0;\n    transform: translateY(10px) scale(0.95);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n"],
+  "mappings": ";AAAA,CAAA;AACE,UAAA;AACA,WAAA;AACF;AAEA,CAAA;AACE,oBAAA;AACA,cAAA,IAAA,KAAA;AACF;AAEA,CALA,SAKA;AAAA,CALA,SAKA,CAAA;AACE,oBAAA;AACA,aAAA,MAAA;AACF;AAEA,CAAA;AACE,cAAA;AACF;AAEA,CAAA;AACE,aAAA,eAAA,KAAA,aAAA,IAAA,EAAA,CAAA,EAAA,GAAA,EAAA;AACA,WAAA;AACF;AAEA,CAAA;AACE,cAAA,iBAAA,MAAA,WAAA,EAAA,MAAA,MAAA;AACA,aAAA;AACF;AAEA,CALA,aAKA;AACE,oBAAA;AACF;AAEA,WAbE;AAcA;AACE,aAAA;AACA,eAAA,WAAA,MAAA,MAAA;AACF;AACA;AACE,aAAA;AACA,eAAA,WAAA,GAAA,MAAA;AACF;AACF;",
+  "names": []
+}

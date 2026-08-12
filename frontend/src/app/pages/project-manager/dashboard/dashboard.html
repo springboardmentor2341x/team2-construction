@@ -1,14 +1,14 @@
 <div class="container-fluid p-0">
   
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
       <h2 class="fw-bold text-dark mb-1">Project Manager Workspace</h2>
-      <p class="text-muted mb-0">Shradha S &bull; Track project lifecycles, milestones, budgets, and workforce allocations.</p>
+      <p class="text-muted mb-0">Shradha S &bull; Construction Lifecycle, Resource Allocation, Machinery Tracking &amp; Maintenance</p>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-primary d-flex align-items-center gap-2" (click)="downloadReport('pdf', 'Overview_Report')">
-        <i class="bi bi-file-earmark-pdf"></i> Export Overview
+      <button class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm" (click)="downloadReport('pdf', 'Module4_Equipment_Resource_Report')">
+        <i class="bi bi-file-earmark-pdf-fill"></i> Export Resource Ledger
       </button>
     </div>
   </div>
@@ -19,48 +19,699 @@
       <app-dashboard-card title="Managed Projects" [value]="managedProjects().length" icon="bi-briefcase-fill" colorType="primary"></app-dashboard-card>
     </div>
     <div class="col-sm-6 col-lg-3">
-      <app-dashboard-card title="Total Budget Pool" [value]="'$' + (totalBudget() | number:'1.0-0')" icon="bi-wallet2" colorType="success"></app-dashboard-card>
+      <app-dashboard-card title="Total Equipment Pool" [value]="projectService.resources().length" icon="bi-truck" colorType="success" [subtitle]="(projectService.resourceSummary()?.availableCount || 0) + ' Available for Allocation'"></app-dashboard-card>
     </div>
     <div class="col-sm-6 col-lg-3">
-      <app-dashboard-card title="Actual Expenditures" [value]="'$' + (totalSpent() | number:'1.0-0')" icon="bi-cash-stack" colorType="info"></app-dashboard-card>
+      <app-dashboard-card title="Active Site Delays" [value]="managedDelays().length" icon="bi-hourglass-split" colorType="danger" [subtitle]="managedDelays().length + ' Bottlenecks Active'"></app-dashboard-card>
     </div>
     <div class="col-sm-6 col-lg-3">
-      <app-dashboard-card title="Average Completion" [value]="averageProgress() + '%'" icon="bi-percent" colorType="warning" trendValue="+4.2%" trendDirection="up"></app-dashboard-card>
+      <app-dashboard-card title="Avg Resource Utilization" [value]="(projectService.resourceSummary()?.averageUtilization || 0) + '%'" icon="bi-speedometer2" colorType="warning" trendValue="Live Calculated" trendDirection="up"></app-dashboard-card>
     </div>
   </div>
 
-  <!-- Dynamic Views -->
+  <!-- ================================================== -->
+  <!-- MODULE 4: 1. RESOURCE / EQUIPMENT CATALOG VIEW -->
+  <!-- ================================================== -->
+  @if (activeModule === 'resources') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        
+        <!-- Summary KPI Row -->
+        @if (projectService.resourceSummary(); as rs) {
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-lg-2">
+              <div class="p-3 bg-light rounded-3 text-center border">
+                <small class="text-muted fw-semibold d-block mb-1">Total</small>
+                <h4 class="fw-bold text-dark mb-0">{{ rs.totalEquipment }}</h4>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <div class="p-3 bg-success-subtle rounded-3 text-center border border-success-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Available</small>
+                <h4 class="fw-bold text-success mb-0">{{ rs.availableCount }}</h4>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <div class="p-3 bg-primary-subtle rounded-3 text-center border border-primary-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Allocated</small>
+                <h4 class="fw-bold text-primary mb-0">{{ rs.allocatedCount }}</h4>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <div class="p-3 bg-info-subtle rounded-3 text-center border border-info-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Operating</small>
+                <h4 class="fw-bold text-info mb-0">{{ rs.operatingCount }}</h4>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <div class="p-3 bg-warning-subtle rounded-3 text-center border border-warning-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Maintenance</small>
+                <h4 class="fw-bold text-warning mb-0">{{ rs.maintenanceCount }}</h4>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <div class="p-3 bg-secondary-subtle rounded-3 text-center border border-secondary-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Idle</small>
+                <h4 class="fw-bold text-secondary mb-0">{{ rs.idleCount }}</h4>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Filter & Search Toolbar -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-truck text-primary me-2"></i>Construction Machinery &amp; Equipment Registry</h5>
+            <p class="text-muted mb-0 small">Catalog of construction resources, equipment specifications, and live allocation statuses.</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <input type="text" class="form-control form-control-sm w-auto" placeholder="Search equipment, ID, operator..." [(ngModel)]="resourceSearchQuery">
+            <select class="form-select form-select-sm w-auto" [(ngModel)]="resourceFilterCategory">
+              <option value="ALL">All Categories</option>
+              @for (cat of projectService.resourceCategories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+            <select class="form-select form-select-sm w-auto" [(ngModel)]="resourceFilterStatus">
+              <option value="ALL">All Statuses</option>
+              <option value="Available">Available</option>
+              <option value="Allocated">Allocated</option>
+              <option value="Operating">Operating</option>
+              <option value="Idle">Idle</option>
+              <option value="Under Maintenance">Under Maintenance</option>
+              <option value="Out of Service">Out of Service</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Equipment Table -->
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Equipment ID</th>
+                <th>Machinery Name</th>
+                <th>Category</th>
+                <th>Current Project</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Responsible Person</th>
+                <th>Hourly Rate</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (res of filteredResources(); track res.id) {
+                <tr>
+                  <td><span class="badge bg-light text-dark border fw-bold">{{ res.id }}</span></td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ res.name }}</div>
+                    <small class="text-muted" style="font-size: 11px;">Model: {{ res.modelNumber || 'N/A' }}</small>
+                  </td>
+                  <td><span class="badge bg-secondary-subtle text-secondary border">{{ res.categoryName }}</span></td>
+                  <td>{{ res.currentProjectName || 'None (Equipment Yard)' }}</td>
+                  <td><i class="bi bi-geo-alt text-danger me-1"></i>{{ res.currentLocation }}</td>
+                  <td>
+                    <span class="badge"
+                          [class.bg-success]="res.status === 'Available'"
+                          [class.bg-primary]="res.status === 'Allocated'"
+                          [class.bg-info]="res.status === 'Operating'"
+                          [class.bg-secondary]="res.status === 'Idle'"
+                          [class.bg-warning]="res.status === 'Under Maintenance'"
+                          [class.bg-danger]="res.status === 'Out of Service'">
+                      {{ res.status }}
+                    </span>
+                  </td>
+                  <td>{{ res.responsiblePerson }}</td>
+                  <td class="fw-bold">${{ res.hourlyCost }}/hr</td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <button class="btn btn-outline-primary btn-sm py-0.5 px-2 text-xs rounded-pill" (click)="openResourceDetail(res)">
+                        Details
+                      </button>
+                      @if (res.status === 'Available') {
+                        <a [routerLink]="[]" [queryParams]="{module: 'allocations'}" class="btn btn-primary btn-sm py-0.5 px-2 text-xs rounded-pill" (click)="allocResourceId = res.id">
+                          Allocate
+                        </a>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================================================== -->
+  <!-- MODULE 4: 2. EQUIPMENT ALLOCATION VIEW -->
+  <!-- ================================================== -->
+  @if (activeModule === 'allocations') {
+    <div class="row g-4">
+      <div class="col-xl-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-2"><i class="bi bi-calendar2-plus text-primary me-2"></i>Allocate Equipment to Project</h5>
+            <p class="text-muted small mb-3">Assign available construction machinery with automated date conflict prevention.</p>
+            
+            <form (ngSubmit)="submitAllocation()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Target Project *</label>
+                <select class="form-select form-select-sm" name="allocProj" [(ngModel)]="allocProjectId" required>
+                  @for (proj of projectService.projects(); track proj.id) {
+                    <option [value]="proj.id">{{ proj.name }} ({{ proj.id }})</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Equipment / Machinery *</label>
+                <select class="form-select form-select-sm" name="allocRes" [(ngModel)]="allocResourceId" (change)="checkAvailabilityRealtime()" required>
+                  @for (res of projectService.resources(); track res.id) {
+                    <option [value]="res.id">
+                      {{ res.id }} - {{ res.name }} [{{ res.status }}]
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Allocation Date *</label>
+                  <input type="date" name="allocStart" [(ngModel)]="allocStartDate" (change)="checkAvailabilityRealtime()" required class="form-control form-control-sm">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Expected Return *</label>
+                  <input type="date" name="allocEnd" [(ngModel)]="allocEndDate" (change)="checkAvailabilityRealtime()" required class="form-control form-control-sm">
+                </div>
+              </div>
+
+              @if (allocConflictWarning) {
+                <div class="alert alert-danger p-2.5 small mb-3 border-danger-subtle">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ allocConflictWarning }}
+                </div>
+              }
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Responsible Person / Operator *</label>
+                <input type="text" name="allocResp" [(ngModel)]="allocResponsiblePerson" required class="form-control form-control-sm" placeholder="e.g. Gaurav K (Lead Operator)">
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Deployment Notes / Scope</label>
+                <textarea name="allocNotes" [(ngModel)]="allocNotes" rows="2" class="form-control form-control-sm" placeholder="e.g. Foundation excavation and basement tie beam placement"></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                <i class="bi bi-check2-circle me-1"></i> Confirm &amp; Dispatch Equipment
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0">Active &amp; Historical Equipment Allocations</h5>
+              <span class="badge bg-primary px-3 py-1.5 rounded-pill">{{ projectService.resourceAllocations().length }} Total Records</span>
+            </div>
+
+            @if (projectService.resourceAllocations().length === 0) {
+              <div class="p-5 text-center bg-light rounded text-muted">
+                <p class="mb-0">No active equipment allocations found.</p>
+              </div>
+            } @else {
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light text-muted uppercase small">
+                    <tr>
+                      <th>Allocation ID</th>
+                      <th>Equipment</th>
+                      <th>Project</th>
+                      <th>Allocation Period</th>
+                      <th>Responsible Person</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (a of projectService.resourceAllocations(); track a.id) {
+                      <tr>
+                        <td><span class="badge bg-light text-dark border fw-bold">{{ a.id }}</span></td>
+                        <td>
+                          <div class="fw-bold text-dark">{{ a.resourceName }}</div>
+                          <small class="text-muted" style="font-size: 11px;">ID: {{ a.resourceId }} &bull; {{ a.resourceCategory }}</small>
+                        </td>
+                        <td><strong>{{ a.projectName }}</strong></td>
+                        <td>
+                          <small class="d-block text-dark fw-medium">{{ a.allocationDate }} &rarr; {{ a.expectedReturnDate }}</small>
+                          @if (a.actualReturnDate) {
+                            <small class="text-success" style="font-size: 10px;">Returned on {{ a.actualReturnDate }}</small>
+                          }
+                        </td>
+                        <td>{{ a.responsiblePerson }}</td>
+                        <td>
+                          <span class="badge" [class.bg-primary]="a.status === 'Allocated' || a.status === 'Active'" [class.bg-success]="a.status === 'Returned'">
+                            {{ a.status }}
+                          </span>
+                        </td>
+                        <td>
+                          @if (a.status === 'Allocated' || a.status === 'Active') {
+                            <button class="btn btn-outline-success btn-xs py-1 px-2.5 rounded-pill fw-bold text-xs" (click)="returnEquipment(a.id)">
+                              <i class="bi bi-arrow-return-left me-1"></i> Return
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ================================================== -->
+  <!-- MODULE 4: 3. MACHINERY TRACKING VIEW -->
+  <!-- ================================================== -->
+  @if (activeModule === 'tracking') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Live Machinery &amp; Fleet Tracking</h5>
+            <p class="text-muted mb-0 small">Real-time spatial deployment, current jobsite allocations, and equipment readiness statuses.</p>
+          </div>
+          <button class="btn btn-outline-primary btn-sm" (click)="projectService.loadModule4Data()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Fleet</button>
+        </div>
+
+        <div class="row g-4">
+          @for (res of projectService.resources(); track res.id) {
+            <div class="col-md-6 col-xl-4">
+              <div class="card border rounded-3 p-3 h-100 shadow-sm"
+                   [class.border-success]="res.status === 'Available'"
+                   [class.border-primary]="res.status === 'Allocated' || res.status === 'Operating'"
+                   [class.border-warning]="res.status === 'Under Maintenance'"
+                   [class.border-danger]="res.status === 'Out of Service'">
+                
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge"
+                        [class.bg-success]="res.status === 'Available'"
+                        [class.bg-primary]="res.status === 'Allocated'"
+                        [class.bg-info]="res.status === 'Operating'"
+                        [class.bg-secondary]="res.status === 'Idle'"
+                        [class.bg-warning]="res.status === 'Under Maintenance'"
+                        [class.bg-danger]="res.status === 'Out of Service'">
+                    {{ res.status }}
+                  </span>
+                  <span class="badge bg-light text-dark border fw-bold">{{ res.id }}</span>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-1">{{ res.name }}</h6>
+                <small class="text-muted d-block mb-3">Category: <strong>{{ res.categoryName }}</strong> &bull; Rate: ${{ res.hourlyCost }}/hr</small>
+
+                <div class="p-2.5 bg-light rounded-3 small mb-3">
+                  <div class="mb-1"><i class="bi bi-building me-1.5 text-primary"></i>Project: <strong>{{ res.currentProjectName || 'Unassigned (Yard)' }}</strong></div>
+                  <div class="mb-1"><i class="bi bi-geo-alt me-1.5 text-danger"></i>Location: <strong>{{ res.currentLocation }}</strong></div>
+                  <div><i class="bi bi-person-badge me-1.5 text-secondary"></i>Operator: <strong>{{ res.responsiblePerson }}</strong></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-auto text-muted small" style="font-size: 11px;">
+                  <span>SN: {{ res.serialNumber || 'N/A' }}</span>
+                  <button class="btn btn-outline-primary btn-sm py-0.5 px-2 rounded-pill text-xs fw-bold" (click)="openResourceDetail(res)">
+                    View Specs
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================================================== -->
+  <!-- MODULE 4: 4. RESOURCE UTILIZATION VIEW -->
+  <!-- ================================================== -->
+  @if (activeModule === 'utilization') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        
+        <!-- Summary KPI Row -->
+        @if (projectService.utilizationSummary(); as us) {
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-primary-subtle rounded-3 border border-primary-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Overall Utilization</small>
+                <h3 class="fw-bold text-primary mb-0">{{ us.overallUtilizationPercentage }}%</h3>
+                <small class="text-muted">Auto-calculated from shift logs</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Total Operating Hours</small>
+                <h3 class="fw-bold text-success mb-0">{{ us.totalOperatingHours }} hrs</h3>
+                <small class="text-muted">Active machine run-time</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-secondary-subtle rounded-3 border border-secondary-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Total Idle Hours</small>
+                <h3 class="fw-bold text-secondary mb-0">{{ us.totalIdleHours }} hrs</h3>
+                <small class="text-muted">Standby / inspection pauses</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-info-subtle rounded-3 border border-info-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Available Shift Pool</small>
+                <h3 class="fw-bold text-info mb-0">{{ us.totalAvailableHours }} hrs</h3>
+                <small class="text-muted">Total scheduled machine capacity</small>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="row g-4 mb-4">
+          <!-- Log Shift Hours Form -->
+          <div class="col-lg-4">
+            <div class="card border rounded-3 p-3 bg-light-subtle h-100">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-clock-history text-primary me-2"></i>Log Equipment Shift Hours</h6>
+              <p class="text-muted small mb-3">Record operating vs idle hours for automated utilization calculation.</p>
+              
+              <form (ngSubmit)="submitUtilization()">
+                <div class="form-group mb-2.5">
+                  <label class="form-label fw-semibold small text-muted">Equipment *</label>
+                  <select class="form-select form-select-sm" name="utlRes" [(ngModel)]="utlResourceId" required>
+                    @for (res of projectService.resources(); track res.id) {
+                      <option [value]="res.id">{{ res.id }} - {{ res.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group mb-2.5">
+                  <label class="form-label fw-semibold small text-muted">Project *</label>
+                  <select class="form-select form-select-sm" name="utlProj" [(ngModel)]="utlProjectId" required>
+                    @for (proj of projectService.projects(); track proj.id) {
+                      <option [value]="proj.id">{{ proj.name }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="row g-2 mb-2.5">
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small text-muted">Usage Date *</label>
+                    <input type="date" name="utlDate" [(ngModel)]="utlDate" required class="form-control form-control-sm">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small text-muted">Total Shift Hours</label>
+                    <input type="number" name="totalHrs" [(ngModel)]="utlTotalHours" min="1" max="24" step="0.5" class="form-control form-control-sm">
+                  </div>
+                </div>
+
+                <div class="row g-2 mb-2.5">
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small text-muted">Operating Hours *</label>
+                    <input type="number" name="opHrs" [(ngModel)]="utlOpHours" min="0" max="24" step="0.5" required class="form-control form-control-sm">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small text-muted">Idle Hours</label>
+                    <input type="number" name="idleHrs" [(ngModel)]="utlIdleHours" min="0" max="24" step="0.5" class="form-control form-control-sm">
+                  </div>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-label fw-semibold small text-muted">Activity / Remarks</label>
+                  <input type="text" name="utlRem" [(ngModel)]="utlRemarks" class="form-control form-control-sm" placeholder="e.g. Earthwork excavation on grid C">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm w-100 py-2 fw-bold">
+                  <i class="bi bi-plus-circle me-1"></i> Log Usage Entry
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Category Utilization Breakdown -->
+          <div class="col-lg-8">
+            <div class="card border rounded-3 p-3 bg-light-subtle h-100">
+              <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-fill text-success me-2"></i>Utilization Performance by Equipment Category</h6>
+              
+              <div class="d-flex flex-column gap-3">
+                @for (cat of projectService.utilizationSummary()?.byCategory || []; track cat.categoryId) {
+                  <div>
+                    <div class="d-flex justify-content-between align-items-center mb-1 small">
+                      <span class="fw-bold text-dark">{{ cat.categoryName }}</span>
+                      <span class="text-muted">{{ cat.operatingHours }} Operating hrs &bull; <strong class="text-primary">{{ cat.utilizationPercentage }}%</strong></span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                      <div class="progress-bar bg-primary" [style.width.%]="cat.utilizationPercentage"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shift Utilization Logs Table -->
+        <h6 class="fw-bold text-dark mb-3">Recent Shift Usage Logs</h6>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Date</th>
+                <th>Equipment</th>
+                <th>Project</th>
+                <th>Operating Hours</th>
+                <th>Idle Hours</th>
+                <th>Total Capacity</th>
+                <th>Utilization %</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of projectService.resourceUtilizations(); track u.id) {
+                <tr>
+                  <td class="fw-bold">{{ u.usageDate }}</td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ u.resourceName }}</div>
+                    <small class="text-muted" style="font-size: 11px;">ID: {{ u.resourceId }}</small>
+                  </td>
+                  <td>{{ u.projectName }}</td>
+                  <td><span class="badge bg-success-subtle text-success border">{{ u.operatingHours }} hrs</span></td>
+                  <td><span class="badge bg-secondary-subtle text-secondary border">{{ u.idleHours }} hrs</span></td>
+                  <td>{{ u.totalAvailableHours }} hrs</td>
+                  <td>
+                    <strong class="text-primary">{{ u.utilizationPercentage }}%</strong>
+                  </td>
+                  <td class="small text-muted">{{ u.remarks || '-' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================================================== -->
+  <!-- MODULE 4: 5. MAINTENANCE MANAGEMENT VIEW -->
+  <!-- ================================================== -->
+  @if (activeModule === 'maintenance') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-tools text-warning me-2"></i>Equipment Maintenance &amp; Servicing Hub</h5>
+            <p class="text-muted mb-0 small">Schedule preventive/corrective overhauls, preserve complete maintenance history, and track overdue equipment.</p>
+          </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <!-- Schedule Maintenance Form -->
+          <div class="col-lg-4">
+            <div class="card border rounded-3 p-3 bg-light-subtle h-100">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-wrench-adjustable text-warning me-2"></i>Schedule Maintenance Service</h6>
+              
+              <form (ngSubmit)="submitMaintenance()">
+                <div class="form-group mb-2.5">
+                  <label class="form-label fw-semibold small text-muted">Equipment *</label>
+                  <select class="form-select form-select-sm" name="mntRes" [(ngModel)]="mntResourceId" required>
+                    @for (res of projectService.resources(); track res.id) {
+                      <option [value]="res.id">{{ res.id }} - {{ res.name }} [{{ res.status }}]</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-group mb-2.5">
+                  <label class="form-label fw-semibold small text-muted">Maintenance Type *</label>
+                  <select class="form-select form-select-sm" name="mntType" [(ngModel)]="mntType" required>
+                    <option value="Preventive">Preventive (Routine Check)</option>
+                    <option value="Corrective">Corrective (Part Repair)</option>
+                    <option value="Emergency">Emergency (Breakdown)</option>
+                    <option value="Inspection">Inspection (Safety/Audit)</option>
+                  </select>
+                </div>
+
+                <div class="row g-2 mb-2.5">
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small text-muted">Last Service *</label>
+                    <input type="date" name="mntLast" [(ngModel)]="mntLastDate" required class="form-control form-control-sm">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-semibold small text-muted">Next Service *</label>
+                    <input type="date" name="mntNext" [(ngModel)]="mntNextDate" required class="form-control form-control-sm">
+                  </div>
+                </div>
+
+                <div class="row g-2 mb-2.5">
+                  <div class="col-7">
+                    <label class="form-label fw-semibold small text-muted">Service Engineer *</label>
+                    <input type="text" name="mntEng" [(ngModel)]="mntEngineer" required class="form-control form-control-sm" placeholder="e.g. CAT Tech Team">
+                  </div>
+                  <div class="col-5">
+                    <label class="form-label fw-semibold small text-muted">Cost ($)</label>
+                    <input type="number" name="mntCost" [(ngModel)]="mntCost" min="0" class="form-control form-control-sm">
+                  </div>
+                </div>
+
+                <div class="form-group mb-2.5">
+                  <label class="form-label fw-semibold small text-muted">Maintenance Status</label>
+                  <select class="form-select form-select-sm" name="mntStatus" [(ngModel)]="mntStatus">
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="In Progress">In Progress (Under Maintenance)</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+
+                <div class="form-group mb-3">
+                  <label class="form-label fw-semibold small text-muted">Remarks / Checklist</label>
+                  <textarea name="mntRemarks" [(ngModel)]="mntRemarks" rows="2" class="form-control form-control-sm" placeholder="e.g. Engine oil, fuel filters, track tensioning"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-warning text-dark btn-sm w-100 py-2 fw-bold">
+                  <i class="bi bi-calendar-check me-1"></i> Register Maintenance Order
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Multi-Record Maintenance History -->
+          <div class="col-lg-8">
+            <div class="card border rounded-3 p-3 bg-light-subtle h-100">
+              <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-secondary me-2"></i>Complete Maintenance History &amp; Records</h6>
+              <p class="text-muted small">Historical multi-service lifecycle records are preserved for every machine and never overwritten.</p>
+
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light text-muted uppercase small">
+                    <tr>
+                      <th>Record ID</th>
+                      <th>Equipment</th>
+                      <th>Type</th>
+                      <th>Next Due Date</th>
+                      <th>Service Engineer</th>
+                      <th>Cost</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (m of projectService.maintenanceRecords(); track m.id) {
+                      <tr>
+                        <td><span class="badge bg-light text-dark border fw-bold">{{ m.id }}</span></td>
+                        <td>
+                          <div class="fw-bold text-dark">{{ m.resourceName }}</div>
+                          <small class="text-muted" style="font-size: 11px;">ID: {{ m.resourceId }}</small>
+                        </td>
+                        <td><span class="badge bg-secondary-subtle text-secondary border">{{ m.maintenanceType }}</span></td>
+                        <td>
+                          <strong class="text-dark">{{ m.nextMaintenanceDate }}</strong>
+                          <small class="d-block text-muted" style="font-size: 10px;">Last: {{ m.lastMaintenanceDate }}</small>
+                        </td>
+                        <td>{{ m.serviceEngineer }}</td>
+                        <td class="fw-bold">${{ m.maintenanceCost | number:'1.0-0' }}</td>
+                        <td>
+                          <span class="badge"
+                                [class.bg-warning]="m.status === 'Scheduled' || m.status === 'In Progress'"
+                                [class.bg-success]="m.status === 'Completed'"
+                                [class.bg-danger]="m.status === 'Overdue'">
+                            {{ m.status }}
+                          </span>
+                        </td>
+                        <td>
+                          @if (m.status !== 'Completed') {
+                            <button class="btn btn-outline-success btn-xs py-1 px-2.5 rounded-pill fw-bold text-xs" (click)="completeMaintenance(m.id)">
+                              <i class="bi bi-check-lg me-1"></i> Mark Done
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- EXISTING MODULE 1, 2, 3 VIEWS -->
+  <!-- ========================================== -->
   @if (activeModule === 'projects') {
     <div class="row g-4">
       <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-3">
           <div class="card-body p-4">
-            <h5 class="fw-bold text-dark mb-3">Projects Oversight</h5>
+            <h5 class="fw-bold text-dark mb-3">Live Projects Progress Oversight</h5>
             
             <div class="d-flex flex-column gap-4">
               @for (proj of managedProjects(); track proj.id) {
-                <div class="p-3 border rounded-3 bg-light-subtle d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="p-3 border rounded-3 bg-light-subtle d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 shadow-sm">
                   <div class="d-flex gap-3 align-items-center">
                     <img [src]="proj.image" alt="Project image" class="rounded-3 object-fit-cover" style="width: 70px; height: 70px;">
                     <div>
                       <h6 class="fw-bold text-dark mb-1">{{ proj.name }}</h6>
                       <p class="text-muted mb-0 small"><i class="bi bi-geo-alt me-1"></i>{{ proj.location }}</p>
-                      <small class="badge mt-1" 
-                             [class.bg-success]="proj.status === 'Completed'"
-                             [class.bg-primary]="proj.status === 'In Progress'"
-                             [class.bg-warning]="proj.status === 'Planning'"
-                             [class.bg-danger]="proj.status === 'Delayed'">
-                        {{ proj.status }}
-                      </small>
+                      <div class="d-flex gap-2 align-items-center mt-1">
+                        <small class="badge" 
+                               [class.bg-success]="proj.status === 'Completed'"
+                               [class.bg-primary]="proj.status === 'In Progress'"
+                               [class.bg-warning]="proj.status === 'Planning'"
+                               [class.bg-danger]="proj.status === 'Delayed'">
+                          {{ proj.status }}
+                        </small>
+                        <small class="text-muted" style="font-size: 11px;">ID: {{ proj.id }}</small>
+                      </div>
                     </div>
                   </div>
 
                   <div class="flex-grow-1 mx-md-4" style="max-width: 250px;">
                     <div class="d-flex justify-content-between mb-1 small text-muted">
-                      <span>Progress</span>
-                      <span class="fw-bold">{{ proj.progress }}%</span>
+                      <span>Cumulative Progress</span>
+                      <span class="fw-bold text-primary">{{ proj.progress }}%</span>
                     </div>
-                    <div class="progress" style="height: 6px;">
+                    <div class="progress" style="height: 8px;">
                       <div class="progress-bar bg-primary" [style.width.%]="proj.progress"></div>
                     </div>
                   </div>
@@ -74,37 +725,260 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="col-lg-4">
-        <!-- Project Issues panel -->
-        <div class="card border-0 shadow-sm rounded-3">
+        <!-- Recent Daily Reports Stream for PM -->
+        <div class="card border-0 shadow-sm rounded-3 mt-4">
           <div class="card-body p-4">
-            <h5 class="fw-bold text-dark mb-3">Project Issues (Sarah's Projects)</h5>
-            @if (projectIssues().length === 0) {
-              <p class="text-muted small">No active issues on your projects.</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0"><i class="bi bi-journal-text text-primary me-2"></i>Latest Daily Progress Filed by Site Engineers</h5>
+              <a [routerLink]="[]" [queryParams]="{module: 'daily_feed'}" class="btn btn-link btn-sm text-decoration-none">View All Feed &rarr;</a>
+            </div>
+
+            @if (managedDailyReports().length === 0) {
+              <p class="text-muted small">No daily reports recorded yet.</p>
             } @else {
-              <div class="list-group list-group-flush">
-                @for (issue of projectIssues(); track issue.id) {
-                  <div class="list-group-item px-0 py-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="badge text-uppercase" 
-                            [class.bg-danger]="issue.severity === 'Critical' || issue.severity === 'High'"
-                            [class.bg-warning]="issue.severity === 'Medium'"
-                            [class.bg-info]="issue.severity === 'Low'">
-                        {{ issue.severity }} Severity
-                      </span>
-                      <small class="text-muted">{{ issue.reportedDate }}</small>
+              <div class="d-flex flex-column gap-2.5">
+                @for (rep of managedDailyReports().slice(0, 3); track rep.id) {
+                  <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-primary">{{ rep.reportDate }}</span>
+                        <span class="badge bg-secondary-subtle text-secondary border">{{ rep.workCategory }}</span>
+                        <span class="badge bg-success-subtle text-success border">+{{ rep.percentageWorkCompleted }}% Work</span>
+                        @if (rep.delayEncountered) {
+                          <span class="badge bg-danger">Delay: {{ rep.delayReason }}</span>
+                        }
+                      </div>
+                      <h6 class="fw-bold text-dark mb-0 small">{{ rep.activityPerformed }}</h6>
+                      <small class="text-muted" style="font-size: 11px;">Project: <strong>{{ rep.projectName }}</strong> &bull; Filed by {{ rep.siteEngineerName }}</small>
                     </div>
-                    <h6 class="fw-bold text-dark mb-1">{{ issue.title }}</h6>
-                    <p class="text-muted small mb-0">{{ issue.description }}</p>
-                    <small class="text-primary d-block mt-1">Project: {{ issue.projectName }}</small>
+                    <button class="btn btn-outline-primary btn-sm rounded-pill text-xs fw-bold px-3" (click)="openReportDetail(rep)">
+                      Details
+                    </button>
                   </div>
                 }
               </div>
             }
           </div>
         </div>
+      </div>
+
+      <div class="col-lg-4">
+        <!-- Active Site Delays panel -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-danger mb-0"><i class="bi bi-exclamation-octagon me-2"></i>Active Site Delays</h5>
+              <span class="badge bg-danger">{{ managedDelays().length }}</span>
+            </div>
+            
+            @if (managedDelays().length === 0) {
+              <p class="text-muted small mb-0">No active delays reported on your sites.</p>
+            } @else {
+              <div class="d-flex flex-column gap-2">
+                @for (d of managedDelays().slice(0, 4); track d.id) {
+                  <div class="p-2.5 border rounded-3 bg-danger-subtle border-danger-subtle">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="badge bg-danger text-uppercase" style="font-size: 10px;">{{ d.impactOnProject }} Impact</span>
+                      <small class="text-muted" style="font-size: 11px;">{{ d.date }}</small>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1 small">{{ d.affectedActivity }}</h6>
+                    <small class="text-danger fw-semibold d-block" style="font-size: 11px;">Reason: {{ d.delayReason }} ({{ d.delayDuration }})</small>
+                    @if (d.status === 'Active') {
+                      <div class="text-end mt-1">
+                        <button class="btn btn-outline-success btn-xs py-0.5 px-2 rounded-pill fw-bold text-xs" (click)="resolveDelay(d.id)">
+                          Mark Resolved
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Project Issues panel -->
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Safety &amp; Quality Issues</h5>
+            @if (projectIssues().length === 0) {
+              <p class="text-muted small mb-0">No active issues on your projects.</p>
+            } @else {
+              <div class="list-group list-group-flush">
+                @for (issue of projectIssues().slice(0, 3); track issue.id) {
+                  <div class="list-group-item px-0 py-2.5">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="badge text-uppercase" 
+                            [class.bg-danger]="issue.severity === 'Critical' || issue.severity === 'High'"
+                            [class.bg-warning]="issue.severity === 'Medium'"
+                            [class.bg-info]="issue.severity === 'Low'">
+                        {{ issue.severity }}
+                      </span>
+                      <small class="text-muted" style="font-size: 11px;">{{ issue.reportedDate }}</small>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1 small">{{ issue.title }}</h6>
+                    <p class="text-muted small mb-0" style="font-size: 11px;">{{ issue.description }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'milestones') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-flag-fill text-success me-2"></i>Milestones &amp; Cumulative Progress Management</h5>
+        <div class="row g-4">
+          @for (m of managedMilestones(); track m.id) {
+            <div class="col-md-6 col-xl-4">
+              <div class="card border rounded-3 p-3 h-100 shadow-sm">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge" [class.bg-success]="m.status === 'Completed'" [class.bg-primary]="m.status === 'In Progress'" [class.bg-warning]="m.status === 'Pending'" [class.bg-danger]="m.status === 'Delayed'">{{ m.status }}</span>
+                  <span class="fw-bold text-primary">{{ m.progressPercentage }}%</span>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">{{ m.name }}</h6>
+                <small class="text-muted d-block mb-2">Project: <strong>{{ m.projectName }}</strong></small>
+                <div class="progress mb-3" style="height: 8px;">
+                  <div class="progress-bar bg-primary" [style.width.%]="m.progressPercentage"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center text-muted small border-top pt-2 mt-auto" style="font-size: 11px;">
+                  <span>{{ m.plannedStartDate }} &rarr; {{ m.plannedEndDate }}</span>
+                  <button class="btn btn-outline-primary btn-sm py-0.5 px-2.5 rounded-pill text-xs fw-bold" (click)="openEditMilestone(m)">Edit</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'daily_feed') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-journal-check text-primary me-2"></i>Daily Progress Reports Feed</h5>
+        <div class="d-flex flex-column gap-3">
+          @for (rep of managedDailyReports(); track rep.id) {
+            <div class="p-3 border rounded-3 bg-light-subtle shadow-sm">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex gap-2 align-items-center">
+                  <span class="badge bg-primary fw-bold">{{ rep.reportDate }}</span>
+                  <span class="badge bg-secondary-subtle text-secondary border">{{ rep.workCategory }}</span>
+                  <span class="badge bg-success-subtle text-success border">+{{ rep.percentageWorkCompleted }}% Progress</span>
+                  <span class="badge bg-light text-dark border">{{ rep.projectName }}</span>
+                </div>
+                <button class="btn btn-outline-primary btn-sm py-0.5 px-3 rounded-pill text-xs fw-bold" (click)="openReportDetail(rep)">View Details</button>
+              </div>
+              <h6 class="fw-bold text-dark mb-1">{{ rep.activityPerformed }}</h6>
+              <small class="text-muted" style="font-size: 11px;">Contractor: <strong>{{ rep.contractorName || 'Vance Concrete Ltd' }}</strong> &bull; Workers: {{ rep.workersPresent }} Present</small>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'delays') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-danger mb-3"><i class="bi bi-hourglass-split me-2"></i>Active Site Delays &amp; Bottlenecks</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Date</th>
+                <th>Project</th>
+                <th>Affected Activity</th>
+                <th>Delay Reason</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of managedDelays(); track d.id) {
+                <tr>
+                  <td class="fw-bold">{{ d.date }}</td>
+                  <td>{{ d.projectName }}</td>
+                  <td>{{ d.affectedActivity }}</td>
+                  <td><span class="badge bg-light text-dark border">{{ d.delayReason }}</span></td>
+                  <td>{{ d.delayDuration }}</td>
+                  <td><span class="badge" [class.bg-success]="d.status === 'Resolved'" [class.bg-danger]="d.status === 'Active'">{{ d.status }}</span></td>
+                  <td>
+                    @if (d.status === 'Active') {
+                      <button class="btn btn-outline-success btn-sm py-0.5 px-2 rounded-pill text-xs fw-bold" (click)="resolveDelay(d.id)">Resolve</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'activities') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-clipboard2-data-fill text-info me-2"></i>Site Activities Log</h5>
+        <div class="d-flex flex-column gap-3">
+          @for (a of managedActivityLogs(); track a.id) {
+            <div class="p-3 border rounded-3 bg-light-subtle shadow-sm">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge bg-info-subtle text-info border border-info-subtle fw-bold">{{ a.activityType }}</span>
+                <small class="text-muted">{{ a.date }} at {{ a.time }}</small>
+              </div>
+              <h6 class="fw-bold text-dark mb-1">{{ a.description }}</h6>
+              <small class="text-muted" style="font-size: 11px;">Responsible: <strong>{{ a.responsiblePerson }}</strong> &bull; Logged by {{ a.loggedByName }}</small>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'weekly') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Weekly Progress Analytics</h5>
+        @if (projectService.weeklySummary(); as ws) {
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-primary-subtle rounded-3 border border-primary-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Weekly Delta</small>
+                <h3 class="fw-bold text-primary mb-0">+{{ ws.weeklyProgressPercentage }}%</h3>
+                <small class="text-muted">Total: {{ ws.overallProjectProgress }}%</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Reports Filed</small>
+                <h3 class="fw-bold text-success mb-0">{{ ws.totalReportsFiled }}</h3>
+                <small class="text-muted">{{ ws.weekStartDate }} to {{ ws.weekEndDate }}</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-info-subtle rounded-3 border border-info-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Worker Shifts</small>
+                <h3 class="fw-bold text-info mb-0">{{ ws.totalWorkersUtilized }}</h3>
+                <small class="text-muted">Workers checked in</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 bg-danger-subtle rounded-3 border border-danger-subtle">
+                <small class="text-muted fw-semibold d-block mb-1">Delays</small>
+                <h3 class="fw-bold text-danger mb-0">{{ ws.delaysEncounteredCount }}</h3>
+                <small class="text-muted">{{ ws.safetyObservationsCount }} Safety entries</small>
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </div>
   }
@@ -136,14 +1010,7 @@
                   <td>{{ member.role }}</td>
                   <td>{{ member.assignedProject }}</td>
                   <td>{{ member.phone }}</td>
-                  <td>
-                    <span class="badge"
-                          [class.bg-success]="member.status === 'Active'"
-                          [class.bg-warning]="member.status === 'On Leave'"
-                          [class.bg-danger]="member.status === 'Inactive'">
-                      {{ member.status }}
-                    </span>
-                  </td>
+                  <td><span class="badge bg-success">{{ member.status }}</span></td>
                 </tr>
               }
             </tbody>
@@ -153,61 +1020,13 @@
     </div>
   }
 
-  @if (activeModule === 'timeline') {
-    <div class="card border-0 shadow-sm rounded-3">
-      <div class="card-body p-4">
-        <h5 class="fw-bold text-dark mb-4">Milestones & Timelines</h5>
-        <div class="timeline-stepper position-relative ps-4 border-start border-2 border-primary-subtle py-2">
-          
-          <div class="timeline-step position-relative mb-4">
-            <div class="step-marker bg-primary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
-            <h6 class="fw-bold text-dark mb-1">Excavation Complete (P-101)</h6>
-            <p class="text-muted small mb-0">Foundation and shoring successfully finalized on site.</p>
-            <small class="badge bg-success-subtle text-success mt-1">Completed</small>
-          </div>
-
-          <div class="timeline-step position-relative mb-4">
-            <div class="step-marker bg-primary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
-            <h6 class="fw-bold text-dark mb-1">Structural Steel L1-L10 Erection</h6>
-            <p class="text-muted small mb-0">Contractor Apex Metalworks actively erecting support frames.</p>
-            <small class="badge bg-primary-subtle text-primary mt-1">In Progress (55%)</small>
-          </div>
-
-          <div class="timeline-step position-relative mb-4">
-            <div class="step-marker bg-secondary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
-            <h6 class="fw-bold text-dark mb-1">Curtain Wall Glass Installation</h6>
-            <p class="text-muted small mb-0">Requires delivery of custom double-glazed panels from transit ports.</p>
-            <small class="badge bg-secondary-subtle text-secondary mt-1">Pending Shipment</small>
-          </div>
-
-          <div class="timeline-step position-relative">
-            <div class="step-marker bg-secondary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
-            <h6 class="fw-bold text-dark mb-1">Handover & Client Commissioning</h6>
-            <p class="text-muted small mb-0">Scheduled for November 2027.</p>
-            <small class="badge bg-secondary-subtle text-secondary mt-1">Planning</small>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  }
-
   @if (activeModule === 'budget') {
     <div class="row g-4">
       <div class="col-lg-6">
-        <app-chart type="bar" 
-                   title="Budget Utilization ($ Millions)" 
-                   [labels]="['Vanguard Tower', 'Riverfront II', 'Metro Transit', 'Eco-Resort']" 
-                   [data]="[12.5, 8.2, 15.0, 5.4]" 
-                   [customColors]="['#0d6efd', '#198754', '#ffc107', '#dc3545']">
-        </app-chart>
+        <app-chart type="bar" title="Budget Utilization ($ Millions)" [labels]="['Vanguard Tower', 'Riverfront II', 'Metro Transit', 'Eco-Resort']" [data]="[12.5, 8.2, 15.0, 5.4]" [customColors]="['#0d6efd', '#198754', '#ffc107', '#dc3545']"></app-chart>
       </div>
       <div class="col-lg-6">
-        <app-chart type="line" 
-                   title="Sarah's Actual Spent Accumulation ($ Millions)" 
-                   [labels]="['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']" 
-                   [data]="[1.2, 2.5, 3.8, 5.0, 7.2, 9.5, 11.3]">
-        </app-chart>
+        <app-chart type="line" title="Expenditure Accumulation ($ Millions)" [labels]="['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']" [data]="[1.2, 2.5, 3.8, 5.0, 7.2, 9.5, 11.3]"></app-chart>
       </div>
     </div>
   }
@@ -215,40 +1034,16 @@
   @if (activeModule === 'reports') {
     <div class="card border-0 shadow-sm rounded-3">
       <div class="card-body p-4">
-        <h5 class="fw-bold text-dark mb-3">Project Management Reports & Downloads</h5>
-        <p class="text-muted small">Select a report criteria template to download compiled operational and inventory spreadsheets.</p>
-        
+        <h5 class="fw-bold text-dark mb-3">Project Management Reports</h5>
         <div class="list-group list-group-flush">
           <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
             <div>
-              <h6 class="fw-bold text-dark mb-1">Financial Reconciliation Statement</h6>
-              <p class="text-muted mb-0 small">Overview of project cost forecasts, real expenditures, variances, and purchase orders.</p>
+              <h6 class="fw-bold text-dark mb-1">Equipment &amp; Resource Allocation Statement (Module 4)</h6>
+              <p class="text-muted mb-0 small">Overview of machine allocations, fleet utilization %, and scheduled maintenance records.</p>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-outline-primary btn-sm" (click)="downloadReport('pdf', 'Financial_Statement')">PDF</button>
-              <button class="btn btn-outline-success btn-sm" (click)="downloadReport('xlsx', 'Financial_Statement')">Excel</button>
-            </div>
-          </div>
-
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
-            <div>
-              <h6 class="fw-bold text-dark mb-1">Site Safety & Incident Ledger</h6>
-              <p class="text-muted mb-0 small">All documented hazards, correction notices, and safety inspection checkpoints.</p>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-primary btn-sm" (click)="downloadReport('pdf', 'Safety_Ledger')">PDF</button>
-              <button class="btn btn-outline-success btn-sm" (click)="downloadReport('xlsx', 'Safety_Ledger')">Excel</button>
-            </div>
-          </div>
-
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
-            <div>
-              <h6 class="fw-bold text-dark mb-1">Workforce Allocation Log</h6>
-              <p class="text-muted mb-0 small">Timesheet totals, subcontractor work packages, and contractor capacity indices.</p>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-primary btn-sm" (click)="downloadReport('pdf', 'Workforce_Log')">PDF</button>
-              <button class="btn btn-outline-success btn-sm" (click)="downloadReport('xlsx', 'Workforce_Log')">Excel</button>
+              <button class="btn btn-outline-primary btn-sm" (click)="downloadReport('pdf', 'Resource_Allocation_Statement')">PDF</button>
+              <button class="btn btn-outline-success btn-sm" (click)="downloadReport('xlsx', 'Resource_Allocation_Statement')">Excel</button>
             </div>
           </div>
         </div>
@@ -257,3 +1052,98 @@
   }
 
 </div>
+
+<!-- Resource Details Modal -->
+@if (selectedResourceDetail; as res) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-3">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-truck me-2"></i>{{ res.name }} &bull; {{ res.id }}</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeResourceDetail()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="badge bg-secondary fs-6">{{ res.categoryName }}</span>
+            <span class="badge" [class.bg-success]="res.status === 'Available'" [class.bg-primary]="res.status === 'Allocated'" [class.bg-warning]="res.status === 'Under Maintenance'">{{ res.status }}</span>
+          </div>
+
+          <div class="row g-2 p-3 bg-light rounded-3 small mb-3">
+            <div class="col-6"><strong>Current Location:</strong> {{ res.currentLocation }}</div>
+            <div class="col-6"><strong>Current Project:</strong> {{ res.currentProjectName || 'Yard' }}</div>
+            <div class="col-6"><strong>Responsible Person:</strong> {{ res.responsiblePerson }}</div>
+            <div class="col-6"><strong>Hourly Cost:</strong> ${{ res.hourlyCost }}/hr</div>
+            <div class="col-6"><strong>Model Number:</strong> {{ res.modelNumber || 'N/A' }}</div>
+            <div class="col-6"><strong>Serial Number:</strong> {{ res.serialNumber || 'N/A' }}</div>
+            <div class="col-12"><strong>Purchase Date:</strong> {{ res.purchaseDate || 'N/A' }}</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeResourceDetail()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Daily Report Details Modal -->
+@if (selectedReportDetail; as rep) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow rounded-3">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Daily Progress Report &bull; {{ rep.id }}</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeReportDetail()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <h5 class="fw-bold text-dark mb-2">{{ rep.activityPerformed }}</h5>
+          <div class="row g-3 my-2 p-3 bg-light rounded-3 small">
+            <div class="col-sm-6"><strong>Project:</strong> {{ rep.projectName }}</div>
+            <div class="col-sm-6"><strong>Contractor:</strong> {{ rep.contractorName || 'Vance Concrete Ltd' }}</div>
+            <div class="col-sm-6"><strong>Weather:</strong> {{ rep.weatherConditions }}</div>
+            <div class="col-sm-6"><strong>Machinery:</strong> {{ rep.machineryUsed || 'None' }}</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeReportDetail()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Milestone Edit Modal -->
+@if (selectedMilestoneToEdit; as m) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-3">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold">Update Milestone &bull; {{ m.name }}</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeEditMilestone()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="form-group mb-3">
+            <label class="form-label fw-semibold small text-muted">Progress (0-100%)</label>
+            <div class="d-flex align-items-center gap-3">
+              <input type="range" class="form-range flex-grow-1" min="0" max="100" [(ngModel)]="editMilestoneProgress">
+              <span class="fw-bold fs-5 text-primary">{{ editMilestoneProgress }}%</span>
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label fw-semibold small text-muted">Status</label>
+            <select class="form-select" [(ngModel)]="editMilestoneStatus">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed (100%)</option>
+              <option value="Delayed">Delayed</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEditMilestone()">Cancel</button>
+          <button type="button" class="btn btn-primary fw-bold" (click)="saveMilestoneProgress()">Save Progress</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

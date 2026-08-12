@@ -313,7 +313,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (w of projectService.workforce(); track w.id) {
+              @for (w of workforceData(); track w.id) {
                 <tr>
                   <td>
                     <div class="d-flex align-items-center gap-2">
@@ -358,7 +358,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (c of projectService.contractors(); track c.id) {
+              @for (c of contractorsData(); track c.id) {
                 <tr>
                   <td class="fw-bold text-dark">{{ c.name }}</td>
                   <td>{{ c.contactPerson }}</td>
@@ -381,7 +381,218 @@
     </div>
   }
 
+  <!-- ========================================== -->
+  <!-- MODULE 4: ADMIN EQUIPMENT REGISTRY -->
+  <!-- ========================================== -->
   @if (activeModule === 'resources') {
+    <div class="row g-4 mb-4">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-2"><i class="bi bi-plus-circle-fill text-primary me-2"></i>Register Equipment</h5>
+            <p class="text-muted small mb-3">Add new construction machinery or equipment to the enterprise inventory.</p>
+
+            <form (ngSubmit)="addEquipment()">
+              <div class="form-group mb-2.5">
+                <label class="form-label fw-semibold small text-muted">Equipment ID *</label>
+                <input type="text" name="eqId" [(ngModel)]="newEqId" required class="form-control form-control-sm" placeholder="e.g. EQ-111">
+              </div>
+
+              <div class="form-group mb-2.5">
+                <label class="form-label fw-semibold small text-muted">Equipment Name *</label>
+                <input type="text" name="eqName" [(ngModel)]="newEqName" required class="form-control form-control-sm" placeholder="e.g. Caterpillar 336 Excavator">
+              </div>
+
+              <div class="form-group mb-2.5">
+                <label class="form-label fw-semibold small text-muted">Category *</label>
+                <select class="form-select form-select-sm" name="eqCat" [(ngModel)]="newEqCategory" required>
+                  @for (cat of projectService.resourceCategories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="row g-2 mb-2.5">
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Model Number</label>
+                  <input type="text" name="eqMod" [(ngModel)]="newEqModel" class="form-control form-control-sm" placeholder="336-07A">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Serial Number</label>
+                  <input type="text" name="eqSer" [(ngModel)]="newEqSerial" class="form-control form-control-sm" placeholder="SN-CAT-5092">
+                </div>
+              </div>
+
+              <div class="row g-2 mb-2.5">
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Location</label>
+                  <input type="text" name="eqLoc" [(ngModel)]="newEqLocation" class="form-control form-control-sm" placeholder="Equipment Yard">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Hourly Rate ($)</label>
+                  <input type="number" name="eqCost" [(ngModel)]="newEqCost" class="form-control form-control-sm" min="0">
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Responsible Person</label>
+                <input type="text" name="eqPerson" [(ngModel)]="newEqPerson" class="form-control form-control-sm" placeholder="Operator or Site Engineer">
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                <i class="bi bi-save me-1"></i> Register Asset
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0"><i class="bi bi-truck text-primary me-2"></i>Enterprise Equipment Registry</h5>
+              <span class="badge bg-primary px-3 py-1.5 rounded-pill">{{ projectService.resources().length }} Assets</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light text-muted uppercase small">
+                  <tr>
+                    <th>ID</th>
+                    <th>Equipment</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Rate</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of projectService.resources(); track r.id) {
+                    <tr>
+                      <td><span class="badge bg-light text-dark border fw-bold">{{ r.id }}</span></td>
+                      <td>
+                        <div class="fw-bold text-dark">{{ r.name }}</div>
+                        <small class="text-muted" style="font-size: 11px;">Operator: {{ r.responsiblePerson }}</small>
+                      </td>
+                      <td><span class="badge bg-secondary-subtle text-secondary border">{{ r.categoryName }}</span></td>
+                      <td>{{ r.currentLocation }}</td>
+                      <td>
+                        <span class="badge"
+                              [class.bg-success]="r.status === 'Available'"
+                              [class.bg-primary]="r.status === 'Allocated'"
+                              [class.bg-info]="r.status === 'Operating'"
+                              [class.bg-warning]="r.status === 'Under Maintenance'"
+                              [class.bg-danger]="r.status === 'Out of Service'">
+                          {{ r.status }}
+                        </span>
+                      </td>
+                      <td class="fw-bold">${{ r.hourlyCost }}/h</td>
+                      <td>
+                        <button class="btn btn-outline-danger btn-xs py-0.5 px-2 rounded-pill text-xs fw-bold" (click)="deleteEquipment(r.id)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- MODULE 4: ALLOCATIONS & MAINTENANCE -->
+  <!-- ========================================== -->
+  @if (activeModule === 'allocations') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar2-range text-primary me-2"></i>Global Equipment Allocations</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Allocation ID</th>
+                <th>Equipment</th>
+                <th>Project</th>
+                <th>Dates</th>
+                <th>Responsible Person</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of projectService.resourceAllocations(); track a.id) {
+                <tr>
+                  <td><span class="badge bg-light text-dark border fw-bold">{{ a.id }}</span></td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ a.resourceName }}</div>
+                    <small class="text-muted" style="font-size: 11px;">{{ a.resourceCategory }} &bull; {{ a.resourceId }}</small>
+                  </td>
+                  <td><strong>{{ a.projectName }}</strong></td>
+                  <td>{{ a.allocationDate }} &rarr; {{ a.expectedReturnDate }}</td>
+                  <td>{{ a.responsiblePerson }}</td>
+                  <td>
+                    <span class="badge" [class.bg-primary]="a.status === 'Allocated' || a.status === 'Active'" [class.bg-success]="a.status === 'Returned'">
+                      {{ a.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'maintenance') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tools text-warning me-2"></i>Global Maintenance Records &amp; Overhauls</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>ID</th>
+                <th>Equipment</th>
+                <th>Type</th>
+                <th>Next Service Date</th>
+                <th>Engineer</th>
+                <th>Cost</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of projectService.maintenanceRecords(); track m.id) {
+                <tr>
+                  <td><span class="badge bg-light text-dark border fw-bold">{{ m.id }}</span></td>
+                  <td><strong>{{ m.resourceName }}</strong> ({{ m.resourceId }})</td>
+                  <td><span class="badge bg-secondary-subtle text-secondary border">{{ m.maintenanceType }}</span></td>
+                  <td>{{ m.nextMaintenanceDate }}</td>
+                  <td>{{ m.serviceEngineer }}</td>
+                  <td class="fw-bold">${{ m.maintenanceCost | number:'1.0-0' }}</td>
+                  <td>
+                    <span class="badge" [class.bg-warning]="m.status === 'Scheduled' || m.status === 'In Progress'" [class.bg-success]="m.status === 'Completed'" [class.bg-danger]="m.status === 'Overdue'">
+                      {{ m.status }}
+                    </span>
+                  </td>
+                  <td class="small text-muted">{{ m.remarks }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'inventory') {
     <div class="row g-4">
       <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-3">
@@ -463,12 +674,27 @@
   @if (activeModule === 'budget') {
     <div class="row g-4 mb-4">
       <div class="col-lg-6">
-        <app-chart type="bar" 
-                   title="Committed Capital vs Spent To Date ($ Millions)" 
-                   [labels]="['Vanguard Tower', 'Riverfront II', 'Metro Transit', 'Eco-Resort']" 
-                   [data]="[12.5, 8.2, 15.0, 5.4]" 
-                   [customColors]="['#0d6efd', '#198754', '#ffc107', '#dc3545']">
-        </app-chart>
+        @if (budgetChartLabels().length > 0) {
+          <app-chart type="grouped-bar" 
+                     title="Committed Capital vs Spent To Date ($ Millions)"
+                     [labels]="budgetChartLabels()"
+                     [data]="budgetChartCommitted()"
+                     [data2]="budgetChartSpent()"
+                     dataLabel="Committed"
+                     data2Label="Spent To Date"
+                     [customColors]="['#0d6efd', '#20c997']">
+          </app-chart>
+        } @else {
+          <app-chart type="grouped-bar" 
+                     title="Committed Capital vs Spent To Date ($ Millions)"
+                     [labels]="['Vanguard Tower', 'Riverfront II', 'Metro Transit', 'Eco-Resort']"
+                     [data]="[12.5, 8.2, 15.0, 5.4]"
+                     [data2]="[9.1, 6.7, 8.3, 3.2]"
+                     dataLabel="Committed"
+                     data2Label="Spent To Date"
+                     [customColors]="['#0d6efd', '#20c997']">
+          </app-chart>
+        }
       </div>
       <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-3">
@@ -507,34 +733,110 @@
   @if (activeModule === 'reports') {
     <div class="card border-0 shadow-sm rounded-3">
       <div class="card-body p-4">
-        <h5 class="fw-bold text-dark mb-3">Platform Analytics & Document Downloader</h5>
-        <p class="text-muted small">Select an administrative summary log to compile and export in dynamic spreadsheets.</p>
+        <h5 class="fw-bold text-dark mb-1">Platform Analytics & Document Downloader</h5>
+        <p class="text-muted small mb-4">Click <strong>Preview</strong> to see what's included in each report, then download in Excel or PDF format.</p>
         
         <div class="list-group list-group-flush">
-          
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 bg-transparent">
-            <div>
-              <h6 class="fw-bold text-dark mb-1">Corporate Revenue and Tax Ledger (Q2 2026)</h6>
-              <p class="text-muted small mb-0">Contains all contractor billing reconciliations, invoice files, and project deposits.</p>
+          @for (rpt of reports; track rpt.title) {
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 bg-transparent border-bottom">
+              <div class="me-3">
+                <h6 class="fw-bold text-dark mb-1">{{ rpt.title }}</h6>
+                <p class="text-muted small mb-0">{{ rpt.description }}</p>
+                <div class="mt-1">
+                  <span class="badge" [class.bg-success]="rpt.format === 'excel'" [class.bg-danger]="rpt.format === 'pdf'">
+                    <i class="bi" [class.bi-file-earmark-spreadsheet]="rpt.format === 'excel'" [class.bi-file-earmark-pdf]="rpt.format === 'pdf'"></i>
+                    {{ rpt.format === 'excel' ? 'Excel / CSV' : 'PDF Report' }}
+                  </span>
+                </div>
+              </div>
+              <div class="d-flex gap-2 flex-shrink-0">
+                <!-- Preview / Edit button -->
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="openReportPreview(rpt)">
+                  <i class="bi bi-eye me-1"></i> Preview
+                </button>
+                <!-- Direct Download -->
+                @if (rpt.format === 'excel') {
+                  <button class="btn btn-outline-success btn-sm rounded-pill px-3" (click)="exportExcel(rpt)">
+                    <i class="bi bi-download me-1"></i> Export Excel
+                  </button>
+                } @else {
+                  <button class="btn btn-outline-danger btn-sm rounded-pill px-3" (click)="exportPDF(rpt)">
+                    <i class="bi bi-download me-1"></i> Export PDF
+                  </button>
+                }
+              </div>
             </div>
-            <button class="btn btn-outline-primary btn-sm rounded-pill" (click)="projectService.submitFeedback({ clientName: 'Admin', projectName: 'Global', rating: 5, message: 'Exported Revenue Ledger.' })">
-              <i class="bi bi-download me-1"></i> Export Excel
-            </button>
-          </div>
-
-          <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 bg-transparent">
-            <div>
-              <h6 class="fw-bold text-dark mb-1">Subcontractor Activity Performance Indices</h6>
-              <p class="text-muted small mb-0">Ranks contractors based on timesheet accuracies, budget safety, and task schedules.</p>
-            </div>
-            <button class="btn btn-outline-primary btn-sm rounded-pill" (click)="projectService.submitFeedback({ clientName: 'Admin', projectName: 'Global', rating: 5, message: 'Exported Performance Ledger.' })">
-              <i class="bi bi-download me-1"></i> Export PDF
-            </button>
-          </div>
-
+          }
         </div>
       </div>
     </div>
+
+    <!-- Report Preview Modal -->
+    @if (showReportModal && selectedReport) {
+      <div class="modal-backdrop-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1050;display:flex;align-items:center;justify-content:center;" (click)="closeReportModal()">
+        <div class="card border-0 shadow-lg rounded-4" style="max-width:560px;width:90%;max-height:85vh;overflow-y:auto;" (click)="$event.stopPropagation()">
+          <div class="card-body p-4">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <span class="badge mb-2" [class.bg-success]="selectedReport.format === 'excel'" [class.bg-danger]="selectedReport.format === 'pdf'">
+                  <i class="bi" [class.bi-file-earmark-spreadsheet]="selectedReport.format === 'excel'" [class.bi-file-earmark-pdf]="selectedReport.format === 'pdf'"></i>
+                  {{ selectedReport.format === 'excel' ? 'Excel / CSV' : 'PDF Report' }}
+                </span>
+                <h5 class="fw-bold text-dark mb-0">{{ selectedReport.title }}</h5>
+              </div>
+              <button class="btn btn-sm btn-light rounded-circle border-0 ms-2" (click)="closeReportModal()" style="width:32px;height:32px;">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <p class="text-muted small mb-3">{{ selectedReport.description }}</p>
+
+            <!-- Contents / Edit Section -->
+            <div class="p-3 bg-light rounded-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-semibold small text-dark"><i class="bi bi-list-check me-1 text-primary"></i>Report Contents</span>
+                <button class="btn btn-xs btn-outline-primary btn-sm rounded-pill px-2 py-0" (click)="toggleEditReport()">
+                  <i class="bi" [class.bi-pencil]="!editingReport" [class.bi-check-lg]="editingReport"></i>
+                  {{ editingReport ? 'Done' : 'Edit' }}
+                </button>
+              </div>
+              @if (!editingReport) {
+                <ul class="mb-0 ps-3" style="list-style:none;">
+                  @for (item of selectedReport.contents; track $index) {
+                    <li class="text-dark small py-1 border-bottom">
+                      <i class="bi bi-check2 text-success me-2"></i>{{ item }}
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <div class="d-flex flex-column gap-2">
+                  @for (item of selectedReport.contents; track $index; let i = $index) {
+                    <input class="form-control form-control-sm" [(ngModel)]="selectedReport.contents[i]" [name]="'reportItem' + i">
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 justify-content-end">
+              <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" (click)="closeReportModal()">
+                Cancel
+              </button>
+              @if (selectedReport.format === 'excel') {
+                <button class="btn btn-success btn-sm rounded-pill px-4" (click)="exportExcel()">
+                  <i class="bi bi-download me-1"></i> Download Excel
+                </button>
+              } @else {
+                <button class="btn btn-danger btn-sm rounded-pill px-4" (click)="exportPDF()">
+                  <i class="bi bi-download me-1"></i> Download PDF
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
   }
 
   @if (activeModule === 'notifications') {

@@ -38,6 +38,11 @@ class User(Base):
     uploaded_photos = relationship("SitePhoto", back_populates="uploaded_by")
     reported_issues = relationship("IssueReport", back_populates="reported_by")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    daily_progress_reports = relationship("DailyProgressReport", back_populates="site_engineer", foreign_keys="DailyProgressReport.site_engineer_id")
+    recorded_delays = relationship("DelayRecord", back_populates="recorded_by", foreign_keys="DelayRecord.recorded_by_id")
+    logged_activities = relationship("SiteActivityLog", back_populates="logged_by", foreign_keys="SiteActivityLog.logged_by_id")
+    allocated_resources = relationship("ResourceAllocation", back_populates="allocated_by", foreign_keys="ResourceAllocation.allocated_by_id")
+    recorded_utilizations = relationship("ResourceUtilization", back_populates="recorded_by", foreign_keys="ResourceUtilization.recorded_by_id")
 
 class Project(Base):
     __tablename__ = "projects"
@@ -65,6 +70,17 @@ class Project(Base):
     feedback = relationship("FeedbackMessage", back_populates="project", cascade="all, delete-orphan")
     workers = relationship("Worker", back_populates="assigned_project")
     material_requests = relationship("MaterialRequest", back_populates="project", cascade="all, delete-orphan")
+    
+    # Module 3 relationships
+    daily_progress_reports = relationship("DailyProgressReport", back_populates="project", cascade="all, delete-orphan")
+    milestones = relationship("Milestone", back_populates="project", cascade="all, delete-orphan", order_by="Milestone.order_index")
+    delays = relationship("DelayRecord", back_populates="project", cascade="all, delete-orphan")
+    site_activity_logs = relationship("SiteActivityLog", back_populates="project", cascade="all, delete-orphan")
+
+    # Module 4 relationships
+    resource_allocations = relationship("ResourceAllocation", back_populates="project", cascade="all, delete-orphan")
+    resource_utilizations = relationship("ResourceUtilization", back_populates="project", cascade="all, delete-orphan")
+    current_resources = relationship("Resource", back_populates="current_project")
 
 class WorkPackage(Base):
     __tablename__ = "work_packages"
@@ -130,18 +146,52 @@ class Attendance(Base):
     check_in = Column(String, nullable=True) # "HH:MM"
     check_out = Column(String, nullable=True) # "HH:MM"
 
+class MaterialCategory(Base):
+    __tablename__ = "material_categories"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    materials = relationship("Material", back_populates="category", cascade="all, delete-orphan")
+
 class Material(Base):
     __tablename__ = "materials"
 
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
+    category_id = Column(String, ForeignKey("material_categories.id"), nullable=False)
     unit = Column(String, nullable=False)
-    in_stock = Column(Float, nullable=False)
-    reorder_level = Column(Float, nullable=False)
-    cost_per_unit = Column(Float, nullable=False)
+    in_stock = Column(Float, nullable=False, default=0.0) # kept for backward compatibility
+    reorder_level = Column(Float, nullable=False, default=0.0) # kept for backward compatibility
+    minimum_stock_level = Column(Float, nullable=False, default=0.0)
+    cost_per_unit = Column(Float, nullable=False, default=0.0)
+    description = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="Active") # Active, Inactive
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
+    category = relationship("MaterialCategory", back_populates="materials")
     requests = relationship("MaterialRequest", back_populates="material", cascade="all, delete-orphan")
     used_in_reports = relationship("MaterialUsed", back_populates="material", cascade="all, delete-orphan")
+    inventory = relationship("Inventory", back_populates="material", uselist=False, cascade="all, delete-orphan")
+    allocations = relationship("MaterialAllocation", back_populates="material", cascade="all, delete-orphan")
+    stock_movements = relationship("StockMovement", back_populates="material", cascade="all, delete-orphan")
+
+class Inventory(Base):
+    __tablename__ = "inventory"
+
+    id = Column(String, primary_key=True)
+    material_id = Column(String, ForeignKey("materials.id", ondelete="CASCADE"), unique=True, nullable=False)
+    total_stock = Column(Float, nullable=False, default=0.0)
+    available_stock = Column(Float, nullable=False, default=0.0)
+    allocated_stock = Column(Float, nullable=False, default=0.0)
+    consumed_stock = Column(Float, nullable=False, default=0.0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    material = relationship("Material", back_populates="inventory")
 
 class MaterialRequest(Base):
     __tablename__ = "material_requests"
@@ -159,7 +209,49 @@ class MaterialRequest(Base):
     requested_by = relationship("User", back_populates="material_requests")
 
     request_date = Column(DateTime, default=datetime.datetime.utcnow)
-    status = Column(String, nullable=False) # Pending, Approved, Rejected
+    required_date = Column(DateTime, nullable=True)
+    work_activity = Column(String, nullable=True) # Work Activity / Purpose
+    remarks = Column(String, nullable=True)
+    status = Column(String, nullable=False) # Pending, Approved, Rejected, Fulfilled
+
+    allocations = relationship("MaterialAllocation", back_populates="material_request")
+
+class MaterialAllocation(Base):
+    __tablename__ = "material_allocations"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    material_id = Column(String, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False)
+    quantity = Column(Float, nullable=False)
+    allocation_date = Column(DateTime, default=datetime.datetime.utcnow)
+    work_activity = Column(String, nullable=False)
+    responsible_user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    material_request_id = Column(String, ForeignKey("material_requests.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    project = relationship("Project")
+    material = relationship("Material", back_populates="allocations")
+    responsible_user = relationship("User")
+    material_request = relationship("MaterialRequest", back_populates="allocations")
+
+class StockMovement(Base):
+    __tablename__ = "stock_movements"
+
+    id = Column(String, primary_key=True)
+    material_id = Column(String, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    movement_type = Column(String, nullable=False) # Received, Allocated, Consumed, Returned, Adjustment
+    quantity = Column(Float, nullable=False)
+    date = Column(DateTime, default=datetime.datetime.utcnow)
+    previous_quantity = Column(Float, nullable=False)
+    new_quantity = Column(Float, nullable=False)
+    performed_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    reference_id = Column(String, nullable=True) # Allocation ID, Daily Report ID, Request ID
+    remarks = Column(String, nullable=True)
+
+    material = relationship("Material", back_populates="stock_movements")
+    project = relationship("Project")
+    performed_by = relationship("User")
 
 class DailyReport(Base):
     __tablename__ = "daily_reports"
@@ -267,3 +359,237 @@ class ProjectDocument(Base):
     type = Column(String, nullable=False) # pdf, dwg, xlsx, docx, image
     upload_date = Column(DateTime, default=datetime.datetime.utcnow)
     uploaded_by = Column(String, nullable=False)
+
+# ==========================================
+# MODULE 3: SITE PROGRESS MONITORING MODELS
+# ==========================================
+
+class DailyProgressReport(Base):
+    __tablename__ = "daily_progress_reports"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project", back_populates="daily_progress_reports")
+
+    report_date = Column(DateTime, nullable=False)
+    work_category = Column(String, nullable=False) # e.g. Earthwork, Structural, Concrete, Electrical, Plumbing, Finishing, Inspection
+    activity_performed = Column(String, nullable=False)
+    percentage_work_completed = Column(Float, default=0.0) # percentage of the specific activity/package completed or shift progress
+    
+    contractor_id = Column(String, ForeignKey("users.id"), nullable=True)
+    contractor_name = Column(String, nullable=True)
+    
+    workers_present = Column(Integer, default=0)
+    workers_absent = Column(Integer, default=0)
+    machinery_used = Column(String, nullable=True) # Description/list of machinery & hours
+    weather_conditions = Column(String, nullable=False) # e.g. Sunny 28C, Rain
+    safety_observations = Column(String, nullable=True) # PPE compliance, hazards noted
+    quality_inspection_remarks = Column(String, nullable=True) # Slump test, alignment inspection
+    progress_photograph = Column(String, nullable=True) # URL / file reference
+    
+    delay_encountered = Column(Boolean, default=False)
+    delay_reason = Column(String, nullable=True)
+    additional_comments = Column(String, nullable=True)
+
+    site_engineer_id = Column(String, ForeignKey("users.id"), nullable=False)
+    site_engineer = relationship("User", back_populates="daily_progress_reports", foreign_keys=[site_engineer_id])
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    materials_consumed = relationship("DailyReportMaterial", back_populates="report", cascade="all, delete-orphan")
+    resource_utilizations = relationship("ResourceUtilization", back_populates="daily_report", cascade="all, delete-orphan")
+
+
+class DailyReportMaterial(Base):
+    __tablename__ = "daily_report_materials"
+
+    id = Column(String, primary_key=True)
+    daily_report_id = Column(String, ForeignKey("daily_progress_reports.id", ondelete="CASCADE"), nullable=False)
+    report = relationship("DailyProgressReport", back_populates="materials_consumed")
+
+    material_id = Column(String, ForeignKey("materials.id", ondelete="SET NULL"), nullable=True)
+    material_name = Column(String, nullable=False)
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
+
+
+class Milestone(Base):
+    __tablename__ = "milestones"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project", back_populates="milestones")
+
+    name = Column(String, nullable=False) # e.g. Foundation Completed, Structural Work Completed, etc.
+    planned_start_date = Column(DateTime, nullable=False)
+    planned_end_date = Column(DateTime, nullable=False)
+    actual_completion_date = Column(DateTime, nullable=True)
+    progress_percentage = Column(Integer, default=0) # 0 to 100
+    status = Column(String, nullable=False, default="Pending") # Pending, In Progress, Completed, Delayed
+    related_activities = Column(String, nullable=True)
+    order_index = Column(Integer, default=1)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
+class DelayRecord(Base):
+    __tablename__ = "delay_records"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project", back_populates="delays")
+
+    date = Column(DateTime, nullable=False)
+    affected_activity = Column(String, nullable=False)
+    delay_reason = Column(String, nullable=False) # Heavy rainfall, Labour shortage, Material delivery delay, Machinery breakdown, Design modification, Financial issue, Government approval, Other
+    delay_duration = Column(String, nullable=False) # e.g. "2 days", "8 hours"
+    impact_on_project = Column(String, nullable=False, default="Medium") # Low, Medium, High, Critical
+    additional_remarks = Column(String, nullable=True)
+
+    recorded_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    recorded_by = relationship("User", back_populates="recorded_delays", foreign_keys=[recorded_by_id])
+
+    status = Column(String, nullable=False, default="Active") # Active, Mitigated, Resolved
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
+class SiteActivityLog(Base):
+    __tablename__ = "site_activity_logs"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project", back_populates="site_activity_logs")
+
+    date = Column(DateTime, nullable=False)
+    time = Column(String, nullable=False) # "HH:MM"
+    activity_type = Column(String, nullable=False) # Machinery maintenance, Material arrival, Safety training, Client visit, Government inspection, Quality audit, Accident report, Contractor meeting, Equipment servicing, Other
+    description = Column(String, nullable=False)
+    responsible_person = Column(String, nullable=False)
+
+    logged_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    logged_by = relationship("User", back_populates="logged_activities", foreign_keys=[logged_by_id])
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+# ==========================================
+# MODULE 4: RESOURCE MANAGEMENT MODELS
+# ==========================================
+
+class ResourceCategory(Base):
+    __tablename__ = "resource_categories"
+
+    id = Column(String, primary_key=True) # e.g. CAT-EXCAVATOR, CAT-CRANE, CAT-MIXER, CAT-TRUCK, CAT-GENERATOR, CAT-SAFETY
+    name = Column(String, nullable=False, unique=True) # Excavators, Cranes, Concrete Mixers, Dump Trucks, Generators, Safety Equipment
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    resources = relationship("Resource", back_populates="category", cascade="all, delete-orphan")
+
+
+class Resource(Base):
+    __tablename__ = "resources"
+
+    id = Column(String, primary_key=True) # e.g. EQ-101, EXCAVATOR-01
+    name = Column(String, nullable=False) # e.g. CAT 320 Hydraulic Excavator
+    category_id = Column(String, ForeignKey("resource_categories.id"), nullable=False)
+    category = relationship("ResourceCategory", back_populates="resources")
+
+    quantity = Column(Integer, default=1, nullable=False)
+    current_location = Column(String, nullable=False, default="Equipment Yard") # e.g. Site A, Equipment Yard, Workshop
+    
+    current_project_id = Column(String, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    current_project = relationship("Project", back_populates="current_resources")
+
+    status = Column(String, nullable=False, default="Available") # Available, Allocated, Under Maintenance, Out of Service, Idle, Operating
+    responsible_person = Column(String, nullable=False) # Operator / Supervisor name
+
+    model_number = Column(String, nullable=True)
+    serial_number = Column(String, nullable=True)
+    purchase_date = Column(DateTime, nullable=True)
+    hourly_cost = Column(Float, default=0.0)
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    allocations = relationship("ResourceAllocation", back_populates="resource", cascade="all, delete-orphan")
+    utilizations = relationship("ResourceUtilization", back_populates="resource", cascade="all, delete-orphan")
+    maintenance_records = relationship("MaintenanceRecord", back_populates="resource", cascade="all, delete-orphan")
+
+
+class ResourceAllocation(Base):
+    __tablename__ = "resource_allocations"
+
+    id = Column(String, primary_key=True) # e.g. ALC-1001
+    resource_id = Column(String, ForeignKey("resources.id", ondelete="CASCADE"), nullable=False)
+    resource = relationship("Resource", back_populates="allocations")
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project", back_populates="resource_allocations")
+
+    allocation_date = Column(DateTime, nullable=False)
+    expected_return_date = Column(DateTime, nullable=False)
+    actual_return_date = Column(DateTime, nullable=True)
+
+    quantity = Column(Integer, default=1, nullable=False)
+    responsible_person = Column(String, nullable=False) # Assigned operator or site engineer
+    
+    allocated_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    allocated_by = relationship("User", back_populates="allocated_resources")
+
+    status = Column(String, nullable=False, default="Allocated") # Allocated, Active, Returned, Cancelled
+    notes = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
+class ResourceUtilization(Base):
+    __tablename__ = "resource_utilization"
+
+    id = Column(String, primary_key=True) # e.g. UTL-1001
+    resource_id = Column(String, ForeignKey("resources.id", ondelete="CASCADE"), nullable=False)
+    resource = relationship("Resource", back_populates="utilizations")
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project", back_populates="resource_utilizations")
+
+    usage_date = Column(DateTime, nullable=False)
+    operating_hours = Column(Float, default=0.0, nullable=False)
+    idle_hours = Column(Float, default=0.0, nullable=False)
+    total_available_hours = Column(Float, default=8.0, nullable=False)
+    utilization_percentage = Column(Float, default=0.0, nullable=False) # (operating / total) * 100
+
+    daily_report_id = Column(String, ForeignKey("daily_progress_reports.id", ondelete="SET NULL"), nullable=True)
+    daily_report = relationship("DailyProgressReport", back_populates="resource_utilizations")
+
+    recorded_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    recorded_by = relationship("User", back_populates="recorded_utilizations")
+
+    remarks = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class MaintenanceRecord(Base):
+    __tablename__ = "maintenance_records"
+
+    id = Column(String, primary_key=True) # e.g. MNT-1001
+    resource_id = Column(String, ForeignKey("resources.id", ondelete="CASCADE"), nullable=False)
+    resource = relationship("Resource", back_populates="maintenance_records")
+
+    last_maintenance_date = Column(DateTime, nullable=False)
+    next_maintenance_date = Column(DateTime, nullable=False)
+    maintenance_type = Column(String, nullable=False) # Preventive, Corrective, Emergency, Inspection
+    service_engineer = Column(String, nullable=False)
+    maintenance_cost = Column(Float, default=0.0, nullable=False)
+
+    status = Column(String, nullable=False, default="Scheduled") # Scheduled, In Progress, Completed, Overdue
+    remarks = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+

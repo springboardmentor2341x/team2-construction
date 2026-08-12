@@ -266,40 +266,67 @@ class AttendanceCreate(BaseModel):
 # ==========================================
 # MATERIALS & REQUESTS SCHEMAS
 # ==========================================
-class MaterialResponse(BaseModel):
+# MATERIALS & INVENTORY SCHEMAS (MODULE 5)
+# ==========================================
+class MaterialCategoryCreate(BaseModel):
     id: str
     name: str
-    unit: str
-    inStock: float
-    reorderLevel: float
-    costPerUnit: float
+    description: Optional[str] = None
+
+class MaterialCategoryResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    createdAt: str
 
     model_config = ConfigDict(from_attributes=True)
 
 class MaterialCreate(BaseModel):
     id: str
     name: str
+    categoryId: str
     unit: str
-    inStock: float
-    reorderLevel: float
+    minimumStockLevel: float
     costPerUnit: float
+    description: Optional[str] = None
+    status: Optional[str] = "Active"
 
 class MaterialUpdate(BaseModel):
     name: Optional[str] = None
+    categoryId: Optional[str] = None
     unit: Optional[str] = None
-    inStock: Optional[float] = None
-    reorderLevel: Optional[float] = None
+    minimumStockLevel: Optional[float] = None
     costPerUnit: Optional[float] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
 
-class MaterialRequestResponse(BaseModel):
+class MaterialResponse(BaseModel):
     id: str
+    name: str
+    categoryId: str
+    categoryName: str
+    unit: str
+    inStock: float # available_stock for compatibility
+    reorderLevel: float # minimum_stock_level for compatibility
+    minimumStockLevel: float
+    costPerUnit: float
+    description: Optional[str] = None
+    status: str
+    createdAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class InventoryResponse(BaseModel):
     materialId: str
     materialName: str
-    quantity: float
-    requestedBy: str
-    requestDate: str
-    status: str
-    projectName: str
+    categoryName: str
+    unit: str
+    totalStock: float
+    availableStock: float
+    allocatedStock: float
+    consumedStock: float
+    minimumStockLevel: float
+    status: str # Available, Low Stock
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -308,9 +335,81 @@ class MaterialRequestCreate(BaseModel):
     projectId: str
     materialId: str
     quantity: float
+    requiredDate: Optional[str] = None # YYYY-MM-DD
+    workActivity: Optional[str] = None
+    remarks: Optional[str] = None
+
+class MaterialRequestResponse(BaseModel):
+    id: str
+    projectId: str
+    projectName: str
+    materialId: str
+    materialName: str
+    categoryName: str
+    unit: str
+    quantity: float
+    requiredDate: Optional[str] = None
+    workActivity: Optional[str] = None
+    remarks: Optional[str] = None
+    requestedBy: str
+    requestedById: str
+    requestDate: str
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 class MaterialRequestRespond(BaseModel):
     approve: bool
+
+class MaterialAllocationCreate(BaseModel):
+    projectId: str
+    materialId: str
+    quantity: float
+    workActivity: str
+    responsibleUserId: str
+    materialRequestId: Optional[str] = None
+
+class MaterialAllocationResponse(BaseModel):
+    id: str
+    projectId: str
+    projectName: str
+    materialId: str
+    materialName: str
+    quantity: float
+    allocationDate: str
+    workActivity: str
+    responsibleUserId: str
+    responsibleUserName: str
+    materialRequestId: Optional[str] = None
+    createdAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class StockMovementResponse(BaseModel):
+    id: str
+    materialId: str
+    materialName: str
+    projectId: Optional[str] = None
+    projectName: Optional[str] = None
+    movementType: str
+    quantity: float
+    date: str
+    previousQuantity: float
+    newQuantity: float
+    performedBy: str
+    referenceId: Optional[str] = None
+    remarks: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ShortageResponse(BaseModel):
+    projectId: str
+    projectName: str
+    materialId: str
+    materialName: str
+    requiredQuantity: float
+    availableQuantity: float
+    shortageQuantity: float
 
 # ==========================================
 # DAILY PROGRESS REPORTS (SITE ENGINEEER)
@@ -369,6 +468,400 @@ class NotificationCreate(BaseModel):
     userId: str
     message: str
     type: Optional[str] = "info"
+
+# ==========================================
+# MODULE 3: SITE PROGRESS MONITORING SCHEMAS
+# ==========================================
+
+class DailyReportMaterialInput(BaseModel):
+    materialId: Optional[str] = None
+    materialName: str
+    quantity: float
+    unit: str
+
+class DailyProgressReportCreate(BaseModel):
+    id: Optional[str] = None
+    projectId: str
+    reportDate: str # "YYYY-MM-DD"
+    workCategory: str # Earthwork, Structural, Concrete, Electrical, Plumbing, Finishing, Inspection, etc.
+    activityPerformed: str
+    percentageWorkCompleted: Optional[float] = 0.0
+    contractorId: Optional[str] = None
+    contractorName: Optional[str] = None
+    workersPresent: Optional[int] = 0
+    workersAbsent: Optional[int] = 0
+    machineryUsed: Optional[str] = None
+    weatherConditions: str
+    safetyObservations: Optional[str] = None
+    qualityInspectionRemarks: Optional[str] = None
+    progressPhotograph: Optional[str] = None
+    delayEncountered: Optional[bool] = False
+    delayReason: Optional[str] = None
+    additionalComments: Optional[str] = None
+    materialsConsumed: Optional[List[DailyReportMaterialInput]] = []
+
+class DailyProgressReportUpdate(BaseModel):
+    workCategory: Optional[str] = None
+    activityPerformed: Optional[str] = None
+    percentageWorkCompleted: Optional[float] = None
+    contractorId: Optional[str] = None
+    contractorName: Optional[str] = None
+    workersPresent: Optional[int] = None
+    workersAbsent: Optional[int] = None
+    machineryUsed: Optional[str] = None
+    weatherConditions: Optional[str] = None
+    safetyObservations: Optional[str] = None
+    qualityInspectionRemarks: Optional[str] = None
+    progressPhotograph: Optional[str] = None
+    delayEncountered: Optional[bool] = None
+    delayReason: Optional[str] = None
+    additionalComments: Optional[str] = None
+    materialsConsumed: Optional[List[DailyReportMaterialInput]] = None
+
+class DailyProgressReportResponse(BaseModel):
+    id: str
+    projectId: str
+    projectName: Optional[str] = None
+    reportDate: str
+    workCategory: str
+    activityPerformed: str
+    percentageWorkCompleted: float
+    contractorId: Optional[str] = None
+    contractorName: Optional[str] = None
+    workersPresent: int
+    workersAbsent: int
+    machineryUsed: Optional[str] = None
+    weatherConditions: str
+    safetyObservations: Optional[str] = None
+    qualityInspectionRemarks: Optional[str] = None
+    progressPhotograph: Optional[str] = None
+    delayEncountered: bool
+    delayReason: Optional[str] = None
+    additionalComments: Optional[str] = None
+    siteEngineerId: str
+    siteEngineerName: Optional[str] = None
+    createdAt: str
+    materialsConsumed: List[DailyReportMaterialInput] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+# MILESTONES SCHEMAS
+class MilestoneCreate(BaseModel):
+    id: Optional[str] = None
+    projectId: str
+    name: str
+    plannedStartDate: str
+    plannedEndDate: str
+    actualCompletionDate: Optional[str] = None
+    progressPercentage: Optional[int] = 0
+    status: Optional[str] = "Pending"
+    relatedActivities: Optional[str] = None
+    orderIndex: Optional[int] = 1
+
+class MilestoneUpdate(BaseModel):
+    name: Optional[str] = None
+    plannedStartDate: Optional[str] = None
+    plannedEndDate: Optional[str] = None
+    actualCompletionDate: Optional[str] = None
+    progressPercentage: Optional[int] = None
+    status: Optional[str] = None
+    relatedActivities: Optional[str] = None
+    orderIndex: Optional[int] = None
+
+class MilestoneResponse(BaseModel):
+    id: str
+    projectId: str
+    projectName: Optional[str] = None
+    name: str
+    plannedStartDate: str
+    plannedEndDate: str
+    actualCompletionDate: Optional[str] = None
+    progressPercentage: int
+    status: str
+    relatedActivities: Optional[str] = None
+    orderIndex: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+# DELAY RECORD SCHEMAS
+class DelayRecordCreate(BaseModel):
+    id: Optional[str] = None
+    projectId: str
+    date: str
+    affectedActivity: str
+    delayReason: str
+    delayDuration: str
+    impactOnProject: Optional[str] = "Medium"
+    additionalRemarks: Optional[str] = None
+
+class DelayRecordUpdate(BaseModel):
+    affectedActivity: Optional[str] = None
+    delayReason: Optional[str] = None
+    delayDuration: Optional[str] = None
+    impactOnProject: Optional[str] = None
+    additionalRemarks: Optional[str] = None
+    status: Optional[str] = None
+
+class DelayRecordResponse(BaseModel):
+    id: str
+    projectId: str
+    projectName: Optional[str] = None
+    date: str
+    affectedActivity: str
+    delayReason: str
+    delayDuration: str
+    impactOnProject: str
+    additionalRemarks: Optional[str] = None
+    recordedById: str
+    recordedByName: Optional[str] = None
+    status: str
+    createdAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# SITE ACTIVITY LOG SCHEMAS
+class SiteActivityLogCreate(BaseModel):
+    id: Optional[str] = None
+    projectId: str
+    date: str
+    time: str
+    activityType: str
+    description: str
+    responsiblePerson: str
+
+class SiteActivityLogUpdate(BaseModel):
+    date: Optional[str] = None
+    time: Optional[str] = None
+    activityType: Optional[str] = None
+    description: Optional[str] = None
+    responsiblePerson: Optional[str] = None
+
+class SiteActivityLogResponse(BaseModel):
+    id: str
+    projectId: str
+    projectName: Optional[str] = None
+    date: str
+    time: str
+    activityType: str
+    description: str
+    responsiblePerson: str
+    loggedById: str
+    loggedByName: Optional[str] = None
+    createdAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# WEEKLY PROGRESS SUMMARY SCHEMA
+class WeeklyProgressSummaryResponse(BaseModel):
+    projectId: str
+    projectName: str
+    weekStartDate: str
+    weekEndDate: str
+    weeklyProgressPercentage: float
+    overallProjectProgress: int
+    projectStatus: str
+    totalReportsFiled: int
+    totalWorkersUtilized: int
+    majorActivitiesCompleted: List[str]
+    delaysEncounteredCount: int
+    delayDetails: List[dict]
+    safetyObservationsCount: int
+    safetyObservations: List[str]
+    materialsConsumedSummary: List[dict]
+
+# ==========================================
+# MODULE 4: RESOURCE MANAGEMENT SCHEMAS
+# ==========================================
+
+# RESOURCE CATEGORY SCHEMAS
+class ResourceCategoryCreate(BaseModel):
+    id: Optional[str] = None
+    name: str
+    description: Optional[str] = None
+
+class ResourceCategoryResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    createdAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# RESOURCE / EQUIPMENT SCHEMAS
+class ResourceCreate(BaseModel):
+    id: Optional[str] = None # e.g. EQ-101, EXCAVATOR-01
+    name: str
+    categoryId: str
+    quantity: Optional[int] = 1
+    currentLocation: Optional[str] = "Equipment Yard"
+    currentProjectId: Optional[str] = None
+    status: Optional[str] = "Available" # Available, Allocated, Under Maintenance, Out of Service, Idle, Operating
+    responsiblePerson: str
+    modelNumber: Optional[str] = None
+    serialNumber: Optional[str] = None
+    purchaseDate: Optional[str] = None
+    hourlyCost: Optional[float] = 0.0
+
+class ResourceUpdate(BaseModel):
+    name: Optional[str] = None
+    categoryId: Optional[str] = None
+    quantity: Optional[int] = None
+    currentLocation: Optional[str] = None
+    currentProjectId: Optional[str] = None
+    status: Optional[str] = None
+    responsiblePerson: Optional[str] = None
+    modelNumber: Optional[str] = None
+    serialNumber: Optional[str] = None
+    purchaseDate: Optional[str] = None
+    hourlyCost: Optional[float] = None
+
+class ResourceResponse(BaseModel):
+    id: str
+    name: str
+    categoryId: str
+    categoryName: Optional[str] = None
+    quantity: int
+    currentLocation: str
+    currentProjectId: Optional[str] = None
+    currentProjectName: Optional[str] = None
+    status: str
+    responsiblePerson: str
+    modelNumber: Optional[str] = None
+    serialNumber: Optional[str] = None
+    purchaseDate: Optional[str] = None
+    hourlyCost: float
+    createdAt: str
+    updatedAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ResourceSummaryResponse(BaseModel):
+    totalEquipment: int
+    availableCount: int
+    allocatedCount: int
+    operatingCount: int
+    idleCount: int
+    maintenanceCount: int
+    outOfServiceCount: int
+    averageUtilization: float
+    categoryCounts: List[dict]
+
+# RESOURCE ALLOCATION SCHEMAS
+class ResourceAllocationCreate(BaseModel):
+    id: Optional[str] = None
+    resourceId: str
+    projectId: str
+    allocationDate: str # YYYY-MM-DD
+    expectedReturnDate: str # YYYY-MM-DD
+    quantity: Optional[int] = 1
+    responsiblePerson: str
+    notes: Optional[str] = None
+
+class ResourceAllocationUpdate(BaseModel):
+    expectedReturnDate: Optional[str] = None
+    actualReturnDate: Optional[str] = None
+    responsiblePerson: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
+class ResourceAllocationResponse(BaseModel):
+    id: str
+    resourceId: str
+    resourceName: Optional[str] = None
+    resourceCategory: Optional[str] = None
+    projectId: str
+    projectName: Optional[str] = None
+    allocationDate: str
+    expectedReturnDate: str
+    actualReturnDate: Optional[str] = None
+    quantity: int
+    responsiblePerson: str
+    allocatedById: str
+    allocatedByName: Optional[str] = None
+    status: str
+    notes: Optional[str] = None
+    createdAt: str
+    updatedAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# RESOURCE UTILIZATION SCHEMAS
+class ResourceUtilizationCreate(BaseModel):
+    id: Optional[str] = None
+    resourceId: str
+    projectId: str
+    usageDate: str # YYYY-MM-DD
+    operatingHours: float
+    idleHours: Optional[float] = 0.0
+    totalAvailableHours: Optional[float] = 8.0
+    dailyReportId: Optional[str] = None
+    remarks: Optional[str] = None
+
+class ResourceUtilizationResponse(BaseModel):
+    id: str
+    resourceId: str
+    resourceName: Optional[str] = None
+    resourceCategory: Optional[str] = None
+    projectId: str
+    projectName: Optional[str] = None
+    usageDate: str
+    operatingHours: float
+    idleHours: float
+    totalAvailableHours: float
+    utilizationPercentage: float
+    dailyReportId: Optional[str] = None
+    recordedById: Optional[str] = None
+    recordedByName: Optional[str] = None
+    remarks: Optional[str] = None
+    createdAt: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UtilizationSummaryResponse(BaseModel):
+    totalOperatingHours: float
+    totalIdleHours: float
+    totalAvailableHours: float
+    overallUtilizationPercentage: float
+    byCategory: List[dict]
+    byProject: List[dict]
+
+# MAINTENANCE SCHEMAS
+class MaintenanceRecordCreate(BaseModel):
+    id: Optional[str] = None
+    resourceId: str
+    lastMaintenanceDate: str # YYYY-MM-DD
+    nextMaintenanceDate: str # YYYY-MM-DD
+    maintenanceType: str # Preventive, Corrective, Emergency, Inspection
+    serviceEngineer: str
+    maintenanceCost: Optional[float] = 0.0
+    status: Optional[str] = "Scheduled" # Scheduled, In Progress, Completed, Overdue
+    remarks: Optional[str] = None
+
+class MaintenanceRecordUpdate(BaseModel):
+    lastMaintenanceDate: Optional[str] = None
+    nextMaintenanceDate: Optional[str] = None
+    maintenanceType: Optional[str] = None
+    serviceEngineer: Optional[str] = None
+    maintenanceCost: Optional[float] = None
+    status: Optional[str] = None
+    remarks: Optional[str] = None
+
+class MaintenanceRecordResponse(BaseModel):
+    id: str
+    resourceId: str
+    resourceName: Optional[str] = None
+    resourceCategory: Optional[str] = None
+    lastMaintenanceDate: str
+    nextMaintenanceDate: str
+    maintenanceType: str
+    serviceEngineer: str
+    maintenanceCost: float
+    status: str
+    remarks: Optional[str] = None
+    createdAt: str
+    updatedAt: str
+
+    model_config = ConfigDict(from_attributes=True)
 
 # ==========================================
 # PLATFORM GENERAL WRAPPER SCHEMAS

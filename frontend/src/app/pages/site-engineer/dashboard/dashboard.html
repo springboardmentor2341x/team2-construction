@@ -1,85 +1,153 @@
 <div class="container-fluid p-0">
 
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <!-- Header with Project Selector & Active Site Indicator -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
       <h2 class="fw-bold text-dark mb-1">Site Engineer Control Panel</h2>
-      <p class="text-muted mb-0">Sathvik S &bull; Active Site: <strong>{{ engineerProject()?.name }}</strong></p>
+      <p class="text-muted mb-0">Sathvik S &bull; Site Progress Monitoring &amp; Execution</p>
     </div>
-    <div class="d-flex gap-2 align-items-center">
-      <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill">
-        Site Progress: {{ engineerProject()?.progress }}%
+    <div class="d-flex gap-3 align-items-center">
+      <div>
+        <label class="small text-muted fw-semibold me-2 d-none d-sm-inline">Active Project:</label>
+        <select class="form-select form-select-sm d-inline-block w-auto fw-bold" [(ngModel)]="selectedProjectId" (change)="onProjectChange()">
+          @for (proj of projectService.projects(); track proj.id) {
+            <option [value]="proj.id">{{ proj.name }} ({{ proj.id }})</option>
+          }
+        </select>
+      </div>
+      <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill shadow-sm">
+        Overall Progress: {{ engineerProject()?.progress }}%
       </span>
     </div>
   </div>
 
   <!-- KPI summary cards -->
   <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-md-3">
-      <app-dashboard-card title="Daily Logs Filed" [value]="projectLogs().length" icon="bi-journal-text" colorType="primary"></app-dashboard-card>
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Daily Reports Filed" [value]="projectDailyReports().length" icon="bi-journal-check" colorType="primary" subtitle="Separate historical records"></app-dashboard-card>
     </div>
-    <div class="col-sm-6 col-md-3">
-      <app-dashboard-card title="Site Photos Feed" [value]="projectPhotos().length" icon="bi-camera" colorType="success"></app-dashboard-card>
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Project Milestones" [value]="projectMilestones().length" icon="bi-flag-fill" colorType="success" [subtitle]="(engineerProject()?.progress || 0) + '% Cumulative Completion'"></app-dashboard-card>
     </div>
-    <div class="col-sm-6 col-md-3">
-      <app-dashboard-card title="Labour Attendance" [value]="attendanceRoster().length" icon="bi-people-fill" colorType="info" subtitle="Workers Checked In"></app-dashboard-card>
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Active Delays" [value]="projectDelays().length" icon="bi-hourglass-split" colorType="danger" [subtitle]="projectDelays().length + ' Site bottlenecks logged'"></app-dashboard-card>
     </div>
-    <div class="col-sm-6 col-md-3">
-      <app-dashboard-card title="Active Site Issues" [value]="activeIssues().length" icon="bi-exclamation-triangle" colorType="danger" [subtitle]="activeIssues().length + ' Open hazards'"></app-dashboard-card>
+    <div class="col-sm-6 col-lg-3">
+      <app-dashboard-card title="Site Activity Events" [value]="projectActivityLogs().length" icon="bi-clipboard2-data-fill" colorType="info" subtitle="Machinery, Audits & Training"></app-dashboard-card>
     </div>
   </div>
 
-  <!-- Modules views -->
+  <!-- ========================================== -->
+  <!-- 1. DAILY PROGRESS REPORT MODULE VIEW -->
+  <!-- ========================================== -->
   @if (activeModule === 'progress') {
     <div class="row g-4">
-      <div class="col-lg-5">
+      <!-- Create Daily Progress Report Form -->
+      <div class="col-xl-5">
         <div class="card border-0 shadow-sm rounded-3">
           <div class="card-body p-4">
-            <h5 class="fw-bold text-dark mb-3">File Daily Progress Report</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0"><i class="bi bi-file-earmark-plus text-primary me-2"></i>File Daily Progress Report</h5>
+              <span class="badge bg-light text-muted border">Shift Record</span>
+            </div>
             
-            <form (ngSubmit)="submitDailyLog()">
+            <form (ngSubmit)="submitDailyReport()">
               
-              <div class="form-group mb-3">
-                <label class="form-label fw-semibold small text-muted">Weather Conditions</label>
-                <input type="text" name="weather" [(ngModel)]="logWeather" required class="form-control" placeholder="e.g. Sunny, 28°C">
+              <div class="row g-2 mb-3">
+                <div class="col-sm-6">
+                  <label class="form-label fw-semibold small text-muted">Report Date *</label>
+                  <input type="date" name="reportDate" [(ngModel)]="reportDate" required class="form-control form-control-sm">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label fw-semibold small text-muted">Work Category *</label>
+                  <select class="form-select form-select-sm" name="workCategory" [(ngModel)]="workCategory" required>
+                    <option value="Earthwork">Earthwork &amp; Piling</option>
+                    <option value="Structural">Structural Steel &amp; Framing</option>
+                    <option value="Concrete">Concrete &amp; Slab Casting</option>
+                    <option value="Masonry">Masonry &amp; Blockwork</option>
+                    <option value="Electrical">Electrical Works</option>
+                    <option value="Plumbing">Plumbing &amp; Piping</option>
+                    <option value="HVAC">HVAC &amp; Mechanical</option>
+                    <option value="Finishing">Finishing &amp; Painting</option>
+                    <option value="Inspection">Quality Inspection</option>
+                  </select>
+                </div>
               </div>
 
               <div class="form-group mb-3">
-                <label class="form-label fw-semibold small text-muted">Detailed Work Completed</label>
-                <textarea name="workDone" [(ngModel)]="logWorkDone" required rows="4" class="form-control" placeholder="Specify tasks completed, levels framed, concrete pours..."></textarea>
+                <label class="form-label fw-semibold small text-muted">Activity Performed *</label>
+                <textarea name="activityPerformed" [(ngModel)]="activityPerformed" required rows="3" class="form-control" placeholder="Specify concrete pour location, levels framed, rebar ties, equipment used..."></textarea>
               </div>
 
-              <!-- Materials consumed adding section -->
-              <div class="border rounded p-3 mb-3 bg-light">
-                <span class="fw-semibold text-dark small d-block mb-2">Record Material Consumption</span>
+              <div class="row g-2 mb-3">
+                <div class="col-sm-6">
+                  <label class="form-label fw-semibold small text-muted">% Shift Progress Added</label>
+                  <div class="input-group input-group-sm">
+                    <input type="number" name="progress" [(ngModel)]="percentageWorkCompleted" min="0" max="100" step="0.5" class="form-control">
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label fw-semibold small text-muted">Contractor Responsible</label>
+                  <select class="form-select form-select-sm" name="contractorId" [(ngModel)]="selectedContractorId">
+                    <option value="u4">Vance Concrete Ltd (Gaurav K)</option>
+                    <option value="u2">Apex Builders (Shradha S)</option>
+                    <option value="u3">Apex Engineering (Sathvik S)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-6 col-sm-3">
+                  <label class="form-label fw-semibold small text-muted">Workers Present</label>
+                  <input type="number" name="workersPresent" [(ngModel)]="workersPresent" min="0" class="form-control form-control-sm">
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label fw-semibold small text-muted">Workers Absent</label>
+                  <input type="number" name="workersAbsent" [(ngModel)]="workersAbsent" min="0" class="form-control form-control-sm">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label fw-semibold small text-muted">Weather Conditions *</label>
+                  <input type="text" name="weatherConditions" [(ngModel)]="weatherConditions" required class="form-control form-control-sm" placeholder="e.g. Sunny, 28°C">
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Machinery Used &amp; Hours</label>
+                <input type="text" name="machineryUsed" [(ngModel)]="machineryUsed" class="form-control form-control-sm" placeholder="e.g. Tower Crane #1 (8 hrs), Scissor Lift #2 (4 hrs)">
+              </div>
+
+              <!-- Materials consumed sub-section -->
+              <div class="border rounded-3 p-3 mb-3 bg-light">
+                <span class="fw-semibold text-dark small d-block mb-2"><i class="bi bi-box-seam me-1"></i>Materials Consumed This Shift</span>
                 
                 <div class="row g-2 align-items-end">
                   <div class="col-7">
-                    <label class="small text-muted mb-1">Material Name</label>
-                    <select class="form-select text-xs-ls" name="matSelect" [(ngModel)]="selectedMaterialId">
+                    <label class="small text-muted mb-1" style="font-size: 11px;">Material</label>
+                    <select class="form-select form-select-sm" name="matSelect" [(ngModel)]="selectedMaterialId">
                       @for (mat of projectService.materials(); track mat.id) {
-                        <option [value]="mat.id">{{ mat.name }} ({{ mat.unit }})</option>
+                        <option [value]="mat.id">{{ mat.name }} ({{ mat.unit }}) - Stock: {{ mat.inStock }}</option>
                       }
                     </select>
                   </div>
                   <div class="col-3">
-                    <label class="small text-muted mb-1">Quantity</label>
-                    <input type="number" name="matQty" [(ngModel)]="materialQty" min="0" class="form-control">
+                    <label class="small text-muted mb-1" style="font-size: 11px;">Quantity</label>
+                    <input type="number" name="matQty" [(ngModel)]="materialQty" min="0" step="0.5" class="form-control form-control-sm">
                   </div>
                   <div class="col-2">
-                    <button type="button" class="btn btn-primary w-100 d-flex justify-content-center" (click)="addMaterialToLog()">
+                    <button type="button" class="btn btn-primary btn-sm w-100" (click)="addMaterialToConsumption()">
                       <i class="bi bi-plus-lg"></i>
                     </button>
                   </div>
                 </div>
 
-                @if (tempMaterialsUsed.length > 0) {
-                  <ul class="list-group list-group-flush mt-3 border-top pt-2">
-                    @for (item of tempMaterialsUsed; track $index) {
-                      <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 py-1.5 small">
+                @if (tempMaterialsConsumed.length > 0) {
+                  <ul class="list-group list-group-flush mt-2 border-top pt-2">
+                    @for (item of tempMaterialsConsumed; track $index) {
+                      <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 py-1 small">
                         <span>{{ item.materialName }}: <strong>{{ item.quantity }} {{ item.unit }}</strong></span>
-                        <button type="button" class="btn btn-link text-danger btn-sm p-0 border-0" (click)="removeMaterialFromLog($index)">
-                          <i class="bi bi-trash-fill"></i>
+                        <button type="button" class="btn btn-link text-danger btn-sm p-0 border-0" (click)="removeMaterialFromConsumption($index)">
+                          <i class="bi bi-trash"></i>
                         </button>
                       </li>
                     }
@@ -87,8 +155,53 @@
                 }
               </div>
 
-              <button type="submit" class="btn btn-primary w-100 py-2.5">
-                <i class="bi bi-check-circle me-1"></i> Submit Report
+              <div class="row g-2 mb-3">
+                <div class="col-sm-6">
+                  <label class="form-label fw-semibold small text-muted">Safety Observations</label>
+                  <input type="text" name="safetyObs" [(ngModel)]="safetyObservations" class="form-control form-control-sm" placeholder="PPE compliance, harness ties...">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label fw-semibold small text-muted">Quality Inspection Remarks</label>
+                  <input type="text" name="qualityRemarks" [(ngModel)]="qualityInspectionRemarks" class="form-control form-control-sm" placeholder="Slump test, alignment verified...">
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Progress Photograph URL (Optional)</label>
+                <input type="url" name="photoUrl" [(ngModel)]="progressPhotograph" class="form-control form-control-sm" placeholder="https://images.unsplash.com/...">
+              </div>
+
+              <!-- Delay Encountered Toggle -->
+              <div class="form-check form-switch mb-3 p-2 bg-light rounded border">
+                <input class="form-check-input ms-0 me-2" type="checkbox" id="delaySwitch" [(ngModel)]="delayEncountered" name="delayEncountered">
+                <label class="form-check-label fw-semibold small text-danger" for="delaySwitch">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> Delay Encountered During Shift?
+                </label>
+              </div>
+
+              @if (delayEncountered) {
+                <div class="form-group mb-3 p-3 bg-danger-subtle rounded border border-danger-subtle">
+                  <label class="form-label fw-bold small text-danger">Delay Reason *</label>
+                  <select class="form-select form-select-sm" name="delayReason" [(ngModel)]="delayReason">
+                    <option value="Heavy rainfall">Heavy rainfall / Bad weather</option>
+                    <option value="Labour shortage">Labour shortage</option>
+                    <option value="Material delivery delay">Material delivery delay</option>
+                    <option value="Machinery breakdown">Machinery breakdown</option>
+                    <option value="Design modification">Design modification / RFI</option>
+                    <option value="Financial issue">Financial issue</option>
+                    <option value="Government approval">Government approval / Inspection delay</option>
+                    <option value="Other">Other reason</option>
+                  </select>
+                </div>
+              }
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Additional Remarks</label>
+                <textarea name="comments" [(ngModel)]="additionalComments" rows="2" class="form-control form-control-sm" placeholder="Any extra site notes..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                <i class="bi bi-check-circle-fill me-1"></i> Submit Daily Progress Report
               </button>
 
             </form>
@@ -96,38 +209,96 @@
         </div>
       </div>
 
-      <div class="col-lg-7">
+      <!-- Historical Daily Progress Reports Ledger -->
+      <div class="col-xl-7">
         <div class="card border-0 shadow-sm rounded-3">
           <div class="card-body p-4">
-            <h5 class="fw-bold text-dark mb-3">Recent Daily Progress Logs</h5>
-            
-            <div class="d-flex flex-column gap-3">
-              @for (log of projectLogs(); track log.id) {
-                <div class="p-3 border rounded-3 bg-light-subtle">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold text-primary">{{ log.date }}</span>
-                    <small class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">
-                      <i class="bi bi-cloud-sun me-1"></i>{{ log.weather }}
-                    </small>
-                  </div>
-                  <p class="text-dark small mb-2" style="white-space: pre-line;">{{ log.workDone }}</p>
-                  
-                  @if (log.materialsUsed && log.materialsUsed.length > 0) {
-                    <div class="border-top pt-2">
-                      <span class="text-muted d-block small mb-1 fw-semibold" style="font-size: 11px;">MATERIALS USED:</span>
-                      <div class="d-flex flex-wrap gap-2">
-                        @for (m of log.materialsUsed; track $index) {
-                          <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 text-xs">
-                            {{ m.materialName }}: {{ m.quantity }} {{ m.unit }}
-                          </span>
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+              <div>
+                <h5 class="fw-bold text-dark mb-0">Daily Progress Reports Ledger</h5>
+                <small class="text-muted">Separate historical logs filed by Site Engineer</small>
+              </div>
+              <div class="d-flex gap-2">
+                <select class="form-select form-select-sm w-auto" [(ngModel)]="reportFilterCategory">
+                  <option value="ALL">All Categories</option>
+                  <option value="Structural">Structural</option>
+                  <option value="Concrete">Concrete</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Plumbing">Plumbing</option>
+                  <option value="Earthwork">Earthwork</option>
+                  <option value="Inspection">Inspection</option>
+                </select>
+              </div>
+            </div>
+
+            @if (projectDailyReports().length === 0) {
+              <div class="p-5 text-center bg-light rounded-3 text-muted">
+                <i class="bi bi-journal-x fs-1 d-block mb-2 text-secondary"></i>
+                <p class="mb-0">No Daily Progress Reports recorded for this project yet.</p>
+              </div>
+            } @else {
+              <div class="d-flex flex-column gap-3">
+                @for (rep of projectDailyReports(); track rep.id) {
+                  <div class="p-3 border rounded-3 bg-light-subtle shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary fw-bold">{{ rep.reportDate }}</span>
+                        <span class="badge bg-secondary-subtle text-secondary border">{{ rep.workCategory }}</span>
+                        @if (rep.percentageWorkCompleted > 0) {
+                          <span class="badge bg-success-subtle text-success border">+{{ rep.percentageWorkCompleted }}% Progress</span>
                         }
                       </div>
+                      <div class="d-flex align-items-center gap-2">
+                        @if (rep.delayEncountered) {
+                          <span class="badge bg-danger"><i class="bi bi-clock-history me-1"></i>Delayed</span>
+                        }
+                        <button class="btn btn-outline-danger btn-sm p-1 px-2 border-0" title="Delete Report" (click)="deleteReport(rep.id)">
+                          <i class="bi bi-trash-fill"></i>
+                        </button>
+                      </div>
                     </div>
-                  }
-                  <small class="text-muted d-block mt-2 text-end" style="font-size: 11px;">Filed by: {{ log.siteEngineer }}</small>
-                </div>
-              }
-            </div>
+
+                    <h6 class="fw-bold text-dark mb-1">{{ rep.activityPerformed }}</h6>
+                    
+                    <div class="row g-2 my-2 text-muted small" style="font-size: 12px;">
+                      <div class="col-6 col-md-3">
+                        <i class="bi bi-person-workspace me-1"></i>Contractor: <strong>{{ rep.contractorName || 'Vance Concrete' }}</strong>
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <i class="bi bi-people-fill me-1"></i>Workers: <strong>{{ rep.workersPresent }} Present</strong>
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <i class="bi bi-cloud-sun me-1"></i>Weather: <strong>{{ rep.weatherConditions }}</strong>
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <i class="bi bi-gear-wide-connected me-1"></i>Machinery: <strong>{{ rep.machineryUsed || 'Manual' }}</strong>
+                      </div>
+                    </div>
+
+                    @if (rep.materialsConsumed && rep.materialsConsumed.length > 0) {
+                      <div class="border-top pt-2 mt-2">
+                        <span class="text-muted d-block small mb-1 fw-semibold" style="font-size: 11px;">MATERIALS CONSUMED:</span>
+                        <div class="d-flex flex-wrap gap-1.5">
+                          @for (m of rep.materialsConsumed; track $index) {
+                            <span class="badge bg-light text-dark border rounded-pill px-2 py-1 text-xs">
+                              {{ m.materialName }}: {{ m.quantity }} {{ m.unit }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                      <small class="text-muted" style="font-size: 11px;">Report ID: <strong>{{ rep.id }}</strong> &bull; Filed by {{ rep.siteEngineerName || 'Sathvik S' }}</small>
+                      <button class="btn btn-outline-primary btn-sm py-0.5 px-2.5 rounded-pill text-xs fw-bold" (click)="openReportDetail(rep)">
+                        <i class="bi bi-eye me-1"></i> View Full Details
+                      </button>
+                    </div>
+
+                  </div>
+                }
+              </div>
+            }
 
           </div>
         </div>
@@ -135,41 +306,604 @@
     </div>
   }
 
+  <!-- ========================================== -->
+  <!-- MODULE 4: MACHINERY USAGE SHIFT LOGS -->
+  <!-- ========================================== -->
+  @if (activeModule === 'machinery_usage') {
+    <div class="row g-4 mb-4">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-2"><i class="bi bi-speedometer2 text-primary me-2"></i>Log Shift Machinery Hours</h5>
+            <p class="text-muted small mb-3">Record machine run-time and idle hours for automatic utilization calculations.</p>
+
+            <form (ngSubmit)="submitMachineryUsage()">
+              <div class="form-group mb-2.5">
+                <label class="form-label fw-semibold small text-muted">Select Assigned Equipment *</label>
+                <select class="form-select form-select-sm" name="mRes" [(ngModel)]="machineryResourceId" required>
+                  @for (res of projectEquipment(); track res.id) {
+                    <option [value]="res.id">{{ res.id }} - {{ res.name }} [{{ res.status }}]</option>
+                  }
+                  @if (projectEquipment().length === 0) {
+                    @for (res of projectService.resources(); track res.id) {
+                      <option [value]="res.id">{{ res.id }} - {{ res.name }}</option>
+                    }
+                  }
+                </select>
+              </div>
+
+              <div class="row g-2 mb-2.5">
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Usage Date *</label>
+                  <input type="date" name="mDate" [(ngModel)]="machineryUsageDate" required class="form-control form-control-sm">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Shift Total (hrs)</label>
+                  <input type="number" name="mTotal" [(ngModel)]="machineryTotalHours" min="1" max="24" step="0.5" class="form-control form-control-sm">
+                </div>
+              </div>
+
+              <div class="row g-2 mb-2.5">
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Operating (hrs) *</label>
+                  <input type="number" name="mOp" [(ngModel)]="machineryOperatingHours" min="0" max="24" step="0.5" required class="form-control form-control-sm">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Idle (hrs)</label>
+                  <input type="number" name="mIdle" [(ngModel)]="machineryIdleHours" min="0" max="24" step="0.5" class="form-control form-control-sm">
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Remarks / Task Activity</label>
+                <input type="text" name="mRem" [(ngModel)]="machineryRemarks" class="form-control form-control-sm" placeholder="e.g. Trench digging on Grid 4">
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                <i class="bi bi-check2-circle me-1"></i> Record Shift Usage
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Jobsite Machinery Run-Time Logs</h5>
+
+            @if (projectMachineryLogs().length === 0) {
+              <div class="p-5 text-center bg-light rounded text-muted">
+                <p class="mb-0">No machinery usage entries logged for this project yet.</p>
+              </div>
+            } @else {
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light text-muted uppercase small">
+                    <tr>
+                      <th>Date</th>
+                      <th>Equipment</th>
+                      <th>Operating</th>
+                      <th>Idle</th>
+                      <th>Capacity</th>
+                      <th>Utilization %</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (u of projectMachineryLogs(); track u.id) {
+                      <tr>
+                        <td class="fw-bold">{{ u.usageDate }}</td>
+                        <td>
+                          <div class="fw-bold text-dark">{{ u.resourceName }}</div>
+                          <small class="text-muted" style="font-size: 11px;">ID: {{ u.resourceId }}</small>
+                        </td>
+                        <td><span class="badge bg-success-subtle text-success border">{{ u.operatingHours }} hrs</span></td>
+                        <td><span class="badge bg-secondary-subtle text-secondary border">{{ u.idleHours }} hrs</span></td>
+                        <td>{{ u.totalAvailableHours }} hrs</td>
+                        <td><strong class="text-primary">{{ u.utilizationPercentage }}%</strong></td>
+                        <td class="small text-muted">{{ u.remarks || '-' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- 2. WEEKLY PROGRESS REPORT MODULE VIEW -->
+  <!-- ========================================== -->
+  @if (activeModule === 'weekly') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-calendar-week text-primary me-2"></i>Weekly Progress Report Summary</h5>
+            <p class="text-muted mb-0 small">Dynamically summarized from daily progress logs for the selected weekly period.</p>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <label class="small text-muted fw-bold">Week Start:</label>
+            <input type="date" class="form-control form-control-sm w-auto" [(ngModel)]="selectedWeekStart" (change)="fetchWeeklySummary()">
+            <button class="btn btn-primary btn-sm px-3" (click)="fetchWeeklySummary()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+          </div>
+        </div>
+
+        @if (projectService.weeklySummary(); as ws) {
+          <!-- Weekly KPI Grid -->
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 rounded-3 bg-primary-subtle border border-primary-subtle">
+                <span class="text-muted small fw-semibold d-block mb-1">Weekly Progress</span>
+                <h3 class="fw-bold text-primary mb-0">+{{ ws.weeklyProgressPercentage }}%</h3>
+                <small class="text-muted">Overall: {{ ws.overallProjectProgress }}% ({{ ws.projectStatus }})</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 rounded-3 bg-success-subtle border border-success-subtle">
+                <span class="text-muted small fw-semibold d-block mb-1">Daily Reports Filed</span>
+                <h3 class="fw-bold text-success mb-0">{{ ws.totalReportsFiled }}</h3>
+                <small class="text-muted">Period: {{ ws.weekStartDate }} to {{ ws.weekEndDate }}</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 rounded-3 bg-info-subtle border border-info-subtle">
+                <span class="text-muted small fw-semibold d-block mb-1">Worker Shifts Utilized</span>
+                <h3 class="fw-bold text-info mb-0">{{ ws.totalWorkersUtilized }}</h3>
+                <small class="text-muted">Total workers checked in</small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="p-3 rounded-3 bg-danger-subtle border border-danger-subtle">
+                <span class="text-muted small fw-semibold d-block mb-1">Delays Encountered</span>
+                <h3 class="fw-bold text-danger mb-0">{{ ws.delaysEncounteredCount }}</h3>
+                <small class="text-muted">{{ ws.safetyObservationsCount }} Safety observations</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-lg-6">
+              <div class="card border rounded-3 p-3 bg-light-subtle h-100">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-check2-all text-success me-2"></i>Major Construction Activities Completed</h6>
+                @if (ws.majorActivitiesCompleted.length === 0) {
+                  <p class="text-muted small mb-0">No activities recorded for this week interval.</p>
+                } @else {
+                  <ul class="list-group list-group-flush">
+                    @for (act of ws.majorActivitiesCompleted; track $index) {
+                      <li class="list-group-item bg-transparent px-0 py-2 small d-flex gap-2">
+                        <i class="bi bi-arrow-right-circle-fill text-primary mt-1"></i>
+                        <span>{{ act }}</span>
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="card border rounded-3 p-3 bg-light-subtle h-100">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-box-seam-fill text-warning me-2"></i>Materials Consumed Summary</h6>
+                @if (ws.materialsConsumedSummary.length === 0) {
+                  <p class="text-muted small mb-0">No materials recorded during this period.</p>
+                } @else {
+                  <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                      <thead class="table-light text-muted small">
+                        <tr>
+                          <th>Material</th>
+                          <th>Total Consumed</th>
+                          <th>Unit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (m of ws.materialsConsumedSummary; track $index) {
+                          <tr>
+                            <td class="fw-bold">{{ m.materialName }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ m.quantity }}</span></td>
+                            <td>{{ m.unit }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Delays & Safety summary row -->
+          @if (ws.delayDetails.length > 0 || ws.safetyObservations.length > 0) {
+            <div class="row g-4 mt-1">
+              @if (ws.delayDetails.length > 0) {
+                <div class="col-lg-6">
+                  <div class="card border border-danger-subtle rounded-3 p-3 bg-danger-subtle">
+                    <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-octagon me-2"></i>Weekly Delays Encountered</h6>
+                    @for (d of ws.delayDetails; track $index) {
+                      <div class="p-2 bg-white rounded border mb-2 small">
+                        <span class="badge bg-danger me-2">{{ d.date }}</span>
+                        <strong>{{ d.reason }}</strong>: {{ d.activity }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              @if (ws.safetyObservations.length > 0) {
+                <div class="col-lg-6">
+                  <div class="card border border-info-subtle rounded-3 p-3 bg-info-subtle">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-info me-2"></i>Safety Observations &amp; Audits</h6>
+                    @for (s of ws.safetyObservations; track $index) {
+                      <div class="p-2 bg-white rounded border mb-2 small">
+                        <i class="bi bi-check-circle text-success me-1"></i> {{ s }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- 3. MILESTONE TRACKING MODULE VIEW -->
+  <!-- ========================================== -->
+  @if (activeModule === 'milestones') {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-flag-fill text-success me-2"></i>Project Milestones Tracking</h5>
+            <p class="text-muted mb-0 small">Planned project milestone schedule and actual verified completion rates for <strong>{{ engineerProject()?.name }}</strong>.</p>
+          </div>
+          <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+            Cumulative Completion: {{ engineerProject()?.progress }}%
+          </span>
+        </div>
+
+        <div class="row g-4">
+          @for (m of projectMilestones(); track m.id) {
+            <div class="col-md-6 col-xl-4">
+              <div class="card border rounded-3 p-3 h-100 shadow-sm"
+                   [class.border-success]="m.status === 'Completed'"
+                   [class.border-primary]="m.status === 'In Progress'"
+                   [class.border-danger]="m.status === 'Delayed'">
+                
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge"
+                        [class.bg-success]="m.status === 'Completed'"
+                        [class.bg-primary]="m.status === 'In Progress'"
+                        [class.bg-warning]="m.status === 'Pending'"
+                        [class.bg-danger]="m.status === 'Delayed'">
+                    {{ m.status }}
+                  </span>
+                  <span class="fw-bold text-dark">{{ m.progressPercentage }}%</span>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-1">{{ m.name }}</h6>
+                <p class="text-muted small mb-2" style="min-height: 38px;">{{ m.relatedActivities || 'Related site activities underway.' }}</p>
+                
+                <div class="progress mb-3" style="height: 8px;">
+                  <div class="progress-bar"
+                       [class.bg-success]="m.status === 'Completed'"
+                       [class.bg-primary]="m.status === 'In Progress'"
+                       [class.bg-danger]="m.status === 'Delayed'"
+                       [style.width.%]="m.progressPercentage"></div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center text-muted small border-top pt-2 mt-auto" style="font-size: 11px;">
+                  <span>Planned: {{ m.plannedStartDate }} &rarr; {{ m.plannedEndDate }}</span>
+                  <button class="btn btn-outline-primary btn-sm py-0.5 px-2 rounded-pill text-xs fw-bold" (click)="openEditMilestone(m)">
+                    <i class="bi bi-pencil-square me-1"></i> Update
+                  </button>
+                </div>
+
+                @if (m.actualCompletionDate) {
+                  <small class="text-success fw-semibold mt-1 d-block" style="font-size: 11px;">
+                    <i class="bi bi-check-all me-1"></i> Completed on {{ m.actualCompletionDate }}
+                  </small>
+                }
+
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- 4. DELAY TRACKING MODULE VIEW -->
+  <!-- ========================================== -->
+  @if (activeModule === 'delays') {
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-hourglass-bottom text-danger me-2"></i>Log Site Delay Event</h5>
+            
+            <form (ngSubmit)="submitDelayRecord()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Date of Delay *</label>
+                <input type="date" name="delayDate" [(ngModel)]="delayDate" required class="form-control form-control-sm">
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Affected Activity *</label>
+                <input type="text" name="affActivity" [(ngModel)]="delayAffectedActivity" required class="form-control form-control-sm" placeholder="e.g. Level 7 concrete pour, steel delivery">
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Delay Reason Classification *</label>
+                <select class="form-select form-select-sm" name="reason" [(ngModel)]="delayReasonSelect" required>
+                  <option value="Heavy rainfall">Heavy rainfall / Extreme weather</option>
+                  <option value="Labour shortage">Labour shortage / Strike</option>
+                  <option value="Material delivery delay">Material delivery delay</option>
+                  <option value="Machinery breakdown">Machinery breakdown / Repair</option>
+                  <option value="Design modification">Design modification / Engineering RFI</option>
+                  <option value="Financial issue">Financial / Invoice bottleneck</option>
+                  <option value="Government approval">Government approval / Inspection hold</option>
+                  <option value="Other">Other unclassified obstacle</option>
+                </select>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Delay Duration</label>
+                  <input type="text" name="duration" [(ngModel)]="delayDuration" class="form-control form-control-sm" placeholder="e.g. 2 days, 4 hours">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Impact Level</label>
+                  <select class="form-select form-select-sm" name="impact" [(ngModel)]="delayImpact">
+                    <option value="Low">Low Impact</option>
+                    <option value="Medium">Medium Impact</option>
+                    <option value="High">High Impact</option>
+                    <option value="Critical">Critical Impact</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Additional Remarks / Mitigation</label>
+                <textarea name="remarks" [(ngModel)]="delayRemarks" rows="3" class="form-control form-control-sm" placeholder="Describe remediation steps or revised delivery timelines..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-danger w-100 py-2 fw-bold shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Log Delay to Project Manager
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Documented Site Delays &amp; Bottlenecks</h5>
+            
+            @if (projectDelays().length === 0) {
+              <div class="p-5 text-center bg-light rounded-3 text-muted">
+                <i class="bi bi-shield-check fs-1 text-success d-block mb-2"></i>
+                <p class="mb-0">No active delays logged for this site.</p>
+              </div>
+            } @else {
+              <div class="d-flex flex-column gap-3">
+                @for (d of projectDelays(); track d.id) {
+                  <div class="p-3 border rounded-3 bg-light-subtle shadow-sm"
+                       [class.border-danger]="d.status === 'Active'"
+                       [class.border-success]="d.status === 'Resolved'">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div class="d-flex gap-2 align-items-center">
+                        <span class="badge"
+                              [class.bg-danger]="d.impactOnProject === 'Critical' || d.impactOnProject === 'High'"
+                              [class.bg-warning]="d.impactOnProject === 'Medium'"
+                              [class.bg-info]="d.impactOnProject === 'Low'">
+                          {{ d.impactOnProject }} Impact
+                        </span>
+                        <span class="badge bg-secondary-subtle text-secondary border">{{ d.date }}</span>
+                      </div>
+                      <div class="d-flex gap-2 align-items-center">
+                        <span class="badge" [class.bg-success]="d.status === 'Resolved'" [class.bg-danger]="d.status === 'Active'">
+                          {{ d.status }}
+                        </span>
+                        <button class="btn btn-outline-danger btn-sm p-1 px-2 border-0" (click)="deleteDelay(d.id)" title="Delete delay">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-1">{{ d.affectedActivity }}</h6>
+                    <p class="text-muted small mb-2"><strong class="text-dark">Reason:</strong> {{ d.delayReason }} &bull; <strong class="text-dark">Duration:</strong> {{ d.delayDuration }}</p>
+                    
+                    @if (d.additionalRemarks) {
+                      <p class="p-2 bg-white rounded border small text-secondary mb-2">{{ d.additionalRemarks }}</p>
+                    }
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2" style="font-size: 11px;">
+                      <span class="text-muted">Logged by: {{ d.recordedByName || 'Site Engineer' }}</span>
+                      @if (d.status === 'Active') {
+                        <button class="btn btn-outline-success btn-xs py-1 px-2.5 rounded-pill fw-bold" (click)="resolveDelay(d.id)">
+                          <i class="bi bi-check-circle me-1"></i> Mark Resolved
+                        </button>
+                      }
+                    </div>
+
+                  </div>
+                }
+              </div>
+            }
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- 5. SITE ACTIVITY LOGS MODULE VIEW -->
+  <!-- ========================================== -->
+  @if (activeModule === 'activities') {
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-event-fill text-info me-2"></i>Record Site Event</h5>
+            <p class="text-muted small mb-3">Log site occurrences: material arrivals, machinery service, client walkthroughs, safety audits.</p>
+            
+            <form (ngSubmit)="submitActivityLog()">
+              
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Date *</label>
+                  <input type="date" name="actDate" [(ngModel)]="activityDate" required class="form-control form-control-sm">
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold small text-muted">Time *</label>
+                  <input type="time" name="actTime" [(ngModel)]="activityTime" required class="form-control form-control-sm">
+                </div>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Activity Type *</label>
+                <select class="form-select form-select-sm" name="actType" [(ngModel)]="activityType" required>
+                  <option value="Machinery maintenance">Machinery maintenance / Service</option>
+                  <option value="Material arrival">Material arrival &amp; Delivery</option>
+                  <option value="Safety training">Safety training / Tool Box Talk</option>
+                  <option value="Client visit">Client / Sponsor walkthrough</option>
+                  <option value="Government inspection">Government / Building inspection</option>
+                  <option value="Quality audit">Quality audit &amp; Lab testing</option>
+                  <option value="Accident report">Accident / Incident report</option>
+                  <option value="Contractor meeting">Contractor coordination meeting</option>
+                  <option value="Equipment servicing">Equipment servicing</option>
+                  <option value="Other">Other site event</option>
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Description *</label>
+                <textarea name="actDesc" [(ngModel)]="activityDescription" required rows="4" class="form-control form-control-sm" placeholder="Details of the event, equipment serials, delivery manifest, attendees..."></textarea>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Responsible Person *</label>
+                <input type="text" name="respPerson" [(ngModel)]="activityResponsiblePerson" required class="form-control form-control-sm" placeholder="e.g. Gaurav K, Equipment Tech">
+              </div>
+
+              <button type="submit" class="btn btn-info text-white w-100 py-2 fw-bold shadow-sm">
+                <i class="bi bi-plus-circle-fill me-1"></i> Save Activity Log
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0">Site Activity Timeline</h5>
+              <select class="form-select form-select-sm w-auto" [(ngModel)]="activityFilterType">
+                <option value="ALL">All Event Types</option>
+                <option value="Machinery maintenance">Machinery</option>
+                <option value="Material arrival">Materials</option>
+                <option value="Safety training">Safety</option>
+                <option value="Client visit">Client Visits</option>
+                <option value="Government inspection">Gov Inspection</option>
+                <option value="Quality audit">Quality Audit</option>
+              </select>
+            </div>
+
+            @if (projectActivityLogs().length === 0) {
+              <div class="p-5 text-center bg-light rounded-3 text-muted">
+                <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                <p class="mb-0">No site activity logs found.</p>
+              </div>
+            } @else {
+              <div class="d-flex flex-column gap-3">
+                @for (a of projectActivityLogs(); track a.id) {
+                  <div class="p-3 border rounded-3 bg-light-subtle shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold">
+                        {{ a.activityType }}
+                      </span>
+                      <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ a.date }} at {{ a.time }}</small>
+                        <button class="btn btn-outline-danger btn-sm p-0 px-1 border-0" (click)="deleteActivityLog(a.id)" title="Delete log">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <p class="text-dark small mb-2" style="white-space: pre-line;">{{ a.description }}</p>
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2" style="font-size: 11px;">
+                      <span class="text-muted">Responsible: <strong>{{ a.responsiblePerson }}</strong></span>
+                      <span class="text-muted">Recorded by {{ a.loggedByName || 'Site Engineer' }}</span>
+                    </div>
+
+                  </div>
+                }
+              </div>
+            }
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- 6. SITE PHOTOS MODULE VIEW -->
+  <!-- ========================================== -->
   @if (activeModule === 'photos') {
     <div class="row g-4">
       <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-3">
           <div class="card-body p-4">
-            <h5 class="fw-bold text-dark mb-3">Upload Site Photo</h5>
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-camera-fill text-success me-2"></i>Upload Site Photo</h5>
             
             <form (ngSubmit)="submitSitePhoto()">
               
               <div class="form-group mb-3">
-                <label class="form-label fw-semibold small text-muted">Photo URL</label>
-                <input type="url" name="photoUrl" [(ngModel)]="photoUrl" required class="form-control" placeholder="https://images.unsplash.com/...">
-                <div class="form-text small mt-1">Preset image templates for demo:</div>
-                <div class="d-flex flex-column gap-1.5 mt-2">
+                <label class="form-label fw-semibold small text-muted">Photo URL *</label>
+                <input type="url" name="photoUrl" [(ngModel)]="photoUrl" required class="form-control form-control-sm" placeholder="https://images.unsplash.com/...">
+                <div class="form-text small mt-1">Preset image templates:</div>
+                <div class="d-flex flex-column gap-1 mt-1">
                   <button type="button" 
-                          class="btn btn-outline-secondary btn-sm text-start py-1 px-2.5" 
-                          style="font-size: 11px;" 
-                          (click)="photoUrl='https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=500'; photoCaption='Curtain wall fittings and column works.'">
+                          class="btn btn-outline-secondary btn-sm text-start py-1 px-2 text-xs" 
+                          (click)="photoUrl='https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=500'; photoCaption='Curtain wall fittings and steel columns.'">
                     Steel Columns Level 8
                   </button>
                   <button type="button" 
-                          class="btn btn-outline-secondary btn-sm text-start py-1 px-2.5" 
-                          style="font-size: 11px;" 
+                          class="btn btn-outline-secondary btn-sm text-start py-1 px-2 text-xs" 
                           (click)="photoUrl='https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=500'; photoCaption='Workers tightening deck scaffold plates.'">
                     Worker Scaffolding View
+                  </button>
+                  <button type="button" 
+                          class="btn btn-outline-secondary btn-sm text-start py-1 px-2 text-xs" 
+                          (click)="photoUrl='https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=500'; photoCaption='Concrete slab pour on Level 7.'">
+                    Concrete Slab Pouring
                   </button>
                 </div>
               </div>
 
               <div class="form-group mb-3">
-                <label class="form-label fw-semibold small text-muted">Photo Caption</label>
-                <input type="text" name="caption" [(ngModel)]="photoCaption" required class="form-control" placeholder="e.g. Scaffolding structures checking L6">
+                <label class="form-label fw-semibold small text-muted">Photo Caption *</label>
+                <input type="text" name="caption" [(ngModel)]="photoCaption" required class="form-control form-control-sm" placeholder="e.g. Scaffolding structures checking L6">
               </div>
 
-              <button type="submit" class="btn btn-primary w-100 py-2.5">
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
                 <i class="bi bi-camera-fill me-1"></i> Log Photo Feed
               </button>
 
@@ -205,6 +939,9 @@
     </div>
   }
 
+  <!-- ========================================== -->
+  <!-- 7. ATTENDANCE MODULE VIEW -->
+  <!-- ========================================== -->
   @if (activeModule === 'attendance') {
     <div class="card border-0 shadow-sm rounded-3">
       <div class="card-body p-4">
@@ -248,6 +985,9 @@
     </div>
   }
 
+  <!-- ========================================== -->
+  <!-- 8. MATERIALS INVENTORY VIEW -->
+  <!-- ========================================== -->
   @if (activeModule === 'materials') {
     <div class="card border-0 shadow-sm rounded-3">
       <div class="card-body p-4">
@@ -289,6 +1029,9 @@
     </div>
   }
 
+  <!-- ========================================== -->
+  <!-- 9. ISSUES HAZARD VIEW -->
+  <!-- ========================================== -->
   @if (activeModule === 'issues') {
     <div class="row g-4">
       <div class="col-lg-4">
@@ -373,3 +1116,159 @@
   }
 
 </div>
+
+<!-- ========================================== -->
+<!-- DAILY PROGRESS REPORT DETAIL MODAL -->
+<!-- ========================================== -->
+@if (selectedReportDetail; as rep) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow rounded-3">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-file-earmark-text me-2"></i>Daily Progress Report Details &bull; {{ rep.id }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeReportDetail()"></button>
+        </div>
+        <div class="modal-body p-4">
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <span class="badge bg-primary fs-6 me-2">{{ rep.reportDate }}</span>
+              <span class="badge bg-secondary fs-6">{{ rep.workCategory }}</span>
+            </div>
+            <span class="badge bg-success fs-6">+{{ rep.percentageWorkCompleted }}% Work Completed</span>
+          </div>
+
+          <h5 class="fw-bold text-dark mb-2">{{ rep.activityPerformed }}</h5>
+          
+          <div class="row g-3 my-2 p-3 bg-light rounded-3 small">
+            <div class="col-sm-6">
+              <strong>Contractor Responsible:</strong> {{ rep.contractorName || 'Vance Concrete Ltd' }}
+            </div>
+            <div class="col-sm-6">
+              <strong>Weather Conditions:</strong> {{ rep.weatherConditions }}
+            </div>
+            <div class="col-sm-6">
+              <strong>Workforce:</strong> {{ rep.workersPresent }} Present, {{ rep.workersAbsent }} Absent
+            </div>
+            <div class="col-sm-6">
+              <strong>Machinery Used:</strong> {{ rep.machineryUsed || 'None' }}
+            </div>
+          </div>
+
+          @if (rep.materialsConsumed && rep.materialsConsumed.length > 0) {
+            <div class="my-3">
+              <h6 class="fw-bold text-dark mb-2"><i class="bi bi-box-seam me-1"></i>Materials Consumed</h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Material Name</th>
+                      <th>Quantity</th>
+                      <th>Unit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (m of rep.materialsConsumed; track $index) {
+                      <tr>
+                        <td>{{ m.materialName }}</td>
+                        <td><strong>{{ m.quantity }}</strong></td>
+                        <td>{{ m.unit }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <div class="row g-3 my-2">
+            <div class="col-sm-6">
+              <div class="p-2.5 border rounded bg-light-subtle h-100">
+                <strong class="d-block small text-dark mb-1"><i class="bi bi-shield-check text-success me-1"></i>Safety Observations:</strong>
+                <p class="small text-muted mb-0">{{ rep.safetyObservations || 'Normal safety compliance maintained.' }}</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="p-2.5 border rounded bg-light-subtle h-100">
+                <strong class="d-block small text-dark mb-1"><i class="bi bi-clipboard-check text-info me-1"></i>Quality Inspection Remarks:</strong>
+                <p class="small text-muted mb-0">{{ rep.qualityInspectionRemarks || 'Standard site inspection passed.' }}</p>
+              </div>
+            </div>
+          </div>
+
+          @if (rep.delayEncountered) {
+            <div class="alert alert-danger p-3 mt-3">
+              <strong class="d-block"><i class="bi bi-exclamation-triangle-fill me-1"></i>Delay Encountered:</strong>
+              <p class="mb-0 small">Reason: <strong>{{ rep.delayReason }}</strong></p>
+            </div>
+          }
+
+          @if (rep.additionalComments) {
+            <div class="p-2.5 border rounded bg-light mt-3">
+              <strong class="d-block small text-dark mb-1">Additional Comments:</strong>
+              <p class="small text-muted mb-0">{{ rep.additionalComments }}</p>
+            </div>
+          }
+
+          @if (rep.progressPhotograph) {
+            <div class="mt-3">
+              <strong class="d-block small text-dark mb-2"><i class="bi bi-camera me-1"></i>Attached Progress Photograph:</strong>
+              <img [src]="rep.progressPhotograph" alt="Progress Photo" class="img-fluid rounded border shadow-sm" style="max-height: 250px; width: 100%; object-fit: cover;">
+            </div>
+          }
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeReportDetail()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================== -->
+<!-- UPDATE MILESTONE MODAL -->
+<!-- ========================================== -->
+@if (selectedMilestoneToEdit; as m) {
+  <div class="modal fade show d-block" style="background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-3">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold">Update Milestone &bull; {{ m.name }}</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeEditMilestone()"></button>
+        </div>
+        <div class="modal-body p-4">
+          
+          <div class="form-group mb-3">
+            <label class="form-label fw-semibold small text-muted">Completion Percentage (0-100%)</label>
+            <div class="d-flex align-items-center gap-3">
+              <input type="range" class="form-range flex-grow-1" min="0" max="100" [(ngModel)]="editMilestoneProgress">
+              <span class="fw-bold fs-5 text-primary" style="width: 50px;">{{ editMilestoneProgress }}%</span>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label fw-semibold small text-muted">Milestone Status</label>
+            <select class="form-select" [(ngModel)]="editMilestoneStatus">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed (100%)</option>
+              <option value="Delayed">Delayed</option>
+            </select>
+          </div>
+
+          <small class="text-muted d-block mt-2">
+            Updating this milestone will automatically recalculate the overall project completion percentage and reflect it on the Project Manager dashboard.
+          </small>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEditMilestone()">Cancel</button>
+          <button type="button" class="btn btn-primary fw-bold" (click)="saveMilestoneProgress()">Save Progress</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
