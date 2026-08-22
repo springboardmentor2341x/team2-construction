@@ -240,3 +240,308 @@ def create_report(db: Session, report: schemas.ReportCreate):
 
 def get_reports(db: Session):
     return db.query(models.Report).all()
+# ==========================
+# EQUIPMENT CRUD
+# ==========================
+
+def create_equipment(db: Session, equipment: schemas.EquipmentCreate):
+    db_equipment = models.Equipment(**equipment.model_dump())
+    db.add(db_equipment)
+    db.commit()
+    db.refresh(db_equipment)
+    return db_equipment
+
+
+def get_equipment(db: Session):
+    return db.query(models.Equipment).all()
+
+
+def get_equipment_by_id(db: Session, equipment_id: int):
+    return db.query(models.Equipment).filter(
+        models.Equipment.id == equipment_id
+    ).first()
+
+
+def update_equipment(
+    db: Session,
+    equipment_id: int,
+    equipment: schemas.EquipmentCreate
+):
+    db_equipment = get_equipment_by_id(db, equipment_id)
+
+    if db_equipment is None:
+        return None
+
+    for key, value in equipment.model_dump().items():
+        setattr(db_equipment, key, value)
+
+    db.commit()
+    db.refresh(db_equipment)
+
+    return db_equipment
+
+
+def delete_equipment(db: Session, equipment_id: int):
+    db_equipment = get_equipment_by_id(db, equipment_id)
+
+    if db_equipment is None:
+        return None
+
+    db.delete(db_equipment)
+    db.commit()
+
+    return db_equipment
+# ==========================
+# EQUIPMENT ALLOCATION CRUD
+# ==========================
+
+def create_equipment_allocation(
+    db: Session,
+    allocation: schemas.EquipmentAllocationCreate
+):
+    db_allocation = models.EquipmentAllocation(
+        **allocation.model_dump()
+    )
+
+    db.add(db_allocation)
+    db.commit()
+    db.refresh(db_allocation)
+
+    return db_allocation
+
+
+def get_equipment_allocations(db: Session):
+    return db.query(models.EquipmentAllocation).all()
+
+
+def get_equipment_allocation_by_id(
+    db: Session,
+    allocation_id: int
+):
+    return db.query(models.EquipmentAllocation).filter(
+        models.EquipmentAllocation.id == allocation_id
+    ).first()
+
+
+def update_equipment_allocation(
+    db: Session,
+    allocation_id: int,
+    allocation: schemas.EquipmentAllocationCreate
+):
+    db_allocation = get_equipment_allocation_by_id(
+        db,
+        allocation_id
+    )
+
+    if db_allocation is None:
+        return None
+
+    for key, value in allocation.model_dump().items():
+        setattr(db_allocation, key, value)
+
+    db.commit()
+    db.refresh(db_allocation)
+
+    return db_allocation
+
+
+def delete_equipment_allocation(
+    db: Session,
+    allocation_id: int
+):
+    db_allocation = get_equipment_allocation_by_id(
+        db,
+        allocation_id
+    )
+
+    if db_allocation is None:
+        return None
+
+    db.delete(db_allocation)
+    db.commit()
+
+    return db_allocation
+# ==========================
+# EQUIPMENT MAINTENANCE CRUD
+# ==========================
+
+def create_equipment_maintenance(
+    db: Session,
+    maintenance: schemas.EquipmentMaintenanceCreate
+):
+    db_maintenance = models.EquipmentMaintenance(
+        **maintenance.model_dump()
+    )
+
+    db.add(db_maintenance)
+    db.commit()
+    db.refresh(db_maintenance)
+
+    return db_maintenance
+
+
+def get_equipment_maintenance(db: Session):
+    return db.query(models.EquipmentMaintenance).all()
+
+
+def get_equipment_maintenance_by_id(
+    db: Session,
+    maintenance_id: int
+):
+    return db.query(models.EquipmentMaintenance).filter(
+        models.EquipmentMaintenance.id == maintenance_id
+    ).first()
+
+
+def update_equipment_maintenance(
+    db: Session,
+    maintenance_id: int,
+    maintenance: schemas.EquipmentMaintenanceCreate
+):
+    db_maintenance = get_equipment_maintenance_by_id(
+        db,
+        maintenance_id
+    )
+
+    if db_maintenance is None:
+        return None
+
+    for key, value in maintenance.model_dump().items():
+        setattr(db_maintenance, key, value)
+
+    db.commit()
+    db.refresh(db_maintenance)
+
+    return db_maintenance
+
+
+def delete_equipment_maintenance(
+    db: Session,
+    maintenance_id: int
+):
+    db_maintenance = get_equipment_maintenance_by_id(
+        db,
+        maintenance_id
+    )
+
+    if db_maintenance is None:
+        return None
+
+    db.delete(db_maintenance)
+    db.commit()
+
+    return db_maintenance
+# ==========================
+# PROGRESS UPDATES - MODULE 3
+# ==========================
+
+def create_progress_update(db, progress_update):
+    db_progress = models.ProgressUpdate(
+        project_id=progress_update.project_id,
+        activity_name=progress_update.activity_name,
+        description=progress_update.description,
+        progress_percentage=progress_update.progress_percentage,
+        update_date=progress_update.update_date,
+        status=progress_update.status,
+        updated_by=progress_update.updated_by
+    )
+
+    db.add(db_progress)
+    db.commit()
+    db.refresh(db_progress)
+
+    return db_progress
+
+
+def get_progress_updates(db, project_id=None):
+    query = db.query(models.ProgressUpdate)
+
+    if project_id is not None:
+        query = query.filter(
+            models.ProgressUpdate.project_id == project_id
+        )
+
+    return query.all()
+
+
+def get_progress_update(db, progress_update_id):
+    return db.query(models.ProgressUpdate).filter(
+        models.ProgressUpdate.id == progress_update_id
+    ).first()
+# ==========================
+# ATTENDANCE - MODULE 3
+# ==========================
+
+def create_attendance(
+    db: Session,
+    attendance: schemas.AttendanceCreate
+):
+    db_attendance = models.Attendance(
+        **attendance.model_dump()
+    )
+
+    db.add(db_attendance)
+    db.commit()
+    db.refresh(db_attendance)
+
+    return db_attendance
+
+
+def get_attendance(db: Session, project_id=None):
+    query = db.query(models.Attendance)
+
+    if project_id is not None:
+        query = query.filter(
+            models.Attendance.project_id == project_id
+        )
+
+    return query.all()
+
+
+def get_attendance_by_id(
+    db: Session,
+    attendance_id: int
+):
+    return db.query(models.Attendance).filter(
+        models.Attendance.id == attendance_id
+    ).first()
+
+
+def update_attendance(
+    db: Session,
+    attendance_id: int,
+    attendance: schemas.AttendanceCreate
+):
+    db_attendance = get_attendance_by_id(
+        db,
+        attendance_id
+    )
+
+    if db_attendance is None:
+        return None
+
+    for key, value in attendance.model_dump().items():
+        setattr(db_attendance, key, value)
+
+    db.commit()
+    db.refresh(db_attendance)
+
+    return db_attendance
+
+
+def delete_attendance(
+    db: Session,
+    attendance_id: int
+):
+    db_attendance = get_attendance_by_id(
+        db,
+        attendance_id
+    )
+
+    if db_attendance is None:
+        return None
+
+    db.delete(db_attendance)
+    db.commit()
+
+    return db_attendance

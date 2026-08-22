@@ -130,6 +130,13 @@ class ContractorAssignmentBase(BaseModel):
     specialization: str
     assigned_date: date
     status: str = "Assigned"
+    # Module 3 contractor registry fields
+    company_name: Optional[str] = None
+    representative_name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+    assignment_status: str = "Assigned"
 
 
 class ContractorAssignmentCreate(ContractorAssignmentBase):
@@ -172,6 +179,8 @@ class InventoryBase(BaseModel):
     quantity: int
     unit: str
     supplier: str
+    buffer_level: int = 0
+
 
 
 class InventoryCreate(InventoryBase):
@@ -180,6 +189,7 @@ class InventoryCreate(InventoryBase):
 
 class Inventory(InventoryBase):
     id: int
+    status: str
 
     class Config:
         from_attributes = True
@@ -196,6 +206,9 @@ class WorkerBase(BaseModel):
     designation: str
     salary: float
     joining_date: date
+    assigned_project: Optional[str] = None
+    status: str = "Active"
+
 
 
 class WorkerCreate(WorkerBase):
@@ -313,3 +326,158 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: str | None = None
+# ==========================
+# EQUIPMENT SCHEMAS
+# ==========================
+
+class EquipmentBase(BaseModel):
+    equipment_id: str
+    name: str
+    category: str
+    model_number: Optional[str] = None
+    serial_number: Optional[str] = None
+    location: Optional[str] = None
+    status: str = "Available"
+    hourly_rate: Optional[float] = None
+    responsible_person: Optional[str] = None
+
+
+class EquipmentCreate(EquipmentBase):
+    pass
+
+
+class Equipment(EquipmentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# EQUIPMENT ALLOCATION SCHEMAS
+# ==========================
+
+class EquipmentAllocationBase(BaseModel):
+    equipment_id: int
+    project_id: int
+    start_date: date
+    end_date: Optional[date] = None
+    responsible_person: Optional[str] = None
+    status: str = "Active"
+
+
+class EquipmentAllocationCreate(EquipmentAllocationBase):
+    pass
+
+
+class EquipmentAllocation(EquipmentAllocationBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# EQUIPMENT MAINTENANCE SCHEMAS
+# ==========================
+
+class EquipmentMaintenanceBase(BaseModel):
+    equipment_id: int
+    maintenance_type: str
+    next_service_date: Optional[date] = None
+    engineer: Optional[str] = None
+    cost: Optional[float] = None
+    status: str = "Scheduled"
+    remarks: Optional[str] = None
+
+
+class EquipmentMaintenanceCreate(EquipmentMaintenanceBase):
+    pass
+
+
+class EquipmentMaintenance(EquipmentMaintenanceBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# MATERIAL USAGE SCHEMAS
+# ==========================
+
+class MaterialUsageBase(BaseModel):
+    inventory_id: int
+    quantity_used: int
+    used_for: str | None = None
+
+
+class MaterialUsageCreate(MaterialUsageBase):
+    pass
+
+
+class MaterialUsage(MaterialUsageBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# SITE ISSUE SCHEMAS
+# ==========================
+
+class SiteIssueBase(BaseModel):
+    project_id: int
+    issue_type: str
+    description: str | None = None
+    severity: str = "Medium"
+    status: str = "Open"
+    issue_date: str | None = None
+
+
+class SiteIssueCreate(SiteIssueBase):
+    pass
+
+
+class SiteIssue(SiteIssueBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+# ==========================
+# PROGRESS UPDATES - MODULE 3
+# ==========================
+
+class ProgressUpdateBase(BaseModel):
+    project_id: int
+    activity_name: str
+    description: str | None = None
+    progress_percentage: float = 0
+    update_date: date | None = None
+    status: str = "In Progress"
+    updated_by: str | None = None
+
+
+class ProgressUpdateCreate(ProgressUpdateBase):
+    pass
+
+
+class ProgressUpdateResponse(ProgressUpdateBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# ATTENDANCE - MODULE 3
+# ==========================
+
+class AttendanceBase(BaseModel):
+    worker_id: int
+    project_id: int | None = None
+    date: date
+    status: str
+
+
+class AttendanceCreate(AttendanceBase):
+    pass
+
+
+class AttendanceResponse(AttendanceBase):
+    id: int
+
+    class Config:
+        from_attributes = True

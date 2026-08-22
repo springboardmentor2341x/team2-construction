@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
 from app import schemas, crud
-from app.routers import user
+from app.routers import user,equipment,equipment_allocation,equipment_maintenance,worker,inventory,material_usage
+from app.routers import site_issues,progress_updates,attendence
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -32,6 +33,17 @@ app.add_middleware(
 
 # Include User Router
 app.include_router(user.router)
+app.include_router(equipment.router)
+app.include_router(equipment_allocation.router)
+app.include_router(equipment_maintenance.router)
+app.include_router(worker.router)
+app.include_router(inventory.router)
+app.include_router(material_usage.router)
+app.include_router(site_issues.router)
+app.include_router(progress_updates.router)
+app.include_router(attendence.router)
+
+
 
 # ==========================
 # HOME

@@ -114,6 +114,15 @@ class ContractorAssignment(Base):
     assigned_date = Column(Date)
 
     status = Column(String(50), default="Assigned")
+     # Module 3 contractor registry fields
+    company_name = Column(String(150))
+    representative_name = Column(String(150))
+    phone = Column(String(15))
+    email = Column(String(100))
+    status = Column(String(50), default="Active")
+
+    assigned_date = Column(Date)
+    assignment_status = Column(String(50), default="Assigned")
 # ==========================
 # WORKERS
 # ==========================
@@ -126,17 +135,32 @@ class Worker(Base):
     designation = Column(String(100))
     salary = Column(Float)
     joining_date = Column(Date)
+    # Module 3 fields
+    assigned_project = Column(String(150))
+    status = Column(String(50), default="Active")
 
 
 # ==========================
-# ATTENDANCE
+# ATTENDANCE - MODULE 3
 # ==========================
 class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True, index=True)
-    worker_id = Column(Integer, ForeignKey("workers.id"))
+
+    worker_id = Column(
+        Integer,
+        ForeignKey("workers.id")
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=True
+    )
+
     date = Column(Date)
+
     status = Column(String(20))
 
 
@@ -151,6 +175,9 @@ class Inventory(Base):
     quantity = Column(Integer)
     unit = Column(String(30))
     supplier = Column(String(100))
+     # Module 3 fields
+    buffer_level = Column(Integer, default=0)
+    status = Column(String(50), default="In Stock")
 
 
 # ==========================
@@ -202,4 +229,119 @@ class Report(Base):
     report_type = Column(String(50))
     description = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
+# ==========================
+# EQUIPMENT
+# ==========================
+class Equipment(Base):
+    __tablename__ = "equipment"
 
+    id = Column(Integer, primary_key=True, index=True)
+
+    equipment_id = Column(String(50), unique=True, nullable=False)
+    name = Column(String(100), nullable=False)
+    category = Column(String(100), nullable=False)
+    model_number = Column(String(100))
+    serial_number = Column(String(100))
+    location = Column(String(150))
+    status = Column(String(50), default="Available")
+    hourly_rate = Column(Float)
+    responsible_person = Column(String(150))
+# ==========================
+# EQUIPMENT ALLOCATION
+# ==========================
+class EquipmentAllocation(Base):
+    __tablename__ = "equipment_allocations"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    equipment_id = Column(
+        Integer,
+        ForeignKey("equipment.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=True)
+
+    responsible_person = Column(String(150))
+    status = Column(String(50), default="Active")
+# ==========================
+# EQUIPMENT MAINTENANCE
+# ==========================
+class EquipmentMaintenance(Base):
+    __tablename__ = "equipment_maintenance"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    equipment_id = Column(
+        Integer,
+        ForeignKey("equipment.id"),
+        nullable=False
+    )
+
+    maintenance_type = Column(String(100), nullable=False)
+
+    next_service_date = Column(Date)
+
+    engineer = Column(String(150))
+
+    cost = Column(Float)
+
+    status = Column(String(50), default="Scheduled")
+
+    remarks = Column(Text)
+# ==========================
+# MATERIAL USAGE
+# ==========================
+class MaterialUsage(Base):
+    __tablename__ = "material_usage"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    inventory_id = Column(Integer, nullable=False)
+    quantity_used = Column(Integer, nullable=False)
+    used_for = Column(String(200))
+# ==========================
+# SITE ISSUES
+# ==========================
+class SiteIssue(Base):
+    __tablename__ = "site_issues"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(Integer, nullable=False)
+    issue_type = Column(String(100), nullable=False)
+    description = Column(String(500))
+    severity = Column(String(50), default="Medium")
+    status = Column(String(50), default="Open")
+    issue_date = Column(String(30))
+# ==========================
+# PROGRESS UPDATES - MODULE 3
+# ==========================
+class ProgressUpdate(Base):
+    __tablename__ = "progress_updates"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    activity_name = Column(String(150), nullable=False)
+    description = Column(Text)
+
+    progress_percentage = Column(Float, default=0)
+
+    update_date = Column(Date)
+
+    status = Column(String(50), default="In Progress")
+
+    updated_by = Column(String(150))
