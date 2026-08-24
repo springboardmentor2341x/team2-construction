@@ -1,12 +1,14 @@
 from fastapi import FastAPI, Depends,HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from datetime import date
+from app import models
 
 from app.database import Base, engine, get_db
 from app import schemas, crud
 from app.routers import user,equipment,equipment_allocation,equipment_maintenance,worker,inventory,material_usage
-from app.routers import site_issues,progress_updates,attendence
-
+from app.routers import site_issues,progress_updates,attendence,progress_reports,dashboard,delay_records
+from app.routers import site_activity_logs,progress_photos,weekly_progress_reports
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
@@ -42,6 +44,12 @@ app.include_router(material_usage.router)
 app.include_router(site_issues.router)
 app.include_router(progress_updates.router)
 app.include_router(attendence.router)
+app.include_router(progress_reports.router)
+app.include_router(dashboard.router)
+app.include_router(delay_records.router)
+app.include_router(site_activity_logs.router)
+app.include_router(progress_photos.router)
+app.include_router(weekly_progress_reports.router)
 
 
 
@@ -122,6 +130,82 @@ def create_milestone(
     db: Session = Depends(get_db)
 ):
     return crud.create_milestone(db=db, milestone=milestone)
+# ==========================
+# GET ALL MILESTONES
+# ==========================
+
+@app.get("/milestones")
+def get_milestones(
+    db: Session = Depends(get_db)
+):
+    return crud.get_milestones(db=db)
+
+
+# ==========================
+# GET MILESTONES BY PROJECT
+# ==========================
+
+@app.get("/milestones/project/{project_id}")
+def get_project_milestones(
+    project_id: int,
+    db: Session = Depends(get_db)
+):
+    return crud.get_milestones_by_project(
+        db=db,
+        project_id=project_id
+    )
+
+
+# ==========================
+# GET MILESTONE BY ID
+# ==========================
+
+@app.get("/milestones/{milestone_id}")
+def get_milestone(
+    milestone_id: int,
+    db: Session = Depends(get_db)
+):
+    milestone = crud.get_milestone_by_id(
+        db=db,
+        milestone_id=milestone_id
+    )
+
+    if milestone is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Milestone not found"
+        )
+
+    return milestone
+
+
+# ==========================
+# UPDATE MILESTONE PROGRESS
+# ==========================
+
+@app.put("/milestones/{milestone_id}/progress")
+def update_milestone_progress(
+    milestone_id: int,
+    progress_percentage: float,
+    status: str,
+    actual_completion_date: date | None = None,
+    db: Session = Depends(get_db)
+):
+    milestone = crud.update_milestone_progress(
+        db=db,
+        milestone_id=milestone_id,
+        progress_percentage=progress_percentage,
+        status=status,
+        actual_completion_date=actual_completion_date
+    )
+
+    if milestone is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Milestone not found"
+        )
+
+    return milestone
 # ==========================
 # PROJECT SCHEDULE
 # ==========================
@@ -204,3 +288,34 @@ def update_project_status(
         )
 
     return project
+# ==========================
+# ==========================
+# PROJECT COMPLETION - MODULE 3
+# ==========================
+
+@app.get("/projects/{project_id}/completion")
+def get_project_completion(
+    project_id: int,
+    db: Session = Depends(get_db)
+):
+    project = db.query(
+        models.Project
+    ).filter(
+        models.Project.id == project_id
+    ).first()
+
+    if project is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
+
+    completion = crud.get_project_completion_percentage(
+        db=db,
+        project_id=project_id
+    )
+
+    return {
+        "project_id": project_id,
+        "completion_percentage": completion
+    }

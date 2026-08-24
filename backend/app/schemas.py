@@ -66,6 +66,7 @@ class MilestoneBase(BaseModel):
     description: Optional[str] = None
     planned_date: date
     actual_completion_date: Optional[date] = None
+    progress_percentage: float = 0
     status: str = "Pending"
 
 
@@ -439,14 +440,35 @@ class SiteIssue(SiteIssueBase):
         from_attributes = True
 
 # ==========================
+# ==========================
 # PROGRESS UPDATES - MODULE 3
 # ==========================
 
 class ProgressUpdateBase(BaseModel):
     project_id: int
     activity_name: str
+    work_category: str | None = None
     description: str | None = None
+
     progress_percentage: float = 0
+
+    contractor_id: int | None = None
+
+    workers_present: int = 0
+    workers_absent: int = 0
+
+    machinery_used: str | None = None
+    materials_consumed: str | None = None
+
+    weather_conditions: str | None = None
+
+    safety_observations: str | None = None
+    quality_remarks: str | None = None
+
+    delay_description: str | None = None
+
+    additional_comments: str | None = None
+
     update_date: date | None = None
     status: str = "In Progress"
     updated_by: str | None = None
@@ -477,6 +499,140 @@ class AttendanceCreate(AttendanceBase):
 
 
 class AttendanceResponse(AttendanceBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# PROGRESS REPORTS - MODULE 3
+# ==========================
+
+class ProgressReportBase(BaseModel):
+    project_id: int
+    report_date: date
+    overall_progress: float = 0
+    summary: str | None = None
+    status: str = "In Progress"
+
+
+class ProgressReportCreate(ProgressReportBase):
+    pass
+
+
+class ProgressReportResponse(ProgressReportBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# MODULE 3 DASHBOARD
+# ==========================
+
+class DashboardResponse(BaseModel):
+    project_id: int
+    total_progress_updates: int
+    average_progress: float
+    total_progress_reports: int
+    total_attendance_records: int
+    open_site_issues: int
+# ==========================
+# DELAY RECORDS - MODULE 3
+# ==========================
+
+class DelayRecordBase(BaseModel):
+    project_id: int
+    delay_date: date
+    reason: str
+    duration_hours: float = 0
+    affected_work_category: str | None = None
+    timeline_impact: str | None = None
+    status: str = "Open"
+    remarks: str | None = None
+
+
+class DelayRecordCreate(DelayRecordBase):
+    pass
+
+
+class DelayRecordResponse(DelayRecordBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# SITE ACTIVITY LOGS - MODULE 3
+# ==========================
+
+class SiteActivityLogBase(BaseModel):
+    project_id: int
+    activity_date: date
+    activity_time: str | None = None
+    activity_type: str
+    description: str
+    responsible_person: str | None = None
+    remarks: str | None = None
+
+
+class SiteActivityLogCreate(SiteActivityLogBase):
+    pass
+
+
+class SiteActivityLogResponse(SiteActivityLogBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# PROGRESS PHOTOGRAPHS - MODULE 3
+# ==========================
+
+class ProgressPhotoBase(BaseModel):
+    project_id: int
+    progress_update_id: int | None = None
+    photo_path: str
+    description: str | None = None
+    uploaded_by: str | None = None
+    uploaded_date: date | None = None
+
+
+class ProgressPhotoCreate(ProgressPhotoBase):
+    pass
+
+
+class ProgressPhotoResponse(ProgressPhotoBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# WEEKLY PROGRESS REPORTS - MODULE 3
+# ==========================
+
+class WeeklyProgressReportBase(BaseModel):
+    project_id: int
+    week_start_date: date
+    week_end_date: date
+
+    work_completed: str | None = None
+
+    progress_percentage: float = 0
+
+    worker_hours: float = 0
+
+    major_activities: str | None = None
+
+    delays: str | None = None
+
+    safety_incidents: str | None = None
+
+    overall_status: str = "In Progress"
+
+
+class WeeklyProgressReportCreate(WeeklyProgressReportBase):
+    pass
+
+
+class WeeklyProgressReportResponse(WeeklyProgressReportBase):
     id: int
 
     class Config:

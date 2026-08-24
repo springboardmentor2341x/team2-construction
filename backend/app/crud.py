@@ -84,8 +84,49 @@ def create_project_schedule(
     return db_schedule
 
 
-def get_project_schedules(db: Session):
-    return db.query(models.ProjectSchedule).all()
+def get_milestones_by_project(
+    db: Session,
+    project_id: int
+):
+    return db.query(models.Milestone).filter(
+        models.Milestone.project_id == project_id
+    ).all()
+
+
+def get_milestone_by_id(
+    db: Session,
+    milestone_id: int
+):
+    return db.query(models.Milestone).filter(
+        models.Milestone.id == milestone_id
+    ).first()
+
+
+def update_milestone_progress(
+    db: Session,
+    milestone_id: int,
+    progress_percentage: float,
+    status: str,
+    actual_completion_date=None
+):
+    milestone = get_milestone_by_id(
+        db,
+        milestone_id
+    )
+
+    if milestone is None:
+        return None
+
+    milestone.progress_percentage = progress_percentage
+    milestone.status = status
+
+    if actual_completion_date is not None:
+        milestone.actual_completion_date = actual_completion_date
+
+    db.commit()
+    db.refresh(milestone)
+
+    return milestone
 # ==========================
 # SITE ENGINEER ASSIGNMENT CRUD
 # ==========================
@@ -432,18 +473,16 @@ def delete_equipment_maintenance(
 
     return db_maintenance
 # ==========================
+# ==========================
 # PROGRESS UPDATES - MODULE 3
 # ==========================
 
-def create_progress_update(db, progress_update):
+def create_progress_update(
+    db: Session,
+    progress_update: schemas.ProgressUpdateCreate
+):
     db_progress = models.ProgressUpdate(
-        project_id=progress_update.project_id,
-        activity_name=progress_update.activity_name,
-        description=progress_update.description,
-        progress_percentage=progress_update.progress_percentage,
-        update_date=progress_update.update_date,
-        status=progress_update.status,
-        updated_by=progress_update.updated_by
+        **progress_update.model_dump()
     )
 
     db.add(db_progress)
@@ -453,7 +492,10 @@ def create_progress_update(db, progress_update):
     return db_progress
 
 
-def get_progress_updates(db, project_id=None):
+def get_progress_updates(
+    db: Session,
+    project_id=None
+):
     query = db.query(models.ProgressUpdate)
 
     if project_id is not None:
@@ -464,10 +506,53 @@ def get_progress_updates(db, project_id=None):
     return query.all()
 
 
-def get_progress_update(db, progress_update_id):
+def get_progress_update(
+    db: Session,
+    progress_update_id
+):
     return db.query(models.ProgressUpdate).filter(
         models.ProgressUpdate.id == progress_update_id
     ).first()
+
+
+def update_progress_update(
+    db: Session,
+    progress_update_id: int,
+    progress_update: schemas.ProgressUpdateCreate
+):
+    db_progress = get_progress_update(
+        db,
+        progress_update_id
+    )
+
+    if db_progress is None:
+        return None
+
+    for key, value in progress_update.model_dump().items():
+        setattr(db_progress, key, value)
+
+    db.commit()
+    db.refresh(db_progress)
+
+    return db_progress
+
+
+def delete_progress_update(
+    db: Session,
+    progress_update_id: int
+):
+    db_progress = get_progress_update(
+        db,
+        progress_update_id
+    )
+
+    if db_progress is None:
+        return None
+
+    db.delete(db_progress)
+    db.commit()
+
+    return db_progress
 # ==========================
 # ATTENDANCE - MODULE 3
 # ==========================
@@ -545,3 +630,486 @@ def delete_attendance(
     db.commit()
 
     return db_attendance
+# ==========================
+# PROGRESS REPORTS - MODULE 3
+# ==========================
+
+def create_progress_report(
+    db: Session,
+    report: schemas.ProgressReportCreate
+):
+    db_report = models.ProgressReport(
+        **report.model_dump()
+    )
+
+    db.add(db_report)
+    db.commit()
+    db.refresh(db_report)
+
+    return db_report
+
+
+def get_progress_reports(db: Session, project_id=None):
+    query = db.query(models.ProgressReport)
+
+    if project_id is not None:
+        query = query.filter(
+            models.ProgressReport.project_id == project_id
+        )
+
+    return query.all()
+
+
+def get_progress_report_by_id(
+    db: Session,
+    report_id: int
+):
+    return db.query(models.ProgressReport).filter(
+        models.ProgressReport.id == report_id
+    ).first()
+
+
+def update_progress_report(
+    db: Session,
+    report_id: int,
+    report: schemas.ProgressReportCreate
+):
+    db_report = get_progress_report_by_id(
+        db,
+        report_id
+    )
+
+    if db_report is None:
+        return None
+
+    for key, value in report.model_dump().items():
+        setattr(db_report, key, value)
+
+    db.commit()
+    db.refresh(db_report)
+
+    return db_report
+
+
+def delete_progress_report(
+    db: Session,
+    report_id: int
+):
+    db_report = get_progress_report_by_id(
+        db,
+        report_id
+    )
+
+    if db_report is None:
+        return None
+
+    db.delete(db_report)
+    db.commit()
+
+    return db_report
+# ==========================
+# MODULE 3 DASHBOARD CRUD
+# ==========================
+
+def get_project_dashboard(
+    db: Session,
+    project_id: int
+):
+    total_progress_updates = db.query(
+        models.ProgressUpdate
+    ).filter(
+        models.ProgressUpdate.project_id == project_id
+    ).count()
+
+    progress_updates = db.query(
+        models.ProgressUpdate
+    ).filter(
+        models.ProgressUpdate.project_id == project_id
+    ).all()
+
+    if progress_updates:
+        average_progress = sum(
+            update.progress_percentage
+            for update in progress_updates
+        ) / len(progress_updates)
+    else:
+        average_progress = 0
+
+    total_progress_reports = db.query(
+        models.ProgressReport
+    ).filter(
+        models.ProgressReport.project_id == project_id
+    ).count()
+
+    total_attendance_records = db.query(
+        models.Attendance
+    ).filter(
+        models.Attendance.project_id == project_id
+    ).count()
+
+    open_site_issues = db.query(
+        models.SiteIssue
+    ).filter(
+        models.SiteIssue.project_id == project_id,
+        models.SiteIssue.status == "Open"
+    ).count()
+
+    return {
+        "project_id": project_id,
+        "total_progress_updates": total_progress_updates,
+        "average_progress": round(average_progress, 2),
+        "total_progress_reports": total_progress_reports,
+        "total_attendance_records": total_attendance_records,
+        "open_site_issues": open_site_issues
+    }
+# ==========================
+# DELAY RECORDS - MODULE 3
+# ==========================
+
+def create_delay_record(
+    db: Session,
+    delay: schemas.DelayRecordCreate
+):
+    db_delay = models.DelayRecord(
+        **delay.model_dump()
+    )
+
+    db.add(db_delay)
+    db.commit()
+    db.refresh(db_delay)
+
+    return db_delay
+
+
+def get_delay_records(
+    db: Session,
+    project_id=None
+):
+    query = db.query(models.DelayRecord)
+
+    if project_id is not None:
+        query = query.filter(
+            models.DelayRecord.project_id == project_id
+        )
+
+    return query.all()
+
+
+def get_delay_record_by_id(
+    db: Session,
+    delay_id: int
+):
+    return db.query(models.DelayRecord).filter(
+        models.DelayRecord.id == delay_id
+    ).first()
+
+
+def update_delay_record(
+    db: Session,
+    delay_id: int,
+    delay: schemas.DelayRecordCreate
+):
+    db_delay = get_delay_record_by_id(
+        db,
+        delay_id
+    )
+
+    if db_delay is None:
+        return None
+
+    for key, value in delay.model_dump().items():
+        setattr(db_delay, key, value)
+
+    db.commit()
+    db.refresh(db_delay)
+
+    return db_delay
+
+
+def delete_delay_record(
+    db: Session,
+    delay_id: int
+):
+    db_delay = get_delay_record_by_id(
+        db,
+        delay_id
+    )
+
+    if db_delay is None:
+        return None
+
+    db.delete(db_delay)
+    db.commit()
+
+    return db_delay
+# ==========================
+# SITE ACTIVITY LOGS - MODULE 3
+# ==========================
+
+def create_site_activity_log(
+    db: Session,
+    activity: schemas.SiteActivityLogCreate
+):
+    db_activity = models.SiteActivityLog(
+        **activity.model_dump()
+    )
+
+    db.add(db_activity)
+    db.commit()
+    db.refresh(db_activity)
+
+    return db_activity
+
+
+def get_site_activity_logs(
+    db: Session,
+    project_id=None
+):
+    query = db.query(models.SiteActivityLog)
+
+    if project_id is not None:
+        query = query.filter(
+            models.SiteActivityLog.project_id == project_id
+        )
+
+    return query.all()
+
+
+def get_site_activity_log_by_id(
+    db: Session,
+    activity_id: int
+):
+    return db.query(models.SiteActivityLog).filter(
+        models.SiteActivityLog.id == activity_id
+    ).first()
+
+
+def update_site_activity_log(
+    db: Session,
+    activity_id: int,
+    activity: schemas.SiteActivityLogCreate
+):
+    db_activity = get_site_activity_log_by_id(
+        db,
+        activity_id
+    )
+
+    if db_activity is None:
+        return None
+
+    for key, value in activity.model_dump().items():
+        setattr(db_activity, key, value)
+
+    db.commit()
+    db.refresh(db_activity)
+
+    return db_activity
+
+
+def delete_site_activity_log(
+    db: Session,
+    activity_id: int
+):
+    db_activity = get_site_activity_log_by_id(
+        db,
+        activity_id
+    )
+
+    if db_activity is None:
+        return None
+
+    db.delete(db_activity)
+    db.commit()
+
+    return db_activity
+# ==========================
+# PROGRESS PHOTOGRAPHS - MODULE 3
+# ==========================
+
+def create_progress_photo(
+    db: Session,
+    photo: schemas.ProgressPhotoCreate
+):
+    db_photo = models.ProgressPhoto(
+        **photo.model_dump()
+    )
+
+    db.add(db_photo)
+    db.commit()
+    db.refresh(db_photo)
+
+    return db_photo
+
+
+def get_progress_photos(
+    db: Session,
+    project_id=None,
+    progress_update_id=None
+):
+    query = db.query(models.ProgressPhoto)
+
+    if project_id is not None:
+        query = query.filter(
+            models.ProgressPhoto.project_id == project_id
+        )
+
+    if progress_update_id is not None:
+        query = query.filter(
+            models.ProgressPhoto.progress_update_id == progress_update_id
+        )
+
+    return query.all()
+
+
+def get_progress_photo_by_id(
+    db: Session,
+    photo_id: int
+):
+    return db.query(models.ProgressPhoto).filter(
+        models.ProgressPhoto.id == photo_id
+    ).first()
+
+
+def update_progress_photo(
+    db: Session,
+    photo_id: int,
+    photo: schemas.ProgressPhotoCreate
+):
+    db_photo = get_progress_photo_by_id(
+        db,
+        photo_id
+    )
+
+    if db_photo is None:
+        return None
+
+    for key, value in photo.model_dump().items():
+        setattr(db_photo, key, value)
+
+    db.commit()
+    db.refresh(db_photo)
+
+    return db_photo
+
+
+def delete_progress_photo(
+    db: Session,
+    photo_id: int
+):
+    db_photo = get_progress_photo_by_id(
+        db,
+        photo_id
+    )
+
+    if db_photo is None:
+        return None
+
+    db.delete(db_photo)
+    db.commit()
+
+    return db_photo
+# ==========================
+# WEEKLY PROGRESS REPORTS - MODULE 3
+# ==========================
+
+def create_weekly_progress_report(
+    db: Session,
+    report: schemas.WeeklyProgressReportCreate
+):
+    db_report = models.WeeklyProgressReport(
+        **report.model_dump()
+    )
+
+    db.add(db_report)
+    db.commit()
+    db.refresh(db_report)
+
+    return db_report
+
+
+def get_weekly_progress_reports(
+    db: Session,
+    project_id=None
+):
+    query = db.query(models.WeeklyProgressReport)
+
+    if project_id is not None:
+        query = query.filter(
+            models.WeeklyProgressReport.project_id == project_id
+        )
+
+    return query.all()
+
+
+def get_weekly_progress_report_by_id(
+    db: Session,
+    report_id: int
+):
+    return db.query(models.WeeklyProgressReport).filter(
+        models.WeeklyProgressReport.id == report_id
+    ).first()
+
+
+def update_weekly_progress_report(
+    db: Session,
+    report_id: int,
+    report: schemas.WeeklyProgressReportCreate
+):
+    db_report = get_weekly_progress_report_by_id(
+        db,
+        report_id
+    )
+
+    if db_report is None:
+        return None
+
+    for key, value in report.model_dump().items():
+        setattr(db_report, key, value)
+
+    db.commit()
+    db.refresh(db_report)
+
+    return db_report
+
+
+def delete_weekly_progress_report(
+    db: Session,
+    report_id: int
+):
+    db_report = get_weekly_progress_report_by_id(
+        db,
+        report_id
+    )
+
+    if db_report is None:
+        return None
+
+    db.delete(db_report)
+    db.commit()
+
+    return db_report
+# ==========================
+# PROJECT COMPLETION - MODULE 3
+# ==========================
+
+def get_project_completion_percentage(
+    db: Session,
+    project_id: int
+):
+    progress_updates = db.query(
+        models.ProgressUpdate
+    ).filter(
+        models.ProgressUpdate.project_id == project_id
+    ).all()
+
+    if not progress_updates:
+        return 0
+
+    total_progress = sum(
+        update.progress_percentage
+        for update in progress_updates
+    )
+
+    average_progress = total_progress / len(progress_updates)
+
+    return round(average_progress, 2)

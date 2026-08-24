@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Text, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
-
+#
 from app.database import Base
 
 
@@ -48,21 +48,28 @@ class Project(Base):
 
     project_manager = Column(String(150), nullable=True)
 
-# ==========================
+## ==========================
 # PROJECT MILESTONES
 # ==========================
+
 class Milestone(Base):
     __tablename__ = "milestones"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
 
     title = Column(String(150), nullable=False)
     description = Column(Text)
 
-    planned_date = Column(Date)
+    planned_date = Column("due_date" ,Date)
     actual_completion_date = Column(Date, nullable=True)
+
+    progress_percentage = Column(Float, default=0)
 
     status = Column(String(50), default="Pending")
 # ==========================
@@ -321,9 +328,10 @@ class SiteIssue(Base):
     severity = Column(String(50), default="Medium")
     status = Column(String(50), default="Open")
     issue_date = Column(String(30))
-# ==========================
+## ==========================
 # PROGRESS UPDATES - MODULE 3
 # ==========================
+
 class ProgressUpdate(Base):
     __tablename__ = "progress_updates"
 
@@ -336,12 +344,160 @@ class ProgressUpdate(Base):
     )
 
     activity_name = Column(String(150), nullable=False)
+    work_category = Column(String(100))
+
     description = Column(Text)
 
     progress_percentage = Column(Float, default=0)
+
+    contractor_id = Column(Integer, nullable=True)
+
+    workers_present = Column(Integer, default=0)
+    workers_absent = Column(Integer, default=0)
+
+    machinery_used = Column(String(500))
+    materials_consumed = Column(String(1000))
+
+    weather_conditions = Column(String(200))
+
+    safety_observations = Column(Text)
+    quality_remarks = Column(Text)
+
+    delay_description = Column(Text)
+
+    additional_comments = Column(Text)
 
     update_date = Column(Date)
 
     status = Column(String(50), default="In Progress")
 
     updated_by = Column(String(150))
+# ==========================
+# PROGRESS REPORTS - MODULE 3
+# ==========================
+
+class ProgressReport(Base):
+    __tablename__ = "progress_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, nullable=False)
+    report_date = Column(Date, nullable=False)
+    overall_progress = Column(Float, default=0)
+    summary = Column(String(1000), nullable=True)
+    status = Column(String(50), default="In Progress")
+# ==========================
+# DELAY RECORDS - MODULE 3
+# ==========================
+
+class DelayRecord(Base):
+    __tablename__ = "delay_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    delay_date = Column(Date, nullable=False)
+
+    reason = Column(String(500), nullable=False)
+
+    duration_hours = Column(Float, default=0)
+
+    affected_work_category = Column(String(100))
+
+    timeline_impact = Column(String(500))
+
+    status = Column(String(50), default="Open")
+
+    remarks = Column(Text)
+# ==========================
+# SITE ACTIVITY LOGS - MODULE 3
+# ==========================
+
+class SiteActivityLog(Base):
+    __tablename__ = "site_activity_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    activity_date = Column(Date, nullable=False)
+
+    activity_time = Column(String(20))
+
+    activity_type = Column(String(100), nullable=False)
+
+    description = Column(Text, nullable=False)
+
+    responsible_person = Column(String(150))
+
+    remarks = Column(Text)
+# ==========================
+# PROGRESS PHOTOGRAPHS - MODULE 3
+# ==========================
+
+class ProgressPhoto(Base):
+    __tablename__ = "progress_photos"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    progress_update_id = Column(
+        Integer,
+        ForeignKey("progress_updates.id"),
+        nullable=True
+    )
+
+    photo_path = Column(String(500), nullable=False)
+
+    description = Column(String(500))
+
+    uploaded_by = Column(String(150))
+
+    uploaded_date = Column(Date)
+# ==========================
+# WEEKLY PROGRESS REPORTS - MODULE 3
+# ==========================
+
+class WeeklyProgressReport(Base):
+    __tablename__ = "weekly_progress_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    week_start_date = Column(Date, nullable=False)
+    week_end_date = Column(Date, nullable=False)
+
+    work_completed = Column(Text)
+
+    progress_percentage = Column(Float, default=0)
+
+    worker_hours = Column(Float, default=0)
+
+    major_activities = Column(Text)
+
+    delays = Column(Text)
+
+    safety_incidents = Column(Text)
+
+    overall_status = Column(
+        String(50),
+        default="In Progress"
+    )
