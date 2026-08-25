@@ -197,6 +197,41 @@ def create_resource(db: Session, resource: schemas.ResourceCreate):
 
 def get_resources(db: Session):
     return db.query(models.Resource).all()
+def get_resource_by_id(db: Session, resource_id: int):
+    return db.query(models.Resource).filter(
+        models.Resource.id == resource_id
+    ).first()
+
+
+def update_resource(
+    db: Session,
+    resource_id: int,
+    resource: schemas.ResourceCreate
+):
+    db_resource = get_resource_by_id(db, resource_id)
+
+    if db_resource is None:
+        return None
+
+    for key, value in resource.model_dump().items():
+        setattr(db_resource, key, value)
+
+    db.commit()
+    db.refresh(db_resource)
+
+    return db_resource
+
+
+def delete_resource(db: Session, resource_id: int):
+    db_resource = get_resource_by_id(db, resource_id)
+
+    if db_resource is None:
+        return None
+
+    db.delete(db_resource)
+    db.commit()
+
+    return db_resource
 # ==========================
 # INVENTORY CRUD
 # ==========================
@@ -332,6 +367,59 @@ def delete_equipment(db: Session, equipment_id: int):
     db.commit()
 
     return db_equipment
+
+# ==========================
+# EQUIPMENT AVAILABILITY CRUD - MODULE 4
+# ==========================
+
+def get_equipment_availability(db: Session):
+    equipment_list = db.query(models.Equipment).all()
+
+    availability = []
+
+    for equipment in equipment_list:
+        status = equipment.status
+        project_id = None
+        available_from = None
+
+        # Check active allocation
+        allocation = db.query(models.EquipmentAllocation).filter(
+            models.EquipmentAllocation.equipment_id == equipment.id,
+            models.EquipmentAllocation.status == "Active"
+        ).first()
+
+        if allocation:
+            status = "Allocated"
+            project_id = allocation.project_id
+            available_from = allocation.end_date
+
+        # Check active maintenance
+        maintenance = db.query(
+            models.EquipmentMaintenance
+        ).filter(
+            models.EquipmentMaintenance.equipment_id == equipment.id,
+            models.EquipmentMaintenance.status.in_(
+                ["Scheduled", "In Progress"]
+            )
+        ).order_by(
+            models.EquipmentMaintenance.next_service_date.asc()
+        ).first()
+
+        if maintenance and maintenance.status == "In Progress":
+            status = "Under Maintenance"
+            project_id = None
+            available_from = maintenance.next_service_date
+
+        availability.append({
+            "equipment_id": equipment.id,
+            "equipment_name": equipment.name,
+            "category": equipment.category,
+            "status": status,
+            "project_id": project_id,
+            "available_from": available_from
+        })
+
+    return availability
 # ==========================
 # EQUIPMENT ALLOCATION CRUD
 # ==========================
@@ -340,6 +428,31 @@ def create_equipment_allocation(
     db: Session,
     allocation: schemas.EquipmentAllocationCreate
 ):
+      # Check for overlapping active allocation
+    overlapping_allocation = db.query(
+        models.EquipmentAllocation
+    ).filter(
+        models.EquipmentAllocation.equipment_id == allocation.equipment_id,
+        models.EquipmentAllocation.status == "Active",
+        models.EquipmentAllocation.start_date <= (
+            allocation.end_date
+            if allocation.end_date
+            else allocation.start_date
+        ),
+        (
+            models.EquipmentAllocation.end_date.is_(None)
+            | (
+                models.EquipmentAllocation.end_date
+                >= allocation.start_date
+            )
+        )
+    ).first()
+
+    if overlapping_allocation:
+        raise ValueError(
+            "Equipment is already allocated during the requested period"
+        )
+
     db_allocation = models.EquipmentAllocation(
         **allocation.model_dump()
     )
@@ -472,6 +585,127 @@ def delete_equipment_maintenance(
     db.commit()
 
     return db_maintenance
+# ==========================
+# MAINTENANCE DUE STATUS - MODULE 4
+# ==========================
+
+from datetime import date, timedelta
+
+
+def get_maintenance_due_status(db: Session):
+    maintenance_records = db.query(
+        models.EquipmentMaintenance
+    ).all()
+
+    today = date.today()
+    due_soon_date = today + timedelta(days=7)
+
+    results = []
+
+    for maintenance in maintenance_records:
+
+        equipment = db.query(models.Equipment).filter(
+            models.Equipment.id == maintenance.equipment_id
+        ).first()
+
+        equipment_name = (
+            equipment.name
+            if equipment
+            else "Unknown Equipment"
+        )
+
+        if maintenance.next_service_date is None:
+            maintenance_status = "No Service Date"
+
+        elif maintenance.next_service_date < today:
+            maintenance_status = "Overdue"
+
+        elif maintenance.next_service_date <= due_soon_date:
+            maintenance_status = "Due Soon"
+
+        else:
+            maintenance_status = "Scheduled"
+
+        results.append({
+            "maintenance_id": maintenance.id,
+            "equipment_id": maintenance.equipment_id,
+            "equipment_name": equipment_name,
+            "next_service_date": maintenance.next_service_date,
+            "status": maintenance_status,
+            "engineer": maintenance.engineer
+        })
+
+    return results
+# ==========================
+# EQUIPMENT UTILIZATION CRUD - MODULE 4
+# ==========================
+
+def create_equipment_utilization(
+    db: Session,
+    utilization: schemas.EquipmentUtilizationCreate
+):
+    db_utilization = models.EquipmentUtilization(
+        **utilization.model_dump()
+    )
+
+    db.add(db_utilization)
+    db.commit()
+    db.refresh(db_utilization)
+
+    return db_utilization
+
+
+def get_equipment_utilizations(db: Session):
+    return db.query(models.EquipmentUtilization).all()
+
+
+def get_equipment_utilization_by_id(
+    db: Session,
+    utilization_id: int
+):
+    return db.query(models.EquipmentUtilization).filter(
+        models.EquipmentUtilization.id == utilization_id
+    ).first()
+
+
+def update_equipment_utilization(
+    db: Session,
+    utilization_id: int,
+    utilization: schemas.EquipmentUtilizationCreate
+):
+    db_utilization = get_equipment_utilization_by_id(
+        db,
+        utilization_id
+    )
+
+    if db_utilization is None:
+        return None
+
+    for key, value in utilization.model_dump().items():
+        setattr(db_utilization, key, value)
+
+    db.commit()
+    db.refresh(db_utilization)
+
+    return db_utilization
+
+
+def delete_equipment_utilization(
+    db: Session,
+    utilization_id: int
+):
+    db_utilization = get_equipment_utilization_by_id(
+        db,
+        utilization_id
+    )
+
+    if db_utilization is None:
+        return None
+
+    db.delete(db_utilization)
+    db.commit()
+
+    return db_utilization
 # ==========================
 # ==========================
 # PROGRESS UPDATES - MODULE 3

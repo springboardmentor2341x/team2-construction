@@ -8,7 +8,7 @@ from app.database import Base, engine, get_db
 from app import schemas, crud
 from app.routers import user,equipment,equipment_allocation,equipment_maintenance,worker,inventory,material_usage
 from app.routers import site_issues,progress_updates,attendence,progress_reports,dashboard,delay_records
-from app.routers import site_activity_logs,progress_photos,weekly_progress_reports
+from app.routers import site_activity_logs,progress_photos,weekly_progress_reports,resource,equipment_utilization
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
@@ -50,6 +50,9 @@ app.include_router(delay_records.router)
 app.include_router(site_activity_logs.router)
 app.include_router(progress_photos.router)
 app.include_router(weekly_progress_reports.router)
+app.include_router(resource.router)
+app.include_router(equipment_utilization.router)
+
 
 
 

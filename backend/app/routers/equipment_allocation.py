@@ -15,8 +15,13 @@ def create_equipment_allocation(
     allocation: schemas.EquipmentAllocationCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_equipment_allocation(db, allocation)
-
+    try:
+        return crud.create_equipment_allocation(db, allocation)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=409,
+            detail=str(e)
+        )
 
 @router.get("/", response_model=list[schemas.EquipmentAllocation])
 def get_equipment_allocations(

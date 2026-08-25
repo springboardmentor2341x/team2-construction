@@ -293,6 +293,7 @@ class EquipmentMaintenance(Base):
     )
 
     maintenance_type = Column(String(100), nullable=False)
+    last_maintenance_date = Column(Date)
 
     next_service_date = Column(Date)
 
@@ -501,3 +502,31 @@ class WeeklyProgressReport(Base):
         String(50),
         default="In Progress"
     )
+    # ==========================
+# EQUIPMENT UTILIZATION - MODULE 4
+# ==========================
+
+class EquipmentUtilization(Base):
+    __tablename__ = "equipment_utilization"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    equipment_id = Column(
+        Integer,
+        ForeignKey("equipment.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    usage_date = Column(Date, nullable=False)
+
+    operating_hours = Column(Float, default=0)
+
+    idle_hours = Column(Float, default=0)
+
+    remarks = Column(Text)

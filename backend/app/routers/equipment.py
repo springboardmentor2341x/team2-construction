@@ -21,6 +21,18 @@ def create_equipment(
 ):
     return crud.create_equipment(db, equipment)
 
+# ==========================
+# EQUIPMENT AVAILABILITY
+# ==========================
+
+@router.get(
+    "/availability",
+    response_model=list[schemas.EquipmentAvailability]
+)
+def get_equipment_availability(
+    db: Session = Depends(get_db)
+):
+    return crud.get_equipment_availability(db)
 
 # ==========================
 # GET ALL EQUIPMENT

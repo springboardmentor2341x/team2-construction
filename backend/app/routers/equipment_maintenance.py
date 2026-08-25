@@ -24,6 +24,18 @@ def get_equipment_maintenance(
 ):
     return crud.get_equipment_maintenance(db)
 
+# ==========================
+# MAINTENANCE DUE STATUS
+# ==========================
+
+@router.get(
+    "/due-status",
+    response_model=list[schemas.MaintenanceDueStatus]
+)
+def get_maintenance_due_status(
+    db: Session = Depends(get_db)
+):
+    return crud.get_maintenance_due_status(db)
 
 @router.get(
     "/{maintenance_id}",

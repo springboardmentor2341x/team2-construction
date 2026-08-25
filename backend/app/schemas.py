@@ -155,11 +155,9 @@ class ContractorAssignment(ContractorAssignmentBase):
 
 class ResourceBase(BaseModel):
     resource_name: str
-    category: str
+    type: str
     quantity: int
-    unit: str
     status: str
-    project_id: int
 
 
 class ResourceCreate(ResourceBase):
@@ -353,6 +351,17 @@ class Equipment(EquipmentBase):
     class Config:
         from_attributes = True
 # ==========================
+# EQUIPMENT AVAILABILITY SCHEMA - MODULE 4
+# ==========================
+
+class EquipmentAvailability(BaseModel):
+    equipment_id: int
+    equipment_name: str
+    category: str
+    status: str
+    project_id: Optional[int] = None
+    available_from: Optional[date] = None
+# ==========================
 # EQUIPMENT ALLOCATION SCHEMAS
 # ==========================
 
@@ -381,6 +390,7 @@ class EquipmentAllocation(EquipmentAllocationBase):
 class EquipmentMaintenanceBase(BaseModel):
     equipment_id: int
     maintenance_type: str
+    last_maintenance_date: Optional[date] = None
     next_service_date: Optional[date] = None
     engineer: Optional[str] = None
     cost: Optional[float] = None
@@ -393,6 +403,39 @@ class EquipmentMaintenanceCreate(EquipmentMaintenanceBase):
 
 
 class EquipmentMaintenance(EquipmentMaintenanceBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# MAINTENANCE STATUS SCHEMA - MODULE 4
+# ==========================
+
+class MaintenanceDueStatus(BaseModel):
+    maintenance_id: int
+    equipment_id: int
+    equipment_name: str
+    next_service_date: Optional[date] = None
+    status: str
+    engineer: Optional[str] = None
+# ==========================
+# EQUIPMENT UTILIZATION SCHEMAS - MODULE 4
+# ==========================
+
+class EquipmentUtilizationBase(BaseModel):
+    equipment_id: int
+    project_id: int
+    usage_date: date
+    operating_hours: float = 0
+    idle_hours: float = 0
+    remarks: Optional[str] = None
+
+
+class EquipmentUtilizationCreate(EquipmentUtilizationBase):
+    pass
+
+
+class EquipmentUtilization(EquipmentUtilizationBase):
     id: int
 
     class Config:
