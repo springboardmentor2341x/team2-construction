@@ -942,47 +942,8 @@
   <!-- ========================================== -->
   <!-- 7. ATTENDANCE MODULE VIEW -->
   <!-- ========================================== -->
-  @if (activeModule === 'attendance') {
-    <div class="card border-0 shadow-sm rounded-3">
-      <div class="card-body p-4">
-        <h5 class="fw-bold text-dark mb-3">Site Workforce Checked In</h5>
-        <p class="text-muted small">Real-time attendance roster for subcontractors and laborers active today.</p>
-        
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead class="table-light text-muted uppercase small">
-              <tr>
-                <th>Worker Name</th>
-                <th>Specialty/Role</th>
-                <th>Assigned Project</th>
-                <th>Phone</th>
-                <th>Work Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (w of attendanceRoster(); track w.id) {
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <img [src]="w.avatar" alt="Avatar" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
-                      <span class="fw-bold text-dark">{{ w.name }}</span>
-                    </div>
-                  </td>
-                  <td>{{ w.role }}</td>
-                  <td>{{ w.assignedProject }}</td>
-                  <td>{{ w.phone }}</td>
-                  <td>
-                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-bold">
-                      Checked In
-                    </span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+  @if (activeModule === 'attendance' || activeModule === 'workforce') {
+    <app-workforce-management [initialTab]="'attendance'"></app-workforce-management>
   }
 
   <!-- ========================================== -->

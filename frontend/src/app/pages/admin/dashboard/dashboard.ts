@@ -9,10 +9,12 @@ import { DashboardCardComponent } from '../../../components/dashboard-card/dashb
 import { ChartsComponent } from '../../../components/charts/charts';
 import { User, UserRole } from '../../../models/user.model';
 
+import { WorkforceManagementComponent } from '../../../components/workforce-management/workforce-management';
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent, ChartsComponent],
+  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent, ChartsComponent, WorkforceManagementComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })

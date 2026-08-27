@@ -99,6 +99,16 @@ class WorkPackage(Base):
     assigned_to_id = Column(String, ForeignKey("users.id"), nullable=True)
     assigned_to = relationship("User", back_populates="assigned_tasks")
 
+class WorkforceCategory(Base):
+    __tablename__ = "workforce_categories"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, unique=True, nullable=False) # Engineers, Supervisors, Contractors, Skilled Workers, Unskilled Workers, Consultants
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    workers = relationship("Worker", back_populates="category")
+
 class Contractor(Base):
     __tablename__ = "contractors"
 
@@ -109,21 +119,69 @@ class Contractor(Base):
     specialty = Column(String, nullable=False)
     status = Column(String, nullable=False) # Active, Under Review, Suspended
 
+    workers = relationship("Worker", back_populates="contractor")
+
 class Worker(Base):
     __tablename__ = "workers"
 
     id = Column(String, primary_key=True)
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    worker_id = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    contact_info = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    emergency_contact = Column(String, nullable=True)
+
+    category_id = Column(String, ForeignKey("workforce_categories.id"), nullable=True)
+    category = relationship("WorkforceCategory", back_populates="workers")
+    category_name = Column(String, nullable=True)
+
+    skill_work_type = Column(String, nullable=False)
+    role = Column(String, nullable=True) # Kept for backward compatibility
+
+    contractor_id = Column(String, ForeignKey("contractors.id", ondelete="SET NULL"), nullable=True)
+    contractor = relationship("Contractor", back_populates="workers")
+    contractor_name = Column(String, nullable=True)
+
+    assigned_project_id = Column(String, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    assigned_project = relationship("Project", back_populates="workers")
+
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=True)
     user = relationship("User", back_populates="worker_profile")
 
-    role = Column(String, nullable=False) # e.g. Electrician, Mason
-    status = Column(String, nullable=False) # Active, On Leave, Inactive
+    joining_date = Column(DateTime, default=datetime.datetime.utcnow)
+    status = Column(String, nullable=False, default="Active") # Active, Inactive, On Leave, Transferred
+    pay_rate = Column(Float, default=500.0)
 
-    assigned_project_id = Column(String, ForeignKey("projects.id"), nullable=True)
-    assigned_project = relationship("Project", back_populates="workers")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     attendance = relationship("Attendance", back_populates="worker", cascade="all, delete-orphan")
     payslips = relationship("WorkerPayslip", back_populates="worker", cascade="all, delete-orphan")
+    assignments = relationship("WorkerAssignment", back_populates="worker", cascade="all, delete-orphan")
+    shift_assignments = relationship("ShiftAssignment", back_populates="worker", cascade="all, delete-orphan")
+    payroll_records = relationship("PayrollRecord", back_populates="worker", cascade="all, delete-orphan")
+
+class WorkerAssignment(Base):
+    __tablename__ = "worker_assignments"
+
+    id = Column(String, primary_key=True)
+    worker_id = Column(String, ForeignKey("workers.id", ondelete="CASCADE"), nullable=False)
+    worker = relationship("Worker", back_populates="assignments")
+
+    contractor_id = Column(String, ForeignKey("contractors.id", ondelete="SET NULL"), nullable=True)
+    contractor = relationship("Contractor")
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project")
+
+    work_activity = Column(String, nullable=False)
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=True)
+    status = Column(String, nullable=False, default="Active") # Active, Completed, Transferred, Cancelled
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
 class SiteEngineer(Base):
     __tablename__ = "site_engineers"
@@ -134,6 +192,37 @@ class SiteEngineer(Base):
 
     status = Column(String, nullable=False) # Active, Inactive
 
+class Shift(Base):
+    __tablename__ = "shifts"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    start_time = Column(String, nullable=False)
+    end_time = Column(String, nullable=False)
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project")
+
+    shift_date = Column(DateTime, nullable=False)
+    status = Column(String, nullable=False, default="Scheduled") # Scheduled, Active, Completed, Cancelled
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    assigned_workers = relationship("ShiftAssignment", back_populates="shift", cascade="all, delete-orphan")
+    attendance_records = relationship("Attendance", back_populates="shift")
+
+class ShiftAssignment(Base):
+    __tablename__ = "shift_assignments"
+
+    id = Column(String, primary_key=True)
+    shift_id = Column(String, ForeignKey("shifts.id", ondelete="CASCADE"), nullable=False)
+    shift = relationship("Shift", back_populates="assigned_workers")
+
+    worker_id = Column(String, ForeignKey("workers.id", ondelete="CASCADE"), nullable=False)
+    worker = relationship("Worker", back_populates="shift_assignments")
+
+    status = Column(String, nullable=False, default="Assigned") # Assigned, Attended, Absent
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
 class Attendance(Base):
     __tablename__ = "attendance"
 
@@ -141,10 +230,49 @@ class Attendance(Base):
     worker_id = Column(String, ForeignKey("workers.id", ondelete="CASCADE"), nullable=False)
     worker = relationship("Worker", back_populates="attendance")
 
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=True)
+    project = relationship("Project")
+
+    contractor_id = Column(String, ForeignKey("contractors.id", ondelete="SET NULL"), nullable=True)
+    contractor = relationship("Contractor")
+
+    shift_id = Column(String, ForeignKey("shifts.id", ondelete="SET NULL"), nullable=True)
+    shift = relationship("Shift", back_populates="attendance_records")
+
     date = Column(DateTime, nullable=False)
     status = Column(String, nullable=False) # Present, Absent, Leave
-    check_in = Column(String, nullable=True) # "HH:MM"
-    check_out = Column(String, nullable=True) # "HH:MM"
+    check_in = Column(String, nullable=True) # "HH:MM" or "08:00 AM"
+    check_out = Column(String, nullable=True) # "HH:MM" or "05:00 PM"
+    working_hours = Column(Float, default=0.0)
+    overtime_hours = Column(Float, default=0.0)
+    remarks = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class PayrollRecord(Base):
+    __tablename__ = "payroll_records"
+
+    id = Column(String, primary_key=True)
+    worker_id = Column(String, ForeignKey("workers.id", ondelete="CASCADE"), nullable=False)
+    worker = relationship("Worker", back_populates="payroll_records")
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True)
+    project = relationship("Project")
+
+    contractor_id = Column(String, ForeignKey("contractors.id", ondelete="SET NULL"), nullable=True)
+    contractor = relationship("Contractor")
+
+    month_year = Column(String, nullable=False) # "2026-08" or "August 2026"
+    pay_rate = Column(Float, nullable=False, default=500.0)
+    working_days = Column(Integer, default=0)
+    working_hours = Column(Float, default=0.0)
+    overtime_hours = Column(Float, default=0.0)
+    leave_days = Column(Integer, default=0)
+    estimated_pay = Column(Float, nullable=False, default=0.0)
+    status = Column(String, nullable=False, default="Pending") # Pending, Processing, Approved, Paid
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
 class MaterialCategory(Base):
     __tablename__ = "material_categories"
@@ -593,3 +721,215 @@ class MaintenanceRecord(Base):
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
 
+
+
+# ==========================================
+# MODULE 7: PROCUREMENT MANAGEMENT MODELS
+# ==========================================
+
+class Vendor(Base):
+    """Centralized Vendor / Supplier registry."""
+    __tablename__ = "vendors"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    contact_person = Column(String, nullable=True)
+    contact_number = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    category = Column(String, nullable=False)
+    products_services = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="Active")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    purchase_orders = relationship("PurchaseOrder", back_populates="vendor")
+    invoices = relationship("ProcurementInvoice", back_populates="vendor")
+
+
+class ProcurementCategory(Base):
+    __tablename__ = "procurement_categories"
+
+    id = Column(String, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    procurement_requests = relationship("ProcurementRequest", back_populates="category")
+
+
+class ProcurementRequest(Base):
+    __tablename__ = "procurement_requests"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project")
+
+    requested_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    requested_by = relationship("User", foreign_keys=[requested_by_id])
+
+    approved_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    approved_by = relationship("User", foreign_keys=[approved_by_id])
+
+    category_id = Column(String, ForeignKey("procurement_categories.id"), nullable=True)
+    category = relationship("ProcurementCategory", back_populates="procurement_requests")
+
+    item_name = Column(String, nullable=False)
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
+    required_date = Column(DateTime, nullable=True)
+    purpose = Column(String, nullable=True)
+    priority = Column(String, nullable=False, default="Medium")
+    request_date = Column(DateTime, default=datetime.datetime.utcnow)
+    status = Column(String, nullable=False, default="Pending")
+    remarks = Column(String, nullable=True)
+    rejection_reason = Column(String, nullable=True)
+
+    available_quantity = Column(Float, nullable=True)
+    shortage_quantity = Column(Float, nullable=True)
+
+    material_id = Column(String, ForeignKey("materials.id", ondelete="SET NULL"), nullable=True)
+    material = relationship("Material")
+
+    resource_id = Column(String, ForeignKey("resources.id", ondelete="SET NULL"), nullable=True)
+    resource = relationship("Resource")
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    purchase_orders = relationship("PurchaseOrder", back_populates="procurement_request")
+
+
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+
+    id = Column(String, primary_key=True)
+    vendor_id = Column(String, ForeignKey("vendors.id", ondelete="SET NULL"), nullable=True)
+    vendor = relationship("Vendor", back_populates="purchase_orders")
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project")
+
+    procurement_request_id = Column(String, ForeignKey("procurement_requests.id", ondelete="SET NULL"), nullable=True)
+    procurement_request = relationship("ProcurementRequest", back_populates="purchase_orders")
+
+    created_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    created_by = relationship("User", foreign_keys=[created_by_id])
+
+    order_date = Column(DateTime, default=datetime.datetime.utcnow)
+    expected_delivery_date = Column(DateTime, nullable=True)
+    actual_delivery_date = Column(DateTime, nullable=True)
+
+    subtotal = Column(Float, default=0.0)
+    tax_amount = Column(Float, default=0.0)
+    additional_charges = Column(Float, default=0.0)
+    total_amount = Column(Float, default=0.0)
+
+    status = Column(String, nullable=False, default="Draft")
+    notes = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    items = relationship("PurchaseOrderItem", back_populates="purchase_order", cascade="all, delete-orphan")
+    receipts = relationship("GoodsReceipt", back_populates="purchase_order", cascade="all, delete-orphan")
+    invoices = relationship("ProcurementInvoice", back_populates="purchase_order")
+
+
+class PurchaseOrderItem(Base):
+    __tablename__ = "purchase_order_items"
+
+    id = Column(String, primary_key=True)
+    purchase_order_id = Column(String, ForeignKey("purchase_orders.id", ondelete="CASCADE"), nullable=False)
+    purchase_order = relationship("PurchaseOrder", back_populates="items")
+
+    material_id = Column(String, ForeignKey("materials.id", ondelete="SET NULL"), nullable=True)
+    material = relationship("Material")
+
+    resource_id = Column(String, ForeignKey("resources.id", ondelete="SET NULL"), nullable=True)
+    resource = relationship("Resource")
+
+    description = Column(String, nullable=False)
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
+    unit_price = Column(Float, nullable=False, default=0.0)
+    tax_percent = Column(Float, default=0.0)
+    line_total = Column(Float, nullable=False, default=0.0)
+
+    received_quantity = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class GoodsReceipt(Base):
+    __tablename__ = "goods_receipts"
+
+    id = Column(String, primary_key=True)
+    purchase_order_id = Column(String, ForeignKey("purchase_orders.id", ondelete="CASCADE"), nullable=False)
+    purchase_order = relationship("PurchaseOrder", back_populates="receipts")
+
+    vendor_id = Column(String, ForeignKey("vendors.id", ondelete="SET NULL"), nullable=True)
+    vendor = relationship("Vendor")
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project")
+
+    received_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    received_by = relationship("User")
+
+    received_date = Column(DateTime, default=datetime.datetime.utcnow)
+    remarks = Column(String, nullable=True)
+    delivery_note_number = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    receipt_items = relationship("GoodsReceiptItem", back_populates="goods_receipt", cascade="all, delete-orphan")
+
+
+class GoodsReceiptItem(Base):
+    __tablename__ = "goods_receipt_items"
+
+    id = Column(String, primary_key=True)
+    goods_receipt_id = Column(String, ForeignKey("goods_receipts.id", ondelete="CASCADE"), nullable=False)
+    goods_receipt = relationship("GoodsReceipt", back_populates="receipt_items")
+
+    po_item_id = Column(String, ForeignKey("purchase_order_items.id", ondelete="SET NULL"), nullable=True)
+    po_item = relationship("PurchaseOrderItem")
+
+    material_id = Column(String, ForeignKey("materials.id", ondelete="SET NULL"), nullable=True)
+    material = relationship("Material")
+
+    description = Column(String, nullable=False)
+    ordered_quantity = Column(Float, nullable=False)
+    received_quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class ProcurementInvoice(Base):
+    __tablename__ = "procurement_invoices"
+
+    id = Column(String, primary_key=True)
+    invoice_number = Column(String, nullable=False)
+
+    vendor_id = Column(String, ForeignKey("vendors.id", ondelete="SET NULL"), nullable=True)
+    vendor = relationship("Vendor", back_populates="invoices")
+
+    purchase_order_id = Column(String, ForeignKey("purchase_orders.id", ondelete="SET NULL"), nullable=True)
+    purchase_order = relationship("PurchaseOrder", back_populates="invoices")
+
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project = relationship("Project")
+
+    created_by_id = Column(String, ForeignKey("users.id"), nullable=False)
+    created_by = relationship("User")
+
+    invoice_date = Column(DateTime, nullable=False)
+    due_date = Column(DateTime, nullable=True)
+    invoice_amount = Column(Float, nullable=False)
+    paid_amount = Column(Float, default=0.0)
+
+    payment_status = Column(String, nullable=False, default="Pending")
+    invoice_status = Column(String, nullable=False, default="Received")
+
+    remarks = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)

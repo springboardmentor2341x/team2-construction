@@ -11,10 +11,12 @@ import {
 import { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';
 import { ChartsComponent } from '../../../components/charts/charts';
 
+import { WorkforceManagementComponent } from '../../../components/workforce-management/workforce-management';
+
 @Component({
   selector: 'app-pm-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent, ChartsComponent],
+  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent, ChartsComponent, WorkforceManagementComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -709,5 +711,13 @@ export class ProjectManagerDashboard implements OnInit {
       ['Project', 'Committed Budget', 'Spent To Date', 'Remaining', 'Progress', 'Status'],
       ...rows
     ]);
+  }
+
+  downloadReport(format: string, reportName: string) {
+    if (reportName === 'Resource_Allocations') {
+      this.exportAllocations();
+    } else {
+      console.log(`Downloading ${reportName} in ${format} format...`);
+    }
   }
 }

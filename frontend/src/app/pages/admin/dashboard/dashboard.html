@@ -297,48 +297,7 @@
   }
 
   @if (activeModule === 'workforce') {
-    <div class="card border-0 shadow-sm rounded-3">
-      <div class="card-body p-4">
-        <h5 class="fw-bold text-dark mb-3">Labour & Workforce Registry</h5>
-        
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead class="table-light text-muted uppercase small">
-              <tr>
-                <th>Member</th>
-                <th>Specialty/Role</th>
-                <th>Assigned Project Site</th>
-                <th>Phone</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (w of workforceData(); track w.id) {
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <img [src]="w.avatar" alt="Avatar" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
-                      <span class="fw-bold text-dark">{{ w.name }}</span>
-                    </div>
-                  </td>
-                  <td>{{ w.role }}</td>
-                  <td>{{ w.assignedProject }}</td>
-                  <td>{{ w.phone }}</td>
-                  <td>
-                    <span class="badge"
-                          [class.bg-success]="w.status === 'Active'"
-                          [class.bg-warning]="w.status === 'On Leave'"
-                          [class.bg-danger]="w.status === 'Inactive'">
-                      {{ w.status }}
-                    </span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <app-workforce-management></app-workforce-management>
   }
 
   @if (activeModule === 'contractors') {

@@ -77,80 +77,8 @@
     </div>
   }
 
-  @if (activeModule === 'workers') {
-    <div class="row g-4">
-      <div class="col-lg-4">
-        <div class="card border-0 shadow-sm rounded-3">
-          <div class="card-body p-4">
-            <h5 class="fw-bold text-dark mb-3">Add Subcontractor Worker</h5>
-            
-            <form (ngSubmit)="addWorkerToRoster()">
-              
-              <div class="form-group mb-3">
-                <label class="form-label fw-semibold small text-muted">Worker Name</label>
-                <input type="text" name="workerName" [(ngModel)]="newWorkerName" required class="form-control" placeholder="e.g. Gaurav K">
-              </div>
-
-              <div class="form-group mb-3">
-                <label class="form-label fw-semibold small text-muted">Trade Role / Specialty</label>
-                <select class="form-select form-control" name="workerRole" [(ngModel)]="newWorkerRole" required>
-                  @for (role of workerRoles; track role) {
-                    <option [value]="role">{{ role }}</option>
-                  }
-                </select>
-              </div>
-
-              <div class="form-group mb-3">
-                <label class="form-label fw-semibold small text-muted">Contact Phone</label>
-                <input type="tel" name="workerPhone" [(ngModel)]="newWorkerPhone" required class="form-control" placeholder="e.g. +1 555-010-2211">
-              </div>
-
-              <button type="submit" class="btn btn-primary w-100 py-2.5">
-                <i class="bi bi-person-plus me-1"></i> Register Worker
-              </button>
-
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-8">
-        <div class="card border-0 shadow-sm rounded-3">
-          <div class="card-body p-4">
-            <h5 class="fw-bold text-dark mb-3">Active Roster & Contact Info</h5>
-            
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead class="table-light text-muted uppercase small">
-                  <tr>
-                    <th>Worker</th>
-                    <th>Trade Role</th>
-                    <th>Phone</th>
-                    <th>Project Site</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (worker of contractorWorkers(); track worker.id) {
-                    <tr>
-                      <td>
-                        <div class="d-flex align-items-center gap-2">
-                          <img [src]="worker.avatar" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
-                          <span class="fw-bold text-dark">{{ worker.name }}</span>
-                        </div>
-                      </td>
-                      <td>{{ worker.role }}</td>
-                      <td>{{ worker.phone }}</td>
-                      <td>{{ worker.assignedProject }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
+  @if (activeModule === 'workers' || activeModule === 'workforce') {
+    <app-workforce-management></app-workforce-management>
   }
 
   @if (activeModule === 'material_requests') {

@@ -6,10 +6,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ProjectService, DailyProgressReport, Milestone, DelayRecord, SiteActivityLog } from '../../../services/project.service';
 import { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';
 
+import { WorkforceManagementComponent } from '../../../components/workforce-management/workforce-management';
+
 @Component({
   selector: 'app-site-engineer-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent],
+  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent, WorkforceManagementComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -183,7 +185,7 @@ export class SiteEngineerDashboard implements OnInit {
   );
 
   attendanceRoster = computed(() =>
-    this.projectService.workforce().filter(w => w.assignedProject === this.engineerProject()?.name || w.assignedProject.includes('Vanguard'))
+    this.projectService.workforce().filter(w => w.assignedProject === this.engineerProject()?.name || w.assignedProject?.includes('Vanguard'))
   );
 
   ngOnInit() {

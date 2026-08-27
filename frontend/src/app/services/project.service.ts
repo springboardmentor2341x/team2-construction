@@ -56,13 +56,112 @@ export interface MaterialRequest {
 
 export interface WorkforceMember {
   id: string;
+  workerId?: string;
   name: string;
-  role: string; // e.g. "Electrician", "Mason", "Plumber"
-  assignedProject: string;
-  status: 'Active' | 'On Leave' | 'Inactive';
-  phone: string;
-  avatar: string;
+  contactInfo?: string;
+  phone?: string;
+  role?: string;
+  skillWorkType?: string;
+  categoryId?: string;
+  categoryName?: string;
+  contractorId?: string;
+  contractorName?: string;
+  assignedProjectId?: string;
+  assignedProject?: string;
+  assignedProjectName?: string;
+  joiningDate?: string;
+  status: 'Active' | 'On Leave' | 'Inactive' | 'Transferred';
+  payRate?: number;
+  avatar?: string;
   company?: string;
+}
+
+export interface WorkforceCategory {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt?: string;
+}
+
+export interface WorkerAssignment {
+  id: string;
+  workerId: string;
+  workerName?: string;
+  contractorId?: string;
+  contractorName?: string;
+  projectId: string;
+  projectName?: string;
+  workActivity: string;
+  startDate: string;
+  endDate?: string;
+  status: 'Active' | 'Completed' | 'Transferred' | 'Cancelled';
+  createdAt?: string;
+}
+
+export interface AttendanceRecord {
+  id: string;
+  workerId: string;
+  workerName?: string;
+  workerRole?: string;
+  categoryName?: string;
+  projectId?: string;
+  projectName?: string;
+  contractorId?: string;
+  contractorName?: string;
+  shiftId?: string;
+  date: string;
+  status: 'Present' | 'Absent' | 'Leave';
+  checkIn?: string;
+  checkOut?: string;
+  workingHours: number;
+  overtimeHours: number;
+  remarks?: string;
+}
+
+export interface Shift {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  projectId: string;
+  projectName?: string;
+  shiftDate: string;
+  status: 'Scheduled' | 'Active' | 'Completed' | 'Cancelled';
+  assignedWorkersCount?: number;
+  assignedWorkers?: { assignmentId?: string; workerId: string; workerName?: string; workerRole?: string; status?: string }[];
+  createdAt?: string;
+}
+
+export interface PayrollRecord {
+  id: string;
+  workerId: string;
+  workerName?: string;
+  workerCategory?: string;
+  projectId?: string;
+  projectName?: string;
+  contractorId?: string;
+  contractorName?: string;
+  monthYear: string;
+  payRate: number;
+  workingDays: number;
+  workingHours: number;
+  overtimeHours: number;
+  leaveDays: number;
+  estimatedPay: number;
+  status: 'Pending' | 'Processing' | 'Approved' | 'Paid';
+  updatedAt?: string;
+}
+
+export interface WorkforceSummary {
+  totalWorkers: number;
+  activeWorkers: number;
+  presentWorkersToday: number;
+  absentWorkersToday: number;
+  onLeaveWorkersToday: number;
+  attendancePercentage: number;
+  categoryBreakdown: Record<string, number>;
+  projectBreakdown: Record<string, number>;
+  contractorBreakdown: Record<string, number>;
 }
 
 export interface ContractorCompany {
@@ -357,6 +456,14 @@ export class ProjectService {
   private readonly resourceSummarySignal = signal<ResourceSummary | null>(null);
   private readonly utilizationSummarySignal = signal<UtilizationSummary | null>(null);
 
+  // Module 6 Signals
+  private readonly workforceCategoriesSignal = signal<WorkforceCategory[]>([]);
+  private readonly workerAssignmentsSignal = signal<WorkerAssignment[]>([]);
+  private readonly attendanceRecordsSignal = signal<AttendanceRecord[]>([]);
+  private readonly shiftsSignal = signal<Shift[]>([]);
+  private readonly payrollRecordsSignal = signal<PayrollRecord[]>([]);
+  private readonly workforceSummarySignal = signal<WorkforceSummary | null>(null);
+
   // Computed states
   readonly projects = this.projectsSignal.asReadonly();
   readonly workPackages = this.workPackagesSignal.asReadonly();
@@ -386,6 +493,14 @@ export class ProjectService {
   readonly maintenanceRecords = this.maintenanceRecordsSignal.asReadonly();
   readonly resourceSummary = this.resourceSummarySignal.asReadonly();
   readonly utilizationSummary = this.utilizationSummarySignal.asReadonly();
+
+  // Module 6 Readonly Signals
+  readonly workforceCategories = this.workforceCategoriesSignal.asReadonly();
+  readonly workerAssignments = this.workerAssignmentsSignal.asReadonly();
+  readonly attendanceRecords = this.attendanceRecordsSignal.asReadonly();
+  readonly shifts = this.shiftsSignal.asReadonly();
+  readonly payrollRecords = this.payrollRecordsSignal.asReadonly();
+  readonly workforceSummary = this.workforceSummarySignal.asReadonly();
 
   constructor() {
     this.loadAllData();
@@ -532,6 +647,9 @@ export class ProjectService {
 
     // Load Module 4 Data
     this.loadModule4Data();
+
+    // Load Module 6 Data
+    this.loadModule6Data();
   }
 
   loadModule3Data(projectId?: string) {
@@ -883,6 +1001,124 @@ export class ProjectService {
     this.http.post<any>('/api/projects', { ...project, id: projId }).subscribe(() => {
       this.loadAllData();
     });
+  }
+
+  // ==========================================
+  // MODULE 6: WORKFORCE MANAGEMENT API METHODS
+  // ==========================================
+  loadModule6Data(projectId?: string, contractorId?: string) {
+    const params: string[] = [];
+    if (projectId) params.push(`projectId=${projectId}`);
+    if (contractorId) params.push(`contractorId=${contractorId}`);
+    const query = params.length > 0 ? `?${params.join('&')}` : '';
+
+    // Workers
+    this.http.get<{ success: boolean; data: WorkforceMember[] }>(`/api/workers${query}`).subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.workforceSignal.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+
+    // Categories
+    this.http.get<{ success: boolean; data: WorkforceCategory[] }>('/api/workers/categories').subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.workforceCategoriesSignal.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+
+    // Assignments
+    this.http.get<{ success: boolean; data: WorkerAssignment[] }>(`/api/worker-assignments${query}`).subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.workerAssignmentsSignal.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+
+    // Attendance
+    this.http.get<{ success: boolean; data: AttendanceRecord[] }>(`/api/attendance${query}`).subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.attendanceRecordsSignal.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+
+    // Shifts
+    this.http.get<{ success: boolean; data: Shift[] }>(`/api/shifts${query}`).subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.shiftsSignal.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+
+    // Payroll Records
+    this.http.get<{ success: boolean; data: PayrollRecord[] }>(`/api/payroll${query}`).subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.payrollRecordsSignal.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+
+    // Workforce Summary Analytics
+    this.http.get<{ success: boolean; data: WorkforceSummary }>('/api/workforce/summary').subscribe({
+      next: res => {
+        if (res.success && res.data) {
+          this.workforceSummarySignal.set(res.data);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  registerWorker(workerData: Partial<WorkforceMember>) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/workers', workerData);
+  }
+
+  bulkUploadWorkers(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/workers/bulk-csv', formData);
+  }
+
+  updateWorker(id: string, workerData: Partial<WorkforceMember>) {
+    return this.http.put<{ success: boolean; message: string; data: any }>(`/api/workers/${id}`, workerData);
+  }
+
+  allocateWorker(assignmentData: { workerId: string; projectId: string; contractorId?: string; workActivity: string; startDate: string; endDate?: string }) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/worker-assignments', assignmentData);
+  }
+
+  logAttendanceRecord(attendanceData: { workerId: string; status: string; checkIn?: string; checkOut?: string; date: string; remarks?: string; projectId?: string; contractorId?: string; shiftId?: string }) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/attendance', attendanceData);
+  }
+
+  createShiftSchedule(shiftData: { name: string; startTime: string; endTime: string; projectId: string; shiftDate: string }) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/shifts', shiftData);
+  }
+
+  assignWorkersToShift(shiftId: string, workerIds: string[]) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/shifts/assign', { shiftId, workerIds });
+  }
+
+  generatePayrollRecord(payrollData: { workerId: string; monthYear: string; payRate?: number; projectId?: string; contractorId?: string }) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/payroll', payrollData);
+  }
+
+  updatePayrollStatus(payrollId: string, status: string) {
+    return this.http.put<{ success: boolean; message: string; data: any }>(`/api/payroll/${payrollId}`, { status });
   }
 }
 

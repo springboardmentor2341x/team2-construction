@@ -864,9 +864,505 @@ class MaintenanceRecordResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 # ==========================================
+# MODULE 6: WORKFORCE MANAGEMENT SCHEMAS
+# ==========================================
+
+class WorkforceCategoryCreate(BaseModel):
+    id: Optional[str] = None
+    name: str
+    description: Optional[str] = None
+
+class WorkforceCategoryResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    createdAt: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class WorkerCreate(BaseModel):
+    id: Optional[str] = None
+    workerId: str # e.g. W-102
+    name: str
+    contactInfo: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    emergencyContact: Optional[str] = None
+    categoryId: Optional[str] = None
+    skillWorkType: str
+    contractorId: Optional[str] = None
+    assignedProjectId: Optional[str] = None
+    joiningDate: Optional[str] = None
+    status: Optional[str] = "Active"
+    payRate: Optional[float] = 500.0
+
+class WorkerUpdate(BaseModel):
+    name: Optional[str] = None
+    contactInfo: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    emergencyContact: Optional[str] = None
+    categoryId: Optional[str] = None
+    skillWorkType: Optional[str] = None
+    contractorId: Optional[str] = None
+    assignedProjectId: Optional[str] = None
+    status: Optional[str] = None
+    payRate: Optional[float] = None
+
+class WorkerResponse(BaseModel):
+    id: str
+    workerId: str
+    name: str
+    contactInfo: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    emergencyContact: Optional[str] = None
+    categoryId: Optional[str] = None
+    categoryName: Optional[str] = None
+    skillWorkType: str
+    contractorId: Optional[str] = None
+    contractorName: Optional[str] = None
+    assignedProjectId: Optional[str] = None
+    assignedProjectName: Optional[str] = None
+    joiningDate: Optional[str] = None
+    status: str
+    payRate: float
+    createdAt: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class WorkerAssignmentCreate(BaseModel):
+    workerId: str
+    contractorId: Optional[str] = None
+    projectId: str
+    workActivity: str
+    startDate: str
+    endDate: Optional[str] = None
+    status: Optional[str] = "Active"
+
+class WorkerAssignmentUpdate(BaseModel):
+    workActivity: Optional[str] = None
+    endDate: Optional[str] = None
+    status: Optional[str] = None
+
+class WorkerAssignmentResponse(BaseModel):
+    id: str
+    workerId: str
+    workerName: Optional[str] = None
+    contractorId: Optional[str] = None
+    contractorName: Optional[str] = None
+    projectId: str
+    projectName: Optional[str] = None
+    workActivity: str
+    startDate: str
+    endDate: Optional[str] = None
+    status: str
+    createdAt: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ExtendedAttendanceCreate(BaseModel):
+    workerId: str
+    projectId: Optional[str] = None
+    contractorId: Optional[str] = None
+    shiftId: Optional[str] = None
+    date: str
+    status: str # Present, Absent, Leave
+    checkIn: Optional[str] = None
+    checkOut: Optional[str] = None
+    workingHours: Optional[float] = None
+    remarks: Optional[str] = None
+
+class AttendanceCheckIn(BaseModel):
+    workerId: str
+    projectId: str
+    contractorId: Optional[str] = None
+    shiftId: Optional[str] = None
+    checkInTime: Optional[str] = None
+
+class AttendanceCheckOut(BaseModel):
+    workerId: str
+    checkOutTime: Optional[str] = None
+
+class ShiftCreate(BaseModel):
+    id: Optional[str] = None
+    name: str # e.g., Morning Shift
+    startTime: str # "08:00 AM"
+    endTime: str # "05:00 PM"
+    projectId: str
+    shiftDate: str
+    status: Optional[str] = "Scheduled"
+
+class ShiftUpdate(BaseModel):
+    name: Optional[str] = None
+    startTime: Optional[str] = None
+    endTime: Optional[str] = None
+    status: Optional[str] = None
+
+class ShiftResponse(BaseModel):
+    id: str
+    name: str
+    startTime: str
+    endTime: str
+    projectId: str
+    projectName: Optional[str] = None
+    shiftDate: str
+    status: str
+    assignedWorkersCount: Optional[int] = 0
+    assignedWorkers: Optional[List[dict]] = None
+    createdAt: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ShiftAssignmentCreate(BaseModel):
+    shiftId: str
+    workerIds: List[str]
+
+class PayrollRecordCreate(BaseModel):
+    workerId: str
+    projectId: Optional[str] = None
+    contractorId: Optional[str] = None
+    monthYear: str # e.g. "2026-08"
+    payRate: Optional[float] = 500.0
+    workingDays: Optional[int] = 0
+    workingHours: Optional[float] = 0.0
+    overtimeHours: Optional[float] = 0.0
+    leaveDays: Optional[int] = 0
+    status: Optional[str] = "Pending"
+
+class PayrollRecordUpdate(BaseModel):
+    payRate: Optional[float] = None
+    workingDays: Optional[int] = None
+    workingHours: Optional[float] = None
+    overtimeHours: Optional[float] = None
+    leaveDays: Optional[int] = None
+    estimatedPay: Optional[float] = None
+    status: Optional[str] = None
+
+class PayrollRecordResponse(BaseModel):
+    id: str
+    workerId: str
+    workerName: Optional[str] = None
+    workerCategory: Optional[str] = None
+    projectId: Optional[str] = None
+    projectName: Optional[str] = None
+    contractorId: Optional[str] = None
+    contractorName: Optional[str] = None
+    monthYear: str
+    payRate: float
+    workingDays: int
+    workingHours: float
+    overtimeHours: float
+    leaveDays: int
+    estimatedPay: float
+    status: str
+    updatedAt: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class WorkforceSummaryResponse(BaseModel):
+    totalWorkers: int
+    activeWorkers: int
+    presentWorkersToday: int
+    absentWorkersToday: int
+    onLeaveWorkersToday: int
+    attendancePercentage: float
+    categoryBreakdown: dict
+    projectBreakdown: dict
+    contractorBreakdown: dict
+
+# ==========================================
 # PLATFORM GENERAL WRAPPER SCHEMAS
 # ==========================================
 class GenericResponse(BaseModel):
     success: bool
     message: Optional[str] = None
     data: Optional[Any] = None
+
+
+# ==========================================
+# MODULE 7: PROCUREMENT MANAGEMENT SCHEMAS
+# ==========================================
+
+# --- Vendor Schemas ---
+class VendorCreate(BaseModel):
+    id: str
+    name: str
+    contact_person: Optional[str] = None
+    contact_number: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    category: str
+    products_services: Optional[str] = None
+    status: Optional[str] = "Active"
+
+class VendorUpdate(BaseModel):
+    name: Optional[str] = None
+    contact_person: Optional[str] = None
+    contact_number: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    category: Optional[str] = None
+    products_services: Optional[str] = None
+    status: Optional[str] = None
+
+class VendorResponse(BaseModel):
+    id: str
+    name: str
+    contact_person: Optional[str] = None
+    contact_number: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+    category: str
+    products_services: Optional[str] = None
+    status: str
+    created_at: str
+    updated_at: str
+    total_orders: Optional[int] = 0
+    total_value: Optional[float] = 0.0
+
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Procurement Category Schemas ---
+class ProcurementCategoryCreate(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+
+class ProcurementCategoryResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Procurement Request Schemas ---
+class ProcurementRequestCreate(BaseModel):
+    project_id: str
+    category_id: Optional[str] = None
+    item_name: str
+    quantity: float
+    unit: str
+    required_date: Optional[str] = None
+    purpose: Optional[str] = None
+    priority: Optional[str] = "Medium"
+    remarks: Optional[str] = None
+    material_id: Optional[str] = None
+    resource_id: Optional[str] = None
+
+class ProcurementRequestUpdate(BaseModel):
+    category_id: Optional[str] = None
+    item_name: Optional[str] = None
+    quantity: Optional[float] = None
+    unit: Optional[str] = None
+    required_date: Optional[str] = None
+    purpose: Optional[str] = None
+    priority: Optional[str] = None
+    remarks: Optional[str] = None
+    status: Optional[str] = None
+
+class ProcurementRequestApprove(BaseModel):
+    rejection_reason: Optional[str] = None
+
+class ProcurementRequestResponse(BaseModel):
+    id: str
+    project_id: str
+    project_name: str
+    requested_by_id: str
+    requested_by_name: str
+    approved_by_name: Optional[str] = None
+    category_id: Optional[str] = None
+    category_name: Optional[str] = None
+    item_name: str
+    quantity: float
+    unit: str
+    required_date: Optional[str] = None
+    purpose: Optional[str] = None
+    priority: str
+    request_date: str
+    status: str
+    remarks: Optional[str] = None
+    rejection_reason: Optional[str] = None
+    available_quantity: Optional[float] = None
+    shortage_quantity: Optional[float] = None
+    material_id: Optional[str] = None
+    resource_id: Optional[str] = None
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Purchase Order Schemas ---
+class POItemCreate(BaseModel):
+    description: str
+    quantity: float
+    unit: str
+    unit_price: float
+    tax_percent: Optional[float] = 0.0
+    material_id: Optional[str] = None
+    resource_id: Optional[str] = None
+
+class POItemUpdate(BaseModel):
+    description: Optional[str] = None
+    quantity: Optional[float] = None
+    unit: Optional[str] = None
+    unit_price: Optional[float] = None
+    tax_percent: Optional[float] = None
+
+class POItemResponse(BaseModel):
+    id: str
+    purchase_order_id: str
+    material_id: Optional[str] = None
+    material_name: Optional[str] = None
+    resource_id: Optional[str] = None
+    description: str
+    quantity: float
+    unit: str
+    unit_price: float
+    tax_percent: float
+    line_total: float
+    received_quantity: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+class PurchaseOrderCreate(BaseModel):
+    vendor_id: Optional[str] = None
+    project_id: str
+    procurement_request_id: Optional[str] = None
+    expected_delivery_date: Optional[str] = None
+    tax_amount: Optional[float] = 0.0
+    additional_charges: Optional[float] = 0.0
+    notes: Optional[str] = None
+    items: Optional[List[POItemCreate]] = []
+
+class PurchaseOrderUpdate(BaseModel):
+    vendor_id: Optional[str] = None
+    expected_delivery_date: Optional[str] = None
+    tax_amount: Optional[float] = None
+    additional_charges: Optional[float] = None
+    notes: Optional[str] = None
+    status: Optional[str] = None
+
+class PurchaseOrderResponse(BaseModel):
+    id: str
+    vendor_id: Optional[str] = None
+    vendor_name: Optional[str] = None
+    project_id: str
+    project_name: str
+    procurement_request_id: Optional[str] = None
+    created_by_name: str
+    order_date: str
+    expected_delivery_date: Optional[str] = None
+    actual_delivery_date: Optional[str] = None
+    subtotal: float
+    tax_amount: float
+    additional_charges: float
+    total_amount: float
+    status: str
+    notes: Optional[str] = None
+    items: Optional[List[POItemResponse]] = []
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Goods Receipt Schemas ---
+class GoodsReceiptItemCreate(BaseModel):
+    po_item_id: Optional[str] = None
+    material_id: Optional[str] = None
+    description: str
+    ordered_quantity: float
+    received_quantity: float
+    unit: str
+
+class GoodsReceiptCreate(BaseModel):
+    purchase_order_id: str
+    project_id: str
+    received_date: Optional[str] = None
+    remarks: Optional[str] = None
+    delivery_note_number: Optional[str] = None
+    items: List[GoodsReceiptItemCreate]
+
+class GoodsReceiptItemResponse(BaseModel):
+    id: str
+    po_item_id: Optional[str] = None
+    material_id: Optional[str] = None
+    material_name: Optional[str] = None
+    description: str
+    ordered_quantity: float
+    received_quantity: float
+    unit: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class GoodsReceiptResponse(BaseModel):
+    id: str
+    purchase_order_id: str
+    vendor_name: Optional[str] = None
+    project_name: str
+    received_by_name: str
+    received_date: str
+    remarks: Optional[str] = None
+    delivery_note_number: Optional[str] = None
+    receipt_items: List[GoodsReceiptItemResponse] = []
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Invoice Schemas ---
+class ProcurementInvoiceCreate(BaseModel):
+    invoice_number: str
+    vendor_id: Optional[str] = None
+    purchase_order_id: Optional[str] = None
+    project_id: str
+    invoice_date: str
+    due_date: Optional[str] = None
+    invoice_amount: float
+    remarks: Optional[str] = None
+
+class ProcurementInvoiceUpdate(BaseModel):
+    invoice_status: Optional[str] = None
+    payment_status: Optional[str] = None
+    paid_amount: Optional[float] = None
+    due_date: Optional[str] = None
+    remarks: Optional[str] = None
+
+class ProcurementInvoiceResponse(BaseModel):
+    id: str
+    invoice_number: str
+    vendor_id: Optional[str] = None
+    vendor_name: Optional[str] = None
+    purchase_order_id: Optional[str] = None
+    project_id: str
+    project_name: str
+    created_by_name: str
+    invoice_date: str
+    due_date: Optional[str] = None
+    invoice_amount: float
+    paid_amount: float
+    payment_status: str
+    invoice_status: str
+    remarks: Optional[str] = None
+    is_overdue: Optional[bool] = False
+    created_at: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Analytics Schemas ---
+class ProcurementSummaryResponse(BaseModel):
+    total_vendors: int
+    active_vendors: int
+    total_procurement_requests: int
+    pending_requests: int
+    approved_requests: int
+    rejected_requests: int
+    active_purchase_orders: int
+    orders_pending_delivery: int
+    partially_received_orders: int
+    completed_orders: int
+    total_invoices: int
+    pending_invoices: int
+    overdue_invoices: int
+    total_procurement_value: float
+    recent_requests: List[Any] = []
+    recent_purchase_orders: List[Any] = []
+    upcoming_deliveries: List[Any] = []

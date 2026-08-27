@@ -7,10 +7,12 @@ import { ProjectService } from '../../../services/project.service';
 import { AuthService } from '../../../services/auth.service';
 import { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';
 
+import { WorkforceManagementComponent } from '../../../components/workforce-management/workforce-management';
+
 @Component({
   selector: 'app-client-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent],
+  imports: [CommonModule, FormsModule, RouterModule, DashboardCardComponent, WorkforceManagementComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })

@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/components/footer/footer.css"],
-  "sourcesContent": [".footer {\n  width: 100%;\n  font-size: 13px;\n  background-color: #ffffff;\n}\n\n.footer a {\n  transition: color 0.15s ease;\n}\n\n.footer a:hover {\n  color: #0d6efd !important;\n}\n"],
-  "mappings": ";AAAA,CAAA;AACE,SAAA;AACA,aAAA;AACA,oBAAA;AACF;AAEA,CANA,OAMA;AACE,cAAA,MAAA,MAAA;AACF;AAEA,CAVA,OAUA,CAAA;AACE,SAAA;AACF;",
-  "names": []
-}

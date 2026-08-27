@@ -983,41 +983,8 @@
     </div>
   }
 
-  @if (activeModule === 'team') {
-    <div class="card border-0 shadow-sm rounded-3">
-      <div class="card-body p-4">
-        <h5 class="fw-bold text-dark mb-3">Assigned Team Members</h5>
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead class="table-light text-muted uppercase small">
-              <tr>
-                <th>Member</th>
-                <th>Role</th>
-                <th>Assigned Project</th>
-                <th>Phone</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (member of teamMembers(); track member.id) {
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <img [src]="member.avatar" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
-                      <span class="fw-bold text-dark">{{ member.name }}</span>
-                    </div>
-                  </td>
-                  <td>{{ member.role }}</td>
-                  <td>{{ member.assignedProject }}</td>
-                  <td>{{ member.phone }}</td>
-                  <td><span class="badge bg-success">{{ member.status }}</span></td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+  @if (activeModule === 'workforce' || activeModule === 'team') {
+    <app-workforce-management></app-workforce-management>
   }
 
   @if (activeModule === 'budget') {

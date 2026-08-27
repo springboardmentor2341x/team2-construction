@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/client/dashboard/dashboard.css"],
-  "sourcesContent": [".timeline-step {\n  padding-bottom: 24px;\n}\n\n.step-marker {\n  z-index: 2;\n  box-shadow: 0 0 0 4px #e0e7ff;\n}\n\n.table-hover tbody tr {\n  transition: background-color 0.15s ease;\n}\n\n.table-hover tbody tr:hover {\n  background-color: #f8fafc;\n}\n"],
-  "mappings": ";AAAA,CAAA;AACE,kBAAA;AACF;AAEA,CAAA;AACE,WAAA;AACA,cAAA,EAAA,EAAA,EAAA,IAAA;AACF;AAEA,CAAA,YAAA,MAAA;AACE,cAAA,iBAAA,MAAA;AACF;AAEA,CAJA,YAIA,MAAA,EAAA;AACE,oBAAA;AACF;",
-  "names": []
-}

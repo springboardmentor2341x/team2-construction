@@ -100,6 +100,7 @@ export class SidebarComponent {
       case 'client':
         return [
           { module: 'progress', label: 'Project Progress', icon: 'bi-activity' },
+          { module: 'workforce', label: 'Workforce Overview', icon: 'bi-people-fill' },
           { module: 'timeline', label: 'Milestones', icon: 'bi-calendar-event' },
           { module: 'budget', label: 'Budget Summary', icon: 'bi-pie-chart-fill' },
           { module: 'documents', label: 'Documents Locker', icon: 'bi-file-earmark-pdf-fill' },

@@ -15,6 +15,10 @@ from app.api.roles import router as roles_router
 from app.api.projects import router as projects_router
 from app.api.attendance import router as attendance_router
 from app.api.workers import router as workers_router
+from app.api.worker_assignments import router as worker_assignments_router
+from app.api.shifts import router as shifts_router
+from app.api.payroll import router as payroll_router
+from app.api.workforce_analytics import router as workforce_analytics_router
 from app.api.contractors import router as contractors_router
 from app.api.site_engineers import router as site_engineers_router
 from app.api.project_managers import router as project_managers_router
@@ -59,7 +63,12 @@ app.include_router(roles_router, prefix=f"{settings.API_STR}/roles", tags=["Role
 app.include_router(projects_router, prefix=f"{settings.API_STR}/projects", tags=["Projects"])
 app.include_router(progress_router, prefix=f"{settings.API_STR}/progress", tags=["Progress Monitoring"])
 app.include_router(resources_router, prefix=f"{settings.API_STR}", tags=["Resource Management"])
-app.include_router(attendance_router, prefix=f"{settings.API_STR}/attendance", tags=["Attendance"])
+app.include_router(attendance_router, prefix=f"{settings.API_STR}/attendance", tags=["Attendance Management"])
+app.include_router(workers_router, prefix=f"{settings.API_STR}/workers", tags=["Workforce Management"])
+app.include_router(worker_assignments_router, prefix=f"{settings.API_STR}/worker-assignments", tags=["Workforce Allocations"])
+app.include_router(shifts_router, prefix=f"{settings.API_STR}/shifts", tags=["Shift Management"])
+app.include_router(payroll_router, prefix=f"{settings.API_STR}/payroll", tags=["Payroll Monitoring"])
+app.include_router(workforce_analytics_router, prefix=f"{settings.API_STR}/workforce", tags=["Workforce Analytics"])
 app.include_router(materials_router, prefix=f"{settings.API_STR}/materials", tags=["Materials"])
 app.include_router(reports_router, prefix=f"{settings.API_STR}/reports", tags=["Reports"])
 app.include_router(notifications_router, prefix=f"{settings.API_STR}/notifications", tags=["Notifications"])
@@ -67,7 +76,6 @@ app.include_router(dashboard_router, prefix=f"{settings.API_STR}/dashboard", tag
 app.include_router(payments_router, prefix=f"{settings.API_STR}/payments", tags=["Payments"])
 
 # Empty placeholder routers
-app.include_router(workers_router, prefix=f"{settings.API_STR}/workers", tags=["Workers Placeholder"])
 app.include_router(contractors_router, prefix=f"{settings.API_STR}/contractors", tags=["Contractors Placeholder"])
 app.include_router(site_engineers_router, prefix=f"{settings.API_STR}/site_engineers", tags=["Site Engineers Placeholder"])
 app.include_router(project_managers_router, prefix=f"{settings.API_STR}/project_managers", tags=["Project Managers Placeholder"])
@@ -126,8 +134,51 @@ def startup_event():
             db.add(Contractor(id="c1", user_id="u4", specialty="Foundation & Concrete Rigs", status="Active"))
             db.add(SiteEngineer(id="se1", user_id="u3", status="Active"))
             
-            worker = Worker(id="w1", user_id="u5", role="Electrician", status="Active", assigned_project_id="P-101")
-            db.add(worker)
+            # Workforce Categories Seed
+            from models import WorkforceCategory, WorkerAssignment, Shift, ShiftAssignment, PayrollRecord
+            cats = [
+                WorkforceCategory(id="CAT-ENG", name="Engineers", description="Site & Civil Engineers"),
+                WorkforceCategory(id="CAT-SUP", name="Supervisors", description="Site Supervisors & Foremen"),
+                WorkforceCategory(id="CAT-CON", name="Contractors", description="Specialist Subcontractors"),
+                WorkforceCategory(id="CAT-SKILLED", name="Skilled Workers", description="Masons, Electricians, Operators, Welders"),
+                WorkforceCategory(id="CAT-UNSKILLED", name="Unskilled Workers", description="General Site Helpers & Laborers"),
+                WorkforceCategory(id="CAT-CONSULT", name="Consultants", description="Technical & Safety Advisors")
+            ]
+            db.add_all(cats)
+            db.flush()
+
+            # Seed Workers (With & Without User Logins)
+            w1 = Worker(
+                id="w1", worker_id="W-101", name="Jyoti S", contact_info="+1 555-010-0004",
+                category_id="CAT-SKILLED", category_name="Skilled Workers", skill_work_type="Electrician",
+                role="Electrician", contractor_id="c1", contractor_name="Gaurav K", assigned_project_id="P-101",
+                user_id="u5", status="Active", pay_rate=650.0
+            )
+            w2 = Worker(
+                id="w2", worker_id="W-102", name="Ramesh Kumar", contact_info="+91-9812345678",
+                category_id="CAT-SKILLED", category_name="Skilled Workers", skill_work_type="Mason",
+                role="Mason", contractor_id="c1", contractor_name="Gaurav K", assigned_project_id="P-101",
+                status="Active", pay_rate=550.0
+            )
+            w3 = Worker(
+                id="w3", worker_id="W-103", name="Priya Nair", contact_info="+91-9823456789",
+                category_id="CAT-SKILLED", category_name="Skilled Workers", skill_work_type="Electrician",
+                role="Electrician", contractor_id="c1", contractor_name="Gaurav K", assigned_project_id="P-102",
+                status="Active", pay_rate=600.0
+            )
+            w4 = Worker(
+                id="w4", worker_id="W-104", name="Suresh Patil", contact_info="+91-9834567890",
+                category_id="CAT-SKILLED", category_name="Skilled Workers", skill_work_type="Plumber",
+                role="Plumber", contractor_id="c1", contractor_name="Gaurav K", assigned_project_id="P-103",
+                status="On Leave", pay_rate=500.0
+            )
+            w5 = Worker(
+                id="w5", worker_id="W-105", name="Kavita Sharma", contact_info="+91-9845678901",
+                category_id="CAT-SUP", category_name="Supervisors", skill_work_type="Site Supervisor",
+                role="Site Supervisor", contractor_id="c1", contractor_name="Gaurav K", assigned_project_id="P-101",
+                status="Active", pay_rate=800.0
+            )
+            db.add_all([w1, w2, w3, w4, w5])
             db.flush()
 
             # Projects

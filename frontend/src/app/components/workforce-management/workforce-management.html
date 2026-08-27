@@ -1,0 +1,784 @@
+<div class="workforce-container">
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+    <div class="toast-container">
+      <div class="toast" [ngClass]="'toast-' + toastType()">
+        <span>{{ toastMessage() }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Header & Navigation -->
+  <div class="workforce-header">
+    <div class="sub-tab-nav">
+      <button class="tab-btn" [class.active]="activeSubTab() === 'overview'" (click)="activeSubTab.set('overview')">
+        <i class="bi bi-grid-fill"></i> Dashboard
+      </button>
+      <button class="tab-btn" [class.active]="activeSubTab() === 'directory'" (click)="activeSubTab.set('directory')">
+        <i class="bi bi-people-fill"></i> Worker Directory
+      </button>
+      <button class="tab-btn" [class.active]="activeSubTab() === 'allocation'" (click)="activeSubTab.set('allocation')">
+        <i class="bi bi-diagram-3-fill"></i> Allocations
+      </button>
+      <button class="tab-btn" [class.active]="activeSubTab() === 'attendance'" (click)="activeSubTab.set('attendance')">
+        <i class="bi bi-calendar-check-fill"></i> Attendance
+      </button>
+      <button class="tab-btn" [class.active]="activeSubTab() === 'shifts'" (click)="activeSubTab.set('shifts')">
+        <i class="bi bi-clock-history"></i> Shifts
+      </button>
+      <button class="tab-btn" [class.active]="activeSubTab() === 'payroll'" (click)="activeSubTab.set('payroll')">
+        <i class="bi bi-cash-stack"></i> Payroll
+      </button>
+    </div>
+
+    <div class="action-buttons">
+      @if (canManage) {
+        <button class="btn-secondary" (click)="showBulkModal.set(true)">
+          <i class="bi bi-file-earmark-spreadsheet"></i> Bulk CSV
+        </button>
+        <button class="btn-primary" (click)="showRegisterModal.set(true)">
+          <i class="bi bi-person-plus-fill"></i> Register Worker
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Executive Summary Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon icon-blue"><i class="bi bi-people"></i></div>
+      <div class="metric-content">
+        <span class="metric-val">{{ summaryMetrics().total }}</span>
+        <span class="metric-label">Total Workers</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon icon-green"><i class="bi bi-check-circle"></i></div>
+      <div class="metric-content">
+        <span class="metric-val">{{ summaryMetrics().active }}</span>
+        <span class="metric-label">Active Workforce</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon icon-emerald"><i class="bi bi-person-check"></i></div>
+      <div class="metric-content">
+        <span class="metric-val">{{ summaryMetrics().present }}</span>
+        <span class="metric-label">Present Today</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon icon-rose"><i class="bi bi-person-x"></i></div>
+      <div class="metric-content">
+        <span class="metric-val">{{ summaryMetrics().absent }}</span>
+        <span class="metric-label">Absent Today</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon icon-amber"><i class="bi bi-calendar-minus"></i></div>
+      <div class="metric-content">
+        <span class="metric-val">{{ summaryMetrics().onLeave }}</span>
+        <span class="metric-label">On Leave</span>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon icon-purple"><i class="bi bi-pie-chart"></i></div>
+      <div class="metric-content">
+        <span class="metric-val">{{ summaryMetrics().attPct }}%</span>
+        <span class="metric-label">Attendance Rate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: WORKFORCE DASHBOARD -->
+  @if (activeSubTab() === 'overview') {
+    <div class="content-grid">
+      <div>
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title"><i class="bi bi-bar-chart-fill text-primary"></i> Workforce Category Distribution</h3>
+          </div>
+          <div>
+            @for (cat of categoryStats(); track cat.name) {
+              <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 600; color: #334155;">
+                  <span>{{ cat.name }}</span>
+                  <span>{{ cat.count }} Workers ({{ cat.pct }}%)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" [style.width.%]="cat.pct"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title"><i class="bi bi-clock-fill text-primary"></i> Current Active Shifts</h3>
+            <button class="btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" (click)="activeSubTab.set('shifts')">View All</button>
+          </div>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Shift Name</th>
+                  <th>Timings</th>
+                  <th>Project</th>
+                  <th>Assigned</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (shift of projectService.shifts(); track shift.id) {
+                  <tr>
+                    <td><strong>{{ shift.name }}</strong></td>
+                    <td>{{ shift.startTime }} - {{ shift.endTime }}</td>
+                    <td>{{ shift.projectName || shift.projectId }}</td>
+                    <td><span class="badge badge-transferred">{{ shift.assignedWorkersCount || shift.assignedWorkers?.length || 0 }} workers</span></td>
+                    <td><span class="badge badge-active">{{ shift.status }}</span></td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No active shifts scheduled.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title"><i class="bi bi-building"></i> Subcontractor Breakdown</h3>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            @for (cont of projectService.contractors(); track cont.id) {
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem; background: #f8fafc; border-radius: 8px;">
+                <div>
+                  <div style="font-weight: 700; font-size: 0.875rem; color: #0f172a;">{{ cont.name }}</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">{{ cont.specialty }}</div>
+                </div>
+                <span class="badge badge-active">{{ cont.status }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title"><i class="bi bi-calendar-event"></i> Recent Attendance</h3>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            @for (att of projectService.attendanceRecords().slice(0, 5); track att.id) {
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding-bottom: 0.4rem; border-bottom: 1px solid #f1f5f9;">
+                <div>
+                  <div style="font-weight: 600;">{{ att.workerName || att.workerId }}</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">{{ att.date }} ({{ att.workingHours }} hrs)</div>
+                </div>
+                <span class="badge" [ngClass]="'badge-' + att.status.toLowerCase()">{{ att.status }}</span>
+              </div>
+            } @empty {
+              <div style="text-align: center; color: #94a3b8; padding: 1rem;">No recent attendance records.</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 2: WORKER DIRECTORY & REGISTRATION -->
+  @if (activeSubTab() === 'directory') {
+    <div class="panel-card">
+      <div class="filter-bar">
+        <input type="text" class="search-input" placeholder="Search by Worker ID, Name, or Skill..." [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)" />
+        
+        <select class="filter-select" [value]="selectedCategory()" (change)="selectedCategory.set($any($event.target).value)">
+          <option value="all">All Categories</option>
+          @for (cat of projectService.workforceCategories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+
+        <select class="filter-select" [value]="selectedContractor()" (change)="selectedContractor.set($any($event.target).value)">
+          <option value="all">All Contractors</option>
+          @for (c of projectService.contractors(); track c.id) {
+            <option [value]="c.id">{{ c.name }}</option>
+          }
+        </select>
+
+        <select class="filter-select" [value]="selectedProject()" (change)="selectedProject.set($any($event.target).value)">
+          <option value="all">All Projects</option>
+          @for (p of projectService.projects(); track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+
+        <select class="filter-select" [value]="selectedStatus()" (change)="selectedStatus.set($any($event.target).value)">
+          <option value="all">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="On Leave">On Leave</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Worker ID</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Skill / Work Type</th>
+              <th>Contractor</th>
+              <th>Assigned Project</th>
+              <th>Pay Rate</th>
+              <th>Status</th>
+              @if (canManage) { <th>Actions</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (w of filteredWorkers(); track w.id) {
+              <tr>
+                <td><strong style="color: #2563eb;">{{ w.workerId || w.id }}</strong></td>
+                <td>
+                  <div style="font-weight: 600; color: #0f172a;">{{ w.name }}</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">{{ w.contactInfo || w.phone || 'No Contact' }}</div>
+                </td>
+                <td><span class="badge badge-processing">{{ w.categoryName || 'Skilled Workers' }}</span></td>
+                <td>{{ w.skillWorkType || w.role }}</td>
+                <td>{{ w.contractorName || 'Direct BuildTrack' }}</td>
+                <td>{{ w.assignedProjectName || w.assignedProject || 'Unassigned' }}</td>
+                <td><strong>₹{{ w.payRate || 500 }}/day</strong></td>
+                <td><span class="badge" [ngClass]="'badge-' + w.status.toLowerCase().replace(' ', '')">{{ w.status }}</span></td>
+                @if (canManage) {
+                  <td>
+                    <button class="btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" (click)="allocWorkerId = w.id; showAllocateModal.set(true)">
+                      <i class="bi bi-arrow-right-circle"></i> Allocate
+                    </button>
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" style="text-align: center; color: #94a3b8; padding: 2rem;">No workers match the specified filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: WORKFORCE ALLOCATION -->
+  @if (activeSubTab() === 'allocation') {
+    <div class="panel-card">
+      <div class="panel-header">
+        <h3 class="panel-title"><i class="bi bi-diagram-3-fill text-primary"></i> Workforce Allocation & Assignment History</h3>
+        @if (canManage) {
+          <button class="btn-primary" (click)="showAllocateModal.set(true)"><i class="bi bi-plus-lg"></i> New Allocation</button>
+        }
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Worker</th>
+              <th>Assigned Project</th>
+              <th>Contractor</th>
+              <th>Work / Activity</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Assignment Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (asn of projectService.workerAssignments(); track asn.id) {
+              <tr>
+                <td><strong>{{ asn.workerName || asn.workerId }}</strong></td>
+                <td>{{ asn.projectName || asn.projectId }}</td>
+                <td>{{ asn.contractorName || 'Direct BuildTrack' }}</td>
+                <td>{{ asn.workActivity }}</td>
+                <td>{{ asn.startDate }}</td>
+                <td>{{ asn.endDate || 'Present' }}</td>
+                <td><span class="badge" [ngClass]="'badge-' + asn.status.toLowerCase()">{{ asn.status }}</span></td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" style="text-align: center; color: #94a3b8; padding: 2rem;">No worker allocation history recorded yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 4: ATTENDANCE MANAGEMENT -->
+  @if (activeSubTab() === 'attendance') {
+    <div class="panel-card">
+      <div class="panel-header">
+        <h3 class="panel-title"><i class="bi bi-calendar-check-fill text-primary"></i> Attendance Tracking & Working Hours</h3>
+        @if (canMarkAttendance) {
+          <button class="btn-primary" (click)="showAttendanceModal.set(true)"><i class="bi bi-check2-square"></i> Mark Attendance</button>
+        }
+      </div>
+
+      <div class="filter-bar">
+        <input type="date" class="search-input" [value]="selectedDate()" (input)="selectedDate.set($any($event.target).value)" />
+        <select class="filter-select" [value]="selectedProject()" (change)="selectedProject.set($any($event.target).value)">
+          <option value="all">All Projects</option>
+          @for (p of projectService.projects(); track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Worker</th>
+              <th>Date</th>
+              <th>Project</th>
+              <th>Contractor</th>
+              <th>Status</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Working Hours</th>
+              <th>Overtime</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (att of projectService.attendanceRecords(); track att.id) {
+              <tr>
+                <td>
+                  <div style="font-weight: 600;">{{ att.workerName || att.workerId }}</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">{{ att.workerRole }}</div>
+                </td>
+                <td>{{ att.date }}</td>
+                <td>{{ att.projectName || 'Unassigned' }}</td>
+                <td>{{ att.contractorName || 'Direct' }}</td>
+                <td><span class="badge" [ngClass]="'badge-' + att.status.toLowerCase()">{{ att.status }}</span></td>
+                <td>{{ att.checkIn || '-' }}</td>
+                <td>{{ att.checkOut || '-' }}</td>
+                <td><strong>{{ att.workingHours || 0 }} hrs</strong></td>
+                <td><span style="color: #b45309; font-weight: 600;">+{{ att.overtimeHours || 0 }} hrs</span></td>
+                <td>{{ att.remarks || '-' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="10" style="text-align: center; color: #94a3b8; padding: 2rem;">No attendance records found for this date/project.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 5: SHIFT SCHEDULING -->
+  @if (activeSubTab() === 'shifts') {
+    <div class="panel-card">
+      <div class="panel-header">
+        <h3 class="panel-title"><i class="bi bi-clock-history text-primary"></i> Shift Management & Worker Schedules</h3>
+        @if (canManage) {
+          <button class="btn-primary" (click)="showShiftModal.set(true)"><i class="bi bi-plus-circle"></i> Create Shift</button>
+        }
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Shift Name</th>
+              <th>Timings</th>
+              <th>Shift Date</th>
+              <th>Project</th>
+              <th>Assigned Workers</th>
+              <th>Status</th>
+              @if (canManage) { <th>Actions</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of projectService.shifts(); track s.id) {
+              <tr>
+                <td><strong style="color: #0f172a;">{{ s.name }}</strong></td>
+                <td><i class="bi bi-alarm"></i> {{ s.startTime }} - {{ s.endTime }}</td>
+                <td>{{ s.shiftDate }}</td>
+                <td>{{ s.projectName || s.projectId }}</td>
+                <td><span class="badge badge-processing">{{ s.assignedWorkersCount || s.assignedWorkers?.length || 0 }} Workers</span></td>
+                <td><span class="badge badge-scheduled">{{ s.status }}</span></td>
+                @if (canManage) {
+                  <td>
+                    <button class="btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" (click)="openAssignShiftModal(s)">
+                      <i class="bi bi-person-plus"></i> Assign Workers
+                    </button>
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" style="text-align: center; color: #94a3b8; padding: 2rem;">No shifts scheduled yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- TAB 6: PAYROLL MONITORING -->
+  @if (activeSubTab() === 'payroll') {
+    <div class="panel-card">
+      <div class="panel-header">
+        <h3 class="panel-title"><i class="bi bi-cash-stack text-primary"></i> Payroll & Workforce Payment Monitoring</h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="month" class="search-input" style="width: auto;" [value]="payrollMonth" (input)="payrollMonth = $any($event.target).value" />
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Worker</th>
+              <th>Month / Year</th>
+              <th>Pay Rate</th>
+              <th>Days Worked</th>
+              <th>Working Hours</th>
+              <th>Overtime</th>
+              <th>Estimated Pay</th>
+              <th>Payroll Status</th>
+              @if (canApprovePayroll) { <th>Actions</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of projectService.payrollRecords(); track p.id) {
+              <tr>
+                <td>
+                  <div style="font-weight: 600;">{{ p.workerName || p.workerId }}</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">{{ p.workerCategory || 'Skilled' }}</div>
+                </td>
+                <td>{{ p.monthYear }}</td>
+                <td>₹{{ p.payRate }}/day</td>
+                <td><strong>{{ p.workingDays }} days</strong></td>
+                <td>{{ p.workingHours }} hrs</td>
+                <td>+{{ p.overtimeHours }} hrs</td>
+                <td><strong style="color: #16a34a; font-size: 1rem;">₹{{ p.estimatedPay | number:'1.2-2' }}</strong></td>
+                <td><span class="badge" [ngClass]="'badge-' + p.status.toLowerCase()">{{ p.status }}</span></td>
+                @if (canApprovePayroll) {
+                  <td>
+                    @if (p.status === 'Pending') {
+                      <button class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" (click)="updatePayrollStatusAction(p.id, 'Approved')">Approve</button>
+                    } @else if (p.status === 'Approved') {
+                      <button class="btn-primary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" (click)="updatePayrollStatusAction(p.id, 'Paid')">Mark Paid</button>
+                    }
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" style="text-align: center; color: #94a3b8; padding: 2rem;">No payroll records generated for {{ payrollMonth }}.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- MODALS -->
+
+  <!-- Register Worker Modal -->
+  @if (showRegisterModal()) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Register New Worker</h3>
+          <button class="modal-close" (click)="showRegisterModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Worker ID (Unique)</label>
+              <input type="text" class="form-control" [(ngModel)]="newWorkerId" placeholder="e.g. W-102" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Worker Full Name *</label>
+              <input type="text" class="form-control" [(ngModel)]="newWorkerName" placeholder="e.g. Ramesh Kumar" />
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Contact Phone / Email</label>
+              <input type="text" class="form-control" [(ngModel)]="newWorkerContact" placeholder="+91-9876543210" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Workforce Category</label>
+              <select class="form-control" [(ngModel)]="newWorkerCategory">
+                @for (cat of projectService.workforceCategories(); track cat.id) {
+                  <option [value]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Skill / Work Type *</label>
+              <input type="text" class="form-control" [(ngModel)]="newWorkerSkill" placeholder="e.g. Electrician, Mason" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Daily Pay Rate (₹)</label>
+              <input type="number" class="form-control" [(ngModel)]="newWorkerPayRate" />
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Subcontractor Firm</label>
+              <select class="form-control" [(ngModel)]="newWorkerContractor">
+                @for (c of projectService.contractors(); track c.id) {
+                  <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Assigned Project</label>
+              <select class="form-control" [(ngModel)]="newWorkerProject">
+                @for (p of projectService.projects(); track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showRegisterModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="submitRegisterWorker()">Register Worker</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Bulk CSV Upload Modal -->
+  @if (showBulkModal()) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Bulk Import Workers (CSV)</h3>
+          <button class="modal-close" (click)="showBulkModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">
+            Upload a CSV file containing columns: <code>Worker ID, Name, Contact, Skill, Category, Pay Rate</code>. Each Worker ID will be verified for uniqueness before database entry.
+          </p>
+          <input type="file" accept=".csv" class="form-control" (change)="handleFileUpload($event)" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showBulkModal.set(false)">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Allocate Worker Modal -->
+  @if (showAllocateModal()) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Workforce Allocation</h3>
+          <button class="modal-close" (click)="showAllocateModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Select Worker *</label>
+            <select class="form-control" [(ngModel)]="allocWorkerId">
+              <option value="">-- Choose Worker --</option>
+              @for (w of projectService.workforce(); track w.id) {
+                <option [value]="w.id">{{ w.name }} ({{ w.workerId || w.id }}) - {{ w.skillWorkType }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Target Project *</label>
+              <select class="form-control" [(ngModel)]="allocProjectId">
+                @for (p of projectService.projects(); track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contractor</label>
+              <select class="form-control" [(ngModel)]="allocContractorId">
+                @for (c of projectService.contractors(); track c.id) {
+                  <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Work / Site Activity Description *</label>
+            <input type="text" class="form-control" [(ngModel)]="allocActivity" placeholder="e.g. Electrical Conduit Wiring Level 2" />
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Start Date *</label>
+              <input type="date" class="form-control" [(ngModel)]="allocStartDate" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expected End Date</label>
+              <input type="date" class="form-control" [(ngModel)]="allocEndDate" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showAllocateModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="submitAllocateWorker()">Save Allocation</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Mark Attendance Modal -->
+  @if (showAttendanceModal()) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Log Attendance Record</h3>
+          <button class="modal-close" (click)="showAttendanceModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Worker *</label>
+            <select class="form-control" [(ngModel)]="attWorkerId">
+              <option value="">-- Choose Worker --</option>
+              @for (w of projectService.workforce(); track w.id) {
+                <option [value]="w.id">{{ w.name }} ({{ w.workerId }})</option>
+              }
+            </select>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Attendance Status</label>
+              <select class="form-control" [(ngModel)]="attStatus">
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Leave">Leave</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Project</label>
+              <select class="form-control" [(ngModel)]="attProjectId">
+                @for (p of projectService.projects(); track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          @if (attStatus === 'Present') {
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Check In Time</label>
+                <input type="text" class="form-control" [(ngModel)]="attCheckIn" placeholder="08:00 AM" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Check Out Time</label>
+                <input type="text" class="form-control" [(ngModel)]="attCheckOut" placeholder="05:00 PM" />
+              </div>
+            </div>
+          }
+          <div class="form-group">
+            <label class="form-label">Remarks</label>
+            <input type="text" class="form-control" [(ngModel)]="attRemarks" placeholder="Optional comments..." />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showAttendanceModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="submitLogAttendance()">Save Attendance</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Create Shift Modal -->
+  @if (showShiftModal()) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Create New Shift Schedule</h3>
+          <button class="modal-close" (click)="showShiftModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Shift Name *</label>
+            <input type="text" class="form-control" [(ngModel)]="newShiftName" placeholder="e.g. Morning Shift" />
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Start Time *</label>
+              <input type="text" class="form-control" [(ngModel)]="newShiftStart" placeholder="08:00 AM" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Time *</label>
+              <input type="text" class="form-control" [(ngModel)]="newShiftEnd" placeholder="05:00 PM" />
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Project *</label>
+              <select class="form-control" [(ngModel)]="newShiftProject">
+                @for (p of projectService.projects(); track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Shift Date *</label>
+              <input type="date" class="form-control" [(ngModel)]="newShiftDate" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showShiftModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="submitCreateShift()">Create Shift</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Assign Workers To Shift Modal -->
+  @if (showAssignShiftModal()) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">Assign Workers to {{ selectedShiftForAssign()?.name }}</h3>
+          <button class="modal-close" (click)="showAssignShiftModal.set(false)">×</button>
+        </div>
+        <div class="modal-body">
+          <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+            Select workers to assign to <strong>{{ selectedShiftForAssign()?.name }}</strong> ({{ selectedShiftForAssign()?.startTime }} - {{ selectedShiftForAssign()?.endTime }}). Conflicting active shifts on the same date will be automatically checked.
+          </div>
+          <div style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            @for (w of projectService.workforce(); track w.id) {
+              <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: #f8fafc; border-radius: 8px; cursor: pointer;">
+                <input type="checkbox" [checked]="selectedWorkerIdsForShift.includes(w.id)" (change)="toggleWorkerShiftSelection(w.id)" />
+                <div>
+                  <strong style="font-size: 0.875rem;">{{ w.name }}</strong> ({{ w.workerId || w.id }})
+                  <div style="font-size: 0.75rem; color: #64748b;">{{ w.skillWorkType }} - {{ w.assignedProjectName || 'Unassigned' }}</div>
+                </div>
+              </label>
+            }
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="showAssignShiftModal.set(false)">Cancel</button>
+          <button class="btn-primary" (click)="submitAssignWorkersToShift()">Save Shift Assignments</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
