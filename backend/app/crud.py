@@ -247,6 +247,316 @@ def create_inventory(db: Session, inventory: schemas.InventoryCreate):
 def get_inventory(db: Session):
     return db.query(models.Inventory).all()
 # ==========================
+# MATERIAL REQUEST CRUD - MODULE 5
+# ==========================
+
+def create_material_request(
+    db: Session,
+    material_request: schemas.MaterialRequestCreate
+):
+    db_request = models.MaterialRequest(
+        **material_request.model_dump()
+    )
+
+    db.add(db_request)
+    db.commit()
+    db.refresh(db_request)
+
+    return db_request
+
+
+def get_material_requests(db: Session):
+    return db.query(models.MaterialRequest).all()
+
+
+def get_material_request_by_id(
+    db: Session,
+    request_id: int
+):
+    return db.query(models.MaterialRequest).filter(
+        models.MaterialRequest.id == request_id
+    ).first()
+
+
+def update_material_request(
+    db: Session,
+    request_id: int,
+    material_request: schemas.MaterialRequestCreate
+):
+    db_request = get_material_request_by_id(
+        db,
+        request_id
+    )
+
+    if db_request is None:
+        return None
+
+    for key, value in material_request.model_dump().items():
+        setattr(db_request, key, value)
+
+    db.commit()
+    db.refresh(db_request)
+
+    return db_request
+
+
+def delete_material_request(
+    db: Session,
+    request_id: int
+):
+    db_request = get_material_request_by_id(
+        db,
+        request_id
+    )
+
+    if db_request is None:
+        return None
+
+    db.delete(db_request)
+    db.commit()
+
+    return db_request
+# ==========================
+# MATERIAL ALLOCATION CRUD - MODULE 5
+# ==========================
+
+def create_material_allocation(
+    db: Session,
+    allocation: schemas.MaterialAllocationCreate
+):
+    # Find inventory item
+    inventory = db.query(models.Inventory).filter(
+        models.Inventory.id == allocation.inventory_id
+    ).first()
+
+    if inventory is None:
+        return None
+
+    # Calculate currently available stock
+    available_quantity = (
+        inventory.quantity - inventory.allocated_quantity
+    )
+
+    # Prevent over-allocation
+    if allocation.allocated_quantity > available_quantity:
+        raise ValueError(
+            f"Only {available_quantity} {inventory.unit} available for allocation"
+        )
+
+    # Create allocation
+    db_allocation = models.MaterialAllocation(
+        **allocation.model_dump()
+    )
+
+    # Increase allocated stock
+    inventory.allocated_quantity += allocation.allocated_quantity
+
+    db.add(db_allocation)
+    db.commit()
+    db.refresh(db_allocation)
+
+    return db_allocation
+
+def get_material_allocations(db: Session):
+    return db.query(models.MaterialAllocation).all()
+
+
+def get_material_allocation_by_id(
+    db: Session,
+    allocation_id: int
+):
+    return db.query(models.MaterialAllocation).filter(
+        models.MaterialAllocation.id == allocation_id
+    ).first()
+
+
+def update_material_allocation(
+    db: Session,
+    allocation_id: int,
+    allocation: schemas.MaterialAllocationCreate
+):
+    db_allocation = get_material_allocation_by_id(
+        db,
+        allocation_id
+    )
+
+    if db_allocation is None:
+        return None
+
+    for key, value in allocation.model_dump().items():
+        setattr(db_allocation, key, value)
+
+    db.commit()
+    db.refresh(db_allocation)
+
+    return db_allocation
+
+
+def delete_material_allocation(
+    db: Session,
+    allocation_id: int
+):
+    db_allocation = get_material_allocation_by_id(
+        db,
+        allocation_id
+    )
+
+    if db_allocation is None:
+        return None
+
+    db.delete(db_allocation)
+    db.commit()
+
+    return db_allocation
+# ==========================
+# STOCK MOVEMENT CRUD - MODULE 5
+# ==========================
+
+def create_stock_movement(
+    db: Session,
+    movement: schemas.StockMovementCreate
+):
+    inventory = db.query(models.Inventory).filter(
+        models.Inventory.id == movement.inventory_id
+    ).first()
+
+    if inventory is None:
+        raise ValueError("Inventory item not found")
+
+    if movement.quantity <= 0:
+        raise ValueError("Quantity must be greater than 0")
+
+    # Handle material consumption
+    if movement.movement_type.lower() == "consumed":
+
+        available_quantity = (
+            inventory.quantity
+            - inventory.allocated_quantity
+            - inventory.consumed_quantity
+        )
+
+        if movement.quantity > available_quantity:
+            raise ValueError(
+                f"Only {available_quantity} {inventory.unit} available for consumption"
+            )
+
+        inventory.consumed_quantity += movement.quantity
+        inventory.allocated_quantity -= movement.quantity
+
+    # Create stock movement history
+    db_movement = models.StockMovement(
+        **movement.model_dump()
+    )
+
+    db.add(db_movement)
+    db.commit()
+    db.refresh(db_movement)
+
+    return db_movement
+# ==========================
+# RECEIVE MATERIAL / STOCK-IN
+# ==========================
+
+def receive_material(
+    db: Session,
+    movement: schemas.StockMovementCreate
+):
+    inventory = db.query(models.Inventory).filter(
+        models.Inventory.id == movement.inventory_id
+    ).first()
+
+    if inventory is None:
+        raise ValueError("Inventory item not found")
+
+    if movement.quantity <= 0:
+        raise ValueError("Quantity must be greater than 0")
+
+    if movement.movement_type.lower() != "received":
+        raise ValueError("Movement type must be Received")
+
+    # Increase total inventory stock
+    inventory.quantity += movement.quantity
+
+    # Recalculate available stock
+    available_quantity = (
+        inventory.quantity - inventory.allocated_quantity
+    )
+
+    # Update stock status
+    if available_quantity <= 0:
+        inventory.status = "Out of Stock"
+    elif available_quantity <= inventory.buffer_level:
+        inventory.status = "Low Stock"
+    else:
+        inventory.status = "In Stock"
+
+    # Create stock movement history
+    db_movement = models.StockMovement(
+        **movement.model_dump()
+    )
+
+    db.add(db_movement)
+    db.commit()
+    db.refresh(db_movement)
+
+    return db_movement
+    
+
+   
+
+
+def get_stock_movements(db: Session):
+    return db.query(models.StockMovement).all()
+
+
+def get_stock_movement_by_id(
+    db: Session,
+    movement_id: int
+):
+    return db.query(models.StockMovement).filter(
+        models.StockMovement.id == movement_id
+    ).first()
+
+
+def update_stock_movement(
+    db: Session,
+    movement_id: int,
+    movement: schemas.StockMovementCreate
+):
+    db_movement = get_stock_movement_by_id(
+        db,
+        movement_id
+    )
+
+    if db_movement is None:
+        return None
+
+    for key, value in movement.model_dump().items():
+        setattr(db_movement, key, value)
+
+    db.commit()
+    db.refresh(db_movement)
+
+    return db_movement
+
+
+def delete_stock_movement(
+    db: Session,
+    movement_id: int
+):
+    db_movement = get_stock_movement_by_id(
+        db,
+        movement_id
+    )
+
+    if db_movement is None:
+        return None
+
+    db.delete(db_movement)
+    db.commit()
+
+    return db_movement
+# ==========================
 # WORKER CRUD
 # ==========================
 
@@ -1347,3 +1657,394 @@ def get_project_completion_percentage(
     average_progress = total_progress / len(progress_updates)
 
     return round(average_progress, 2)
+# ==========================
+# WORKER ASSIGNMENT CRUD - MODULE 6
+# ==========================
+
+def create_worker_assignment(
+    db: Session,
+    assignment: schemas.WorkerAssignmentCreate
+):
+    worker = db.query(models.Worker).filter(
+        models.Worker.id == assignment.worker_id
+    ).first()
+
+    if worker is None:
+        return None
+
+    db_assignment = models.WorkerAssignment(
+        **assignment.model_dump()
+    )
+
+    db.add(db_assignment)
+    db.commit()
+    db.refresh(db_assignment)
+
+    return db_assignment
+
+
+def get_worker_assignments(db: Session):
+    return db.query(models.WorkerAssignment).all()
+
+
+def get_worker_assignment_by_id(
+    db: Session,
+    assignment_id: int
+):
+    return db.query(
+        models.WorkerAssignment
+    ).filter(
+        models.WorkerAssignment.id == assignment_id
+    ).first()
+# ==========================
+# ATTENDANCE SUMMARY - MODULE 6
+# ==========================
+
+def get_attendance_summary(db: Session, project_id=None):
+
+    query = db.query(models.Attendance)
+
+    if project_id is not None:
+        query = query.filter(
+            models.Attendance.project_id == project_id
+        )
+
+    records = query.all()
+
+    total_workers = len(
+        set(record.worker_id for record in records)
+    )
+
+    present_workers = len(
+        set(
+            record.worker_id
+            for record in records
+            if record.status.lower() == "present"
+        )
+    )
+
+    absent_workers = len(
+        set(
+            record.worker_id
+            for record in records
+            if record.status.lower() == "absent"
+        )
+    )
+
+    leave_workers = len(
+        set(
+            record.worker_id
+            for record in records
+            if record.status.lower() == "leave"
+        )
+    )
+
+    attendance_percentage = (
+        (present_workers / total_workers) * 100
+        if total_workers > 0
+        else 0
+    )
+
+    return {
+        "total_workers": total_workers,
+        "present_workers": present_workers,
+        "absent_workers": absent_workers,
+        "workers_on_leave": leave_workers,
+        "attendance_percentage": round(
+            attendance_percentage,
+            2
+        )
+    }
+# ==========================
+# SHIFT CRUD - MODULE 6
+# ==========================
+
+def create_shift(
+    db: Session,
+    shift: schemas.ShiftCreate
+):
+    db_shift = models.Shift(
+        **shift.model_dump()
+    )
+
+    db.add(db_shift)
+    db.commit()
+    db.refresh(db_shift)
+
+    return db_shift
+
+
+def get_shifts(db: Session):
+    return db.query(models.Shift).all()
+
+
+def get_shift_by_id(
+    db: Session,
+    shift_id: int
+):
+    return db.query(models.Shift).filter(
+        models.Shift.id == shift_id
+    ).first()
+# ==========================
+# SHIFT ASSIGNMENT CRUD - MODULE 6
+# ==========================
+
+def create_shift_assignment(
+    db: Session,
+    assignment: schemas.ShiftAssignmentCreate
+):
+    # Verify worker exists
+    worker = db.query(models.Worker).filter(
+        models.Worker.id == assignment.worker_id
+    ).first()
+
+    if worker is None:
+        raise ValueError("Worker not found")
+
+    # Verify shift exists
+    shift = db.query(models.Shift).filter(
+        models.Shift.id == assignment.shift_id
+    ).first()
+
+    if shift is None:
+        raise ValueError("Shift not found")
+
+    db_assignment = models.ShiftAssignment(
+        **assignment.model_dump()
+    )
+
+    db.add(db_assignment)
+    db.commit()
+    db.refresh(db_assignment)
+
+    return db_assignment
+
+
+def get_shift_assignments(db: Session):
+    return db.query(
+        models.ShiftAssignment
+    ).all()
+
+
+def get_shift_assignment_by_id(
+    db: Session,
+    assignment_id: int
+):
+    return db.query(
+        models.ShiftAssignment
+    ).filter(
+        models.ShiftAssignment.id == assignment_id
+    ).first()
+# ==========================
+# PAYROLL CRUD - MODULE 6
+# ==========================
+
+def create_payroll(
+    db: Session,
+    payroll: schemas.PayrollCreate
+):
+    worker = db.query(models.Worker).filter(
+        models.Worker.id == payroll.worker_id
+    ).first()
+
+    if worker is None:
+        raise ValueError("Worker not found")
+
+    db_payroll = models.Payroll(
+        **payroll.model_dump()
+    )
+
+    db.add(db_payroll)
+    db.commit()
+    db.refresh(db_payroll)
+
+    return db_payroll
+
+
+def get_payrolls(db: Session):
+    return db.query(models.Payroll).all()
+
+
+def get_payroll_by_id(
+    db: Session,
+    payroll_id: int
+):
+    return db.query(models.Payroll).filter(
+        models.Payroll.id == payroll_id
+    ).first()
+# ==========================
+# VENDOR CRUD - MODULE 7
+# ==========================
+
+def create_vendor(
+    db: Session,
+    vendor: schemas.VendorCreate
+):
+    db_vendor = models.Vendor(
+        **vendor.model_dump()
+    )
+
+    db.add(db_vendor)
+    db.commit()
+    db.refresh(db_vendor)
+
+    return db_vendor
+
+
+def get_vendors(db: Session):
+    return db.query(models.Vendor).all()
+
+
+def get_vendor_by_id(
+    db: Session,
+    vendor_id: int
+):
+    return db.query(models.Vendor).filter(
+        models.Vendor.id == vendor_id
+    ).first()
+# ==========================
+# PROCUREMENT REQUEST CRUD - MODULE 7
+# ==========================
+
+def create_procurement_request(
+    db: Session,
+    request: schemas.ProcurementRequestCreate
+):
+    db_request = models.ProcurementRequest(
+        **request.model_dump()
+    )
+
+    db.add(db_request)
+    db.commit()
+    db.refresh(db_request)
+
+    return db_request
+
+
+def get_procurement_requests(db: Session):
+    return db.query(models.ProcurementRequest).all()
+
+
+def get_procurement_request_by_id(
+    db: Session,
+    request_id: int
+):
+    return db.query(models.ProcurementRequest).filter(
+        models.ProcurementRequest.id == request_id
+    ).first()
+def update_procurement_request_status(
+    db: Session,
+    request_id: int,
+    status: str
+):
+    request = db.query(models.ProcurementRequest).filter(
+        models.ProcurementRequest.id == request_id
+    ).first()
+
+    if request is None:
+        return None
+
+    allowed_statuses = [
+        "Pending",
+        "Approved",
+        "Rejected",
+        "Processing",
+        "Completed"
+    ]
+
+    if status not in allowed_statuses:
+        raise ValueError("Invalid procurement request status")
+
+    request.request_status = status
+
+    db.commit()
+    db.refresh(request)
+
+    return request
+def create_purchase_order(
+    db: Session,
+    purchase_order: schemas.PurchaseOrderCreate
+):
+    db_purchase_order = models.PurchaseOrder(
+        **purchase_order.model_dump()
+    )
+
+    db.add(db_purchase_order)
+    db.commit()
+    db.refresh(db_purchase_order)
+
+    return db_purchase_order
+
+
+def get_purchase_orders(db: Session):
+    return db.query(models.PurchaseOrder).all()
+# ==========================
+# INVOICE CRUD - MODULE 7
+# ==========================
+
+def create_invoice(
+    db: Session,
+    invoice: schemas.InvoiceCreate
+):
+    db_invoice = models.Invoice(
+        **invoice.model_dump()
+    )
+
+    db.add(db_invoice)
+    db.commit()
+    db.refresh(db_invoice)
+
+    return db_invoice
+
+
+def get_invoices(db: Session):
+    return db.query(models.Invoice).all()
+
+
+def get_invoice_by_id(
+    db: Session,
+    invoice_id: int
+):
+    return db.query(models.Invoice).filter(
+        models.Invoice.id == invoice_id
+    ).first()
+
+
+def update_invoice(
+    db: Session,
+    invoice_id: int,
+    invoice: schemas.InvoiceCreate
+):
+    db_invoice = get_invoice_by_id(
+        db,
+        invoice_id
+    )
+
+    if db_invoice is None:
+        return None
+
+    for key, value in invoice.model_dump().items():
+        setattr(db_invoice, key, value)
+
+    db.commit()
+    db.refresh(db_invoice)
+
+    return db_invoice
+
+
+def delete_invoice(
+    db: Session,
+    invoice_id: int
+):
+    db_invoice = get_invoice_by_id(
+        db,
+        invoice_id
+    )
+
+    if db_invoice is None:
+        return None
+
+    db.delete(db_invoice)
+    db.commit()
+
+    return db_invoice

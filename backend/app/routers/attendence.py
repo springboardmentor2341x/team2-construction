@@ -21,6 +21,19 @@ def create_attendance(
     db: Session = Depends(get_db)
 ):
     return crud.create_attendance(db, attendance)
+# ==========================
+# ATTENDANCE SUMMARY - MODULE 6
+# ==========================
+
+@router.get("/summary")
+def attendance_summary(
+    project_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    return crud.get_attendance_summary(
+        db,
+        project_id
+    )
 
 
 # ==========================

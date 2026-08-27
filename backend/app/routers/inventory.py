@@ -39,7 +39,47 @@ def create_inventory(
     db.refresh(db_inventory)
 
     return db_inventory
+# ==========================
+# GET AVAILABLE STOCK
+# ==========================
 
+@router.get("/{inventory_id}/available")
+def get_available_stock(
+    inventory_id: int,
+    db: Session = Depends(get_db)
+):
+    inventory = db.query(models.Inventory).filter(
+        models.Inventory.id == inventory_id
+    ).first()
+
+    if inventory is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Inventory item not found"
+        )
+
+    available_quantity = (
+        inventory.quantity - inventory.allocated_quantity
+    )
+    if available_quantity == 0:
+      stock_status = "Out of Stock"
+    elif available_quantity <= inventory.buffer_level:
+      stock_status = "Low Stock"
+    else:
+      stock_status = "In Stock"
+
+      inventory.status = stock_status
+      db.commit()
+   
+    return {
+        "inventory_id": inventory.id,
+        "item_name": inventory.item_name,
+        "total_quantity": inventory.quantity,
+        "allocated_quantity": inventory.allocated_quantity,
+        "available_quantity": available_quantity,
+        "unit": inventory.unit,
+        "status": inventory.status
+    }
 
 # ==========================
 # GET ALL INVENTORY

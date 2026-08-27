@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Text, Boolean,Time
 from sqlalchemy.orm import relationship
 from datetime import datetime
 #
@@ -143,10 +143,42 @@ class Worker(Base):
     salary = Column(Float)
     joining_date = Column(Date)
     # Module 3 fields
+    workforce_category = Column(String(50))
+    contractor_name = Column(String(150))
     assigned_project = Column(String(150))
     status = Column(String(50), default="Active")
 
+# ==========================
+# WORKER ASSIGNMENTS - MODULE 6
+# ==========================
 
+class WorkerAssignment(Base):
+    __tablename__ = "worker_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    worker_id = Column(
+        Integer,
+        ForeignKey("workers.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    contractor_name = Column(String(150))
+    work_activity = Column(String(150))
+
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date)
+
+    assignment_status = Column(
+        String(50),
+        default="Active"
+    )
 # ==========================
 # ATTENDANCE - MODULE 3
 # ==========================
@@ -168,9 +200,170 @@ class Attendance(Base):
 
     date = Column(Date)
 
-    status = Column(String(20))
+    status = Column(String(20),nullable =False)
 
+    check_in_time = Column(Time)
+    check_out_time = Column(Time)
+    working_hours = Column(Float)
+    remarks = Column(Text)
+# ==========================
+# SHIFTS - MODULE 6
+# ==========================
 
+class Shift(Base):
+    __tablename__ = "shifts"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shift_name = Column(
+        String(100),
+        nullable=False
+    )
+
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    shift_date = Column(Date, nullable=False)
+
+    status = Column(
+        String(50),
+        default="Scheduled"
+    )
+# ==========================
+# SHIFT ASSIGNMENTS - MODULE 6
+# ==========================
+
+class ShiftAssignment(Base):
+    __tablename__ = "shift_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shift_id = Column(
+        Integer,
+        ForeignKey("shifts.id"),
+        nullable=False
+    )
+
+    worker_id = Column(
+        Integer,
+        ForeignKey("workers.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    assignment_status = Column(
+        String(50),
+        default="Assigned"
+    )
+# ==========================
+# PAYROLL - MODULE 6
+# ==========================
+
+class Payroll(Base):
+    __tablename__ = "payroll"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    worker_id = Column(
+        Integer,
+        ForeignKey("workers.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    pay_rate = Column(Float, nullable=False)
+
+    working_days = Column(
+        Integer,
+        default=0
+    )
+
+    working_hours = Column(
+        Float,
+        default=0
+    )
+
+    overtime_hours = Column(
+        Float,
+        default=0
+    )
+
+    leave_days = Column(
+        Integer,
+        default=0
+    )
+
+    estimated_pay = Column(
+        Float,
+        default=0
+    )
+
+    payroll_status = Column(
+        String(50),
+        default="Pending"
+    )
+# ==========================
+# VENDORS - MODULE 7
+# ==========================
+
+class Vendor(Base):
+    __tablename__ = "vendors"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    vendor_name = Column(
+        String(150),
+        nullable=False
+    )
+
+    contact_person = Column(
+        String(100)
+    )
+
+    contact_number = Column(
+        String(20)
+    )
+
+    email = Column(
+        String(100)
+    )
+
+    address = Column(
+        Text
+    )
+
+    vendor_category = Column(
+        String(100)
+    )
+
+    products_services = Column(
+        Text
+    )
+
+    vendor_status = Column(
+        String(50),
+        default="Active"
+    )
 # ==========================
 # INVENTORY
 # ==========================
@@ -185,8 +378,113 @@ class Inventory(Base):
      # Module 3 fields
     buffer_level = Column(Integer, default=0)
     status = Column(String(50), default="In Stock")
+    allocated_quantity = Column(Integer, default=0)
+    consumed_quantity = Column(Integer, default=0)
+# ==========================
+# MATERIAL REQUESTS - MODULE 5
+# ==========================
+class MaterialRequest(Base):
+    __tablename__ = "material_requests"
 
+    id = Column(Integer, primary_key=True, index=True)
 
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    inventory_id = Column(
+        Integer,
+        ForeignKey("inventory.id"),
+        nullable=False
+    )
+
+    requested_quantity = Column(Integer, nullable=False)
+
+    required_date = Column(Date, nullable=False)
+
+    purpose = Column(String(300))
+
+    remarks = Column(Text)
+
+    status = Column(
+        String(50),
+        default="Pending"
+    )
+
+    requested_by = Column(String(150))
+# ==========================
+# MATERIAL ALLOCATIONS - MODULE 5
+# ==========================
+class MaterialAllocation(Base):
+    __tablename__ = "material_allocations"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    inventory_id = Column(
+        Integer,
+        ForeignKey("inventory.id"),
+        nullable=False
+    )
+
+    allocated_quantity = Column(
+        Integer,
+        nullable=False
+    )
+
+    allocation_date = Column(
+        Date,
+        nullable=False
+    )
+
+    work_activity = Column(
+        String(200)
+    )
+
+    responsible_user = Column(
+        String(150)
+    )
+
+    status = Column(
+        String(50),
+        default="Allocated"
+    )
+# ==========================
+# STOCK MOVEMENTS - MODULE 5
+# ==========================
+class StockMovement(Base):
+    __tablename__ = "stock_movements"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    inventory_id = Column(
+        Integer,
+        ForeignKey("inventory.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    movement_type = Column(String(50), nullable=False)
+
+    quantity = Column(Integer, nullable=False)
+
+    movement_date = Column(Date, nullable=False)
+
+    remarks = Column(Text)
+
+    performed_by = Column(String(150))
 # ==========================
 # RESOURCES
 # ==========================
@@ -213,7 +511,142 @@ class Procurement(Base):
     supplier = Column(String(100))
     purchase_date = Column(Date)
 
+# ==========================
+# PROCUREMENT REQUEST - MODULE 7
+# ==========================
 
+class ProcurementRequest(Base):
+    __tablename__ = "procurement_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    requested_by = Column(
+        String(150),
+        nullable=False
+    )
+
+    item_name = Column(
+        String(150),
+        nullable=False
+    )
+
+    category = Column(String(100))
+
+    requested_quantity = Column(
+        Integer,
+        nullable=False
+    )
+
+    required_date = Column(Date)
+
+    purpose = Column(Text)
+
+    priority = Column(
+        String(50),
+        default="Medium"
+    )
+
+    request_date = Column(Date)
+
+    request_status = Column(
+        String(50),
+        default="Pending"
+    )
+
+    remarks = Column(Text)
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    procurement_request_id = Column(
+        Integer,
+        ForeignKey("procurement_requests.id"),
+        nullable=False
+    )
+
+    vendor_id = Column(
+        Integer,
+        ForeignKey("vendors.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    order_date = Column(Date)
+    expected_delivery_date = Column(Date)
+
+    quantity = Column(Integer, nullable=False)
+    unit_price = Column(Float, nullable=False)
+    total_amount = Column(Float, nullable=False)
+
+    order_status = Column(
+        String(50),
+        default="Processing"
+    )
+
+    remarks = Column(Text)
+# ==========================
+# INVOICES - MODULE 7
+# ==========================
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    invoice_number = Column(
+        String(100),
+        nullable=False
+    )
+
+    vendor_id = Column(
+        Integer,
+        ForeignKey("vendors.id"),
+        nullable=False
+    )
+
+    purchase_order_id = Column(
+        Integer,
+        ForeignKey("purchase_orders.id"),
+        nullable=False
+    )
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    invoice_date = Column(Date)
+    due_date = Column(Date)
+
+    invoice_amount = Column(
+        Float,
+        nullable=False
+    )
+
+    payment_status = Column(
+        String(50),
+        default="Pending"
+    )
+
+    invoice_status = Column(
+        String(50),
+        default="Received"
+    )
+
+    remarks = Column(Text)
 # ==========================
 # NOTIFICATIONS
 # ==========================

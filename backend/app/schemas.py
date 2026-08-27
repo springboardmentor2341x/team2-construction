@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from datetime import date
+from datetime import date,time
 
 
 # ==========================
@@ -179,6 +179,8 @@ class InventoryBase(BaseModel):
     unit: str
     supplier: str
     buffer_level: int = 0
+    allocated_quantity: int =0
+    consumed_quantity: int =0
 
 
 
@@ -192,7 +194,77 @@ class Inventory(InventoryBase):
 
     class Config:
         from_attributes = True
+# ==========================
+# MATERIAL REQUEST SCHEMAS - MODULE 5
+# ==========================
 
+class MaterialRequestBase(BaseModel):
+    project_id: int
+    inventory_id: int
+    requested_quantity: int
+    required_date: date
+    purpose: Optional[str] = None
+    remarks: Optional[str] = None
+    status: str = "Pending"
+    requested_by: Optional[str] = None
+
+
+class MaterialRequestCreate(MaterialRequestBase):
+    pass
+
+
+class MaterialRequest(MaterialRequestBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+# ==========================
+# MATERIAL ALLOCATION SCHEMAS - MODULE 5
+# ==========================
+
+class MaterialAllocationBase(BaseModel):
+    project_id: int
+    inventory_id: int
+    allocated_quantity: int
+    allocation_date: date
+    work_activity: Optional[str] = None
+    responsible_user: Optional[str] = None
+    status: str = "Allocated"
+
+
+class MaterialAllocationCreate(MaterialAllocationBase):
+    pass
+
+
+class MaterialAllocation(MaterialAllocationBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# STOCK MOVEMENT SCHEMAS - MODULE 5
+# ==========================
+
+class StockMovementBase(BaseModel):
+    inventory_id: int
+    project_id: int
+    movement_type: str
+    quantity: int
+    movement_date: date
+    remarks: Optional[str] = None
+    performed_by: Optional[str] = None
+
+
+class StockMovementCreate(StockMovementBase):
+    pass
+
+
+class StockMovement(StockMovementBase):
+    id: int
+
+    class Config:
+        from_attributes = True
 # ==========================
 # WORKER SCHEMAS
 # ==========================
@@ -205,6 +277,7 @@ class WorkerBase(BaseModel):
     designation: str
     salary: float
     joining_date: date
+    workforce_category: str = "Skilled Workers"
     assigned_project: Optional[str] = None
     status: str = "Active"
 
@@ -219,6 +292,30 @@ class Worker(WorkerBase):
 
     class Config:
         from_attributes = True
+
+# ==========================
+# WORKER ASSIGNMENT SCHEMAS - MODULE 6
+# ==========================
+
+class WorkerAssignmentBase(BaseModel):
+    worker_id: int
+    project_id: int
+    contractor_name: Optional[str] = None
+    work_activity: Optional[str] = None
+    start_date: date
+    end_date: Optional[date] = None
+    assignment_status: str = "Active"
+
+
+class WorkerAssignmentCreate(WorkerAssignmentBase):
+    pass
+
+
+class WorkerAssignment(WorkerAssignmentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
 # ==========================
 # ATTENDANCE SCHEMAS
 # ==========================
@@ -227,15 +324,21 @@ from datetime import date
 
 class AttendanceBase(BaseModel):
     worker_id: int
+    project_id: Optional[int] = None
     date: date
     status: str
 
+    check_in_time: Optional[time] = None
+    check_out_time: Optional[time] = None
+    working_hours: Optional[float] = None
+    remarks: Optional[str] = None
+        
 
 class AttendanceCreate(AttendanceBase):
-    pass
+        pass
 
 
-class Attendance(AttendanceBase):
+class AttendanceResponse(AttendanceBase):
     id: int
 
     class Config:
@@ -526,26 +629,7 @@ class ProgressUpdateResponse(ProgressUpdateBase):
 
     class Config:
         from_attributes = True
-# ==========================
-# ATTENDANCE - MODULE 3
-# ==========================
 
-class AttendanceBase(BaseModel):
-    worker_id: int
-    project_id: int | None = None
-    date: date
-    status: str
-
-
-class AttendanceCreate(AttendanceBase):
-    pass
-
-
-class AttendanceResponse(AttendanceBase):
-    id: int
-
-    class Config:
-        from_attributes = True
 # ==========================
 # PROGRESS REPORTS - MODULE 3
 # ==========================
@@ -676,6 +760,173 @@ class WeeklyProgressReportCreate(WeeklyProgressReportBase):
 
 
 class WeeklyProgressReportResponse(WeeklyProgressReportBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+# ==========================
+# SHIFT SCHEMAS - MODULE 6
+# ==========================
+
+class ShiftBase(BaseModel):
+    shift_name: str
+    start_time: time
+    end_time: time
+    project_id: int
+    shift_date: date
+    status: str = "Scheduled"
+
+
+class ShiftCreate(ShiftBase):
+    pass
+
+
+class ShiftResponse(ShiftBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# SHIFT ASSIGNMENT SCHEMAS - MODULE 6
+# ==========================
+
+class ShiftAssignmentBase(BaseModel):
+    shift_id: int
+    worker_id: int
+    project_id: int
+    assignment_status: str = "Assigned"
+
+
+class ShiftAssignmentCreate(ShiftAssignmentBase):
+    pass
+
+
+class ShiftAssignmentResponse(ShiftAssignmentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# PAYROLL SCHEMAS - MODULE 6
+# ==========================
+
+class PayrollBase(BaseModel):
+    worker_id: int
+    project_id: int
+    pay_rate: float
+    working_days: int = 0
+    working_hours: float = 0
+    overtime_hours: float = 0
+    leave_days: int = 0
+    estimated_pay: float = 0
+    payroll_status: str = "Pending"
+
+
+class PayrollCreate(PayrollBase):
+    pass
+
+
+class PayrollResponse(PayrollBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# VENDOR SCHEMAS - MODULE 7
+# ==========================
+
+class VendorBase(BaseModel):
+    vendor_name: str
+    contact_person: str | None = None
+    contact_number: str | None = None
+    email: str | None = None
+    address: str | None = None
+    vendor_category: str | None = None
+    products_services: str | None = None
+    vendor_status: str = "Active"
+
+
+class VendorCreate(VendorBase):
+    pass
+
+
+class VendorResponse(VendorBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# PROCUREMENT REQUEST - MODULE 7
+# ==========================
+
+class ProcurementRequestBase(BaseModel):
+    project_id: int
+    requested_by: str
+    item_name: str
+    category: str | None = None
+    requested_quantity: int
+    required_date: date | None = None
+    purpose: str | None = None
+    priority: str = "Medium"
+    request_date: date | None = None
+    request_status: str = "Pending"
+    remarks: str | None = None
+
+
+class ProcurementRequestCreate(ProcurementRequestBase):
+    pass
+
+
+class ProcurementRequestResponse(ProcurementRequestBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+class PurchaseOrderBase(BaseModel):
+    procurement_request_id: int
+    vendor_id: int
+    project_id: int
+    order_date: date | None = None
+    expected_delivery_date: date | None = None
+    quantity: int
+    unit_price: float
+    total_amount: float
+    order_status: str = "Processing"
+    remarks: str | None = None
+
+
+class PurchaseOrderCreate(PurchaseOrderBase):
+    pass
+
+
+class PurchaseOrderResponse(PurchaseOrderBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# INVOICE SCHEMAS - MODULE 7
+# ==========================
+
+class InvoiceBase(BaseModel):
+    invoice_number: str
+    vendor_id: int
+    purchase_order_id: int
+    project_id: int
+    invoice_date: date | None = None
+    due_date: date | None = None
+    invoice_amount: float
+    payment_status: str = "Pending"
+    invoice_status: str = "Received"
+    remarks: str | None = None
+
+
+class InvoiceCreate(InvoiceBase):
+    pass
+
+
+class InvoiceResponse(InvoiceBase):
     id: int
 
     class Config:
