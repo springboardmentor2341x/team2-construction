@@ -1,0 +1,181 @@
+<div class="card shadow-sm border-0 rounded-3 h-100 chart-container-card">
+  <div class="card-body p-4 d-flex flex-column justify-content-between position-relative">
+    
+    <h5 class="card-title fw-bold text-dark mb-3">{{ title }}</h5>
+
+    <!-- Tooltip Overlay -->
+    @if (activeTooltip.visible) {
+      <div class="chart-tooltip position-absolute bg-dark text-white rounded px-2 py-1 small fw-semibold" 
+           [style.left.px]="activeTooltip.x" 
+           [style.top.px]="activeTooltip.y">
+        {{ activeTooltip.text }}
+      </div>
+    }
+
+    <!-- Chart Panel -->
+    <div class="chart-body-wrapper d-flex justify-content-center align-items-center flex-grow-1 min-h-200">
+      
+      <!-- 1. LINE / AREA CHART -->
+      @if (type === 'line') {
+        <svg viewBox="0 0 500 220" width="100%" height="100%" class="svg-line-chart">
+          <!-- Grids -->
+          <line x1="25" y1="25" x2="475" y2="25" stroke="#f1f3f9" stroke-width="1" />
+          <line x1="25" y1="73" x2="475" y2="73" stroke="#f1f3f9" stroke-width="1" />
+          <line x1="25" y1="121" x2="475" y2="121" stroke="#f1f3f9" stroke-width="1" />
+          <line x1="25" y1="169" x2="475" y2="169" stroke="#f1f3f9" stroke-width="1" />
+          <line x1="25" y1="195" x2="475" y2="195" stroke="#e2e8f0" stroke-width="1.5" /> <!-- Baseline -->
+
+          <!-- Gradient Definitions -->
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0d6efd" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#0d6efd" stop-opacity="0.00"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Area -->
+          <path [attr.d]="areaD" fill="url(#areaGrad)"></path>
+
+          <!-- Line Path -->
+          <path [attr.d]="pathD" fill="none" stroke="#0d6efd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+
+          <!-- Interactive Dots -->
+          @for (pt of linePoints; track $index) {
+            <circle [attr.cx]="pt.x" 
+                    [attr.cy]="pt.y" 
+                    r="5" 
+                    fill="#ffffff" 
+                    stroke="#0d6efd" 
+                    stroke-width="2.5" 
+                    class="interactive-dot"
+                    (mousemove)="showTooltip($event, pt.label + ': ' + pt.val)"
+                    (mouseleave)="hideTooltip()">
+            </circle>
+          }
+        </svg>
+      }
+
+      <!-- 2. BAR CHART -->
+      @if (type === 'bar') {
+        <div class="bar-chart-container w-100 h-100 d-flex align-items-end justify-content-around px-2" style="height: 180px;">
+          @for (bar of bars; track $index) {
+            <div class="bar-wrapper d-flex flex-column align-items-center w-100 px-1">
+              
+              <!-- The Bar itself -->
+              <div class="bar-pill w-100 rounded-top" 
+                   [style.height.%]="bar.heightPercent" 
+                   [style.background-color]="bar.color"
+                   (mousemove)="showTooltip($event, bar.label + ': ' + bar.value)"
+                   (mouseleave)="hideTooltip()">
+              </div>
+              
+              <!-- Label -->
+              <span class="text-muted text-truncate w-100 text-center mt-2" style="font-size: 11px;">
+                {{ bar.label }}
+              </span>
+
+            </div>
+          }
+        </div>
+      }
+
+      <!-- 2B. GROUPED BAR CHART -->
+      @if (type === 'grouped-bar') {
+        <div class="w-100 d-flex flex-column" style="gap: 4px;">
+          <div class="bar-chart-container w-100 d-flex align-items-end justify-content-around px-2" style="height: 180px;">
+            @for (grp of groupedBars; track $index) {
+              <div class="d-flex flex-column align-items-center w-100 px-1" style="gap: 2px;">
+                <!-- Two bars side-by-side -->
+                <div class="d-flex align-items-end w-100" style="gap: 3px; height: 160px;">
+                  <div class="flex-grow-1 rounded-top position-relative"
+                       [style.height.%]="grp.bar1.heightPercent"
+                       [style.background-color]="grp.bar1.color"
+                       style="min-height: 6px; cursor:pointer;"
+                       (mousemove)="showTooltip($event, dataLabel + ': $' + grp.bar1.value + 'M')"
+                       (mouseleave)="hideTooltip()">
+                  </div>
+                  <div class="flex-grow-1 rounded-top position-relative"
+                       [style.height.%]="grp.bar2.heightPercent"
+                       [style.background-color]="grp.bar2.color"
+                       style="min-height: 6px; cursor:pointer;"
+                       (mousemove)="showTooltip($event, data2Label + ': $' + grp.bar2.value + 'M')"
+                       (mouseleave)="hideTooltip()">
+                  </div>
+                </div>
+                <span class="text-muted text-truncate w-100 text-center mt-1" style="font-size: 10px;">
+                  {{ grp.label }}
+                </span>
+              </div>
+            }
+          </div>
+          <!-- Legend -->
+          <div class="d-flex justify-content-center gap-4 mt-2">
+            <div class="d-flex align-items-center gap-1">
+              <span class="rounded-circle" [style.background-color]="customColors[0] || '#0d6efd'" style="width:10px;height:10px;display:inline-block;"></span>
+              <span class="small text-muted fw-semibold">{{ dataLabel }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-1">
+              <span class="rounded-circle" [style.background-color]="customColors[1] || '#20c997'" style="width:10px;height:10px;display:inline-block;"></span>
+              <span class="small text-muted fw-semibold">{{ data2Label }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- 3. DONUT CHART -->
+      @if (type === 'donut') {
+        <div class="d-flex align-items-center gap-4 flex-wrap flex-md-nowrap justify-content-center">
+          
+          <div class="position-relative donut-svg-wrapper">
+            <svg viewBox="0 0 120 120" width="150" height="150">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f3f9" stroke-width="12"></circle>
+              @for (seg of donutSegments; track $index) {
+                <circle cx="60" 
+                        cy="60" 
+                        r="50" 
+                        fill="none" 
+                        [attr.stroke]="seg.color" 
+                        stroke-width="12" 
+                        [attr.stroke-dasharray]="seg.dashArray"
+                        [attr.stroke-dashoffset]="seg.dashOffset"
+                        stroke-linecap="round"
+                        transform="rotate(-90 60 60)"
+                        class="donut-segment-ring"
+                        (mousemove)="showTooltip($event, seg.tooltipText)"
+                        (mouseleave)="hideTooltip()">
+                </circle>
+              }
+            </svg>
+            <div class="donut-center-label d-flex flex-column align-items-center justify-content-center position-absolute">
+              <span class="text-muted small uppercase" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">TOTAL</span>
+              <span class="fw-bold text-dark fs-5">{{ donutTotal }}</span>
+            </div>
+          </div>
+
+          <!-- Legends -->
+          <div class="d-flex flex-column gap-2 text-start">
+            @for (seg of donutSegments; track $index) {
+              <div class="d-flex align-items-center gap-2">
+                <span class="legend-color-dot rounded-circle" [style.background-color]="seg.color" style="width: 10px; height: 10px;"></span>
+                <span class="text-dark small fw-medium" style="font-size: 13px;">{{ seg.label }}</span>
+                <span class="text-muted small">({{ seg.value }})</span>
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+    </div>
+
+    <!-- Chart X Labels for Line Chart -->
+    @if (type === 'line') {
+      <div class="d-flex justify-content-between px-3 mt-1 border-top pt-2 text-muted" style="font-size: 10px;">
+        @for (lbl of labels; track $index) {
+          <span>{{ lbl }}</span>
+        }
+      </div>
+    }
+
+  </div>
+</div>

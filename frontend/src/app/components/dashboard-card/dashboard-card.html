@@ -1,0 +1,39 @@
+<div class="card h-100 bt-kpi-card shadow-sm border-0 rounded-3 overflow-hidden">
+  <div class="card-body p-4 d-flex justify-content-between align-items-center">
+    
+    <div>
+      <span class="text-muted text-uppercase tracking-wider fw-bold text-xs-ls d-block mb-1">{{ title }}</span>
+      <h3 class="card-title fw-extrabold m-0 text-dark">{{ value }}</h3>
+      
+      @if (subtitle || trendDirection !== 'none') {
+        <div class="mt-2 d-flex align-items-center gap-1.5 flex-wrap">
+          
+          @if (trendDirection === 'up') {
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2 d-flex align-items-center gap-0.5 fw-semibold small">
+              <i class="bi bi-arrow-up-right"></i> {{ trendValue }}
+            </span>
+          } @else if (trendDirection === 'down') {
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill py-1 px-2 d-flex align-items-center gap-0.5 fw-semibold small">
+              <i class="bi bi-arrow-down-left"></i> {{ trendValue }}
+            </span>
+          } @else if (trendDirection === 'flat') {
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill py-1 px-2 d-flex align-items-center gap-0.5 fw-semibold small">
+              <i class="bi bi-dash"></i> {{ trendValue }}
+            </span>
+          }
+          
+          @if (subtitle) {
+            <span class="text-muted small fs-13">{{ subtitle }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Icon Badge -->
+    <div class="kpi-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" 
+         [ngClass]="'kpi-bg-' + colorType">
+      <i class="bi fs-4" [ngClass]="[icon, 'text-' + colorType]"></i>
+    </div>
+
+  </div>
+</div>

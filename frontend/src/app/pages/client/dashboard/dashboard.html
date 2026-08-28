@@ -1,0 +1,285 @@
+<div class="container-fluid p-0">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">Investor Portfolio Portal</h2>
+      <p class="text-muted mb-0">Abhishek S &bull; Vanguard Realty &bull; Monitor construction asset progression and budget expenditures.</p>
+    </div>
+    <div>
+      <span class="badge bg-primary px-3 py-2 fs-6 rounded-pill">
+        Portfolio Progress: {{ averageProgress() }}%
+      </span>
+    </div>
+  </div>
+
+  <!-- KPI summary cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Invested Projects" [value]="clientProjects().length" icon="bi-building-fill" colorType="primary"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Total Investment Pool" [value]="'$' + (totalBudget() | number:'1.0-0')" icon="bi-cash-coin" colorType="success"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Invoiced To Date" [value]="'$' + (totalSpent() | number:'1.0-0')" icon="bi-wallet2" colorType="info"></app-dashboard-card>
+    </div>
+    <div class="col-sm-6 col-md-3">
+      <app-dashboard-card title="Portfolio Balance" [value]="'$' + ((totalBudget() - totalSpent()) | number:'1.0-0')" icon="bi-currency-dollar" colorType="warning" subtitle="Remaining Pool"></app-dashboard-card>
+    </div>
+  </div>
+
+  <!-- Modules views -->
+  @if (activeModule === 'progress') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Portfolio Assets Progression</h5>
+        
+        <div class="d-flex flex-column gap-4">
+          @for (proj of clientProjects(); track proj.id) {
+            <div class="p-3 border rounded-3 bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+              <div class="d-flex gap-3 align-items-center">
+                <img [src]="proj.image" alt="Project image" class="rounded-3 object-fit-cover" style="width: 80px; height: 80px;">
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">{{ proj.name }}</h6>
+                  <p class="text-muted mb-1 small"><i class="bi bi-geo-alt me-1"></i>{{ proj.location }}</p>
+                  <p class="text-muted small mb-0 d-none d-md-block">{{ proj.description }}</p>
+                </div>
+              </div>
+
+              <div class="flex-grow-1 mx-md-4" style="max-width: 250px;">
+                <div class="d-flex justify-content-between mb-1 small text-muted">
+                  <span>Project Completion</span>
+                  <span class="fw-bold text-primary">{{ proj.progress }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar bg-primary" [style.width.%]="proj.progress"></div>
+                </div>
+                <small class="text-muted mt-1 d-block small">Status: <strong>{{ proj.status }}</strong></small>
+              </div>
+
+              <div class="text-start text-md-end">
+                <div class="fw-bold text-dark">Invested: ${{ proj.budget | number:'1.0-0' }}</div>
+                <small class="text-muted d-block">Spent: ${{ proj.spent | number:'1.0-0' }}</small>
+                <small class="text-secondary d-block mt-1 small">Manager: {{ proj.manager }}</small>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'timeline') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-4">Construction Milestones Checklist</h5>
+        
+        <div class="timeline-stepper position-relative ps-4 border-start border-2 border-primary-subtle py-2">
+          
+          <div class="timeline-step position-relative mb-4">
+            <div class="step-marker bg-success rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Site Mobilization & Engineering Permits</h6>
+            <p class="text-muted small mb-0">Local building code approvals and initial machinery layouts finalized.</p>
+            <small class="badge bg-success mt-1">Verified</small>
+          </div>
+
+          <div class="timeline-step position-relative mb-4">
+            <div class="step-marker bg-success rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Foundation Pour & Retaining Shoring</h6>
+            <p class="text-muted small mb-0">Deep concrete diaphragm wall structural core completed.</p>
+            <small class="badge bg-success mt-1">Verified</small>
+          </div>
+
+          <div class="timeline-step position-relative mb-4">
+            <div class="step-marker bg-primary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Structural Frame Erection (Level 1 to 10)</h6>
+            <p class="text-muted small mb-0">Active core structural column placement in progress. Erection rate at 55%.</p>
+            <small class="badge bg-primary mt-1">In Progress</small>
+          </div>
+
+          <div class="timeline-step position-relative">
+            <div class="step-marker bg-secondary rounded-circle position-absolute start-0 translate-middle-x" style="width: 14px; height: 14px; margin-left: -26px; top: 6px;"></div>
+            <h6 class="fw-bold text-dark mb-1">Curtain Glass Wall Installation</h6>
+            <p class="text-muted small mb-0">Expected to commence immediately upon level columns reaching L12 structural stability.</p>
+            <small class="badge bg-secondary mt-1">Pending Target</small>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'budget') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Portfolio Financial Summary</h5>
+        
+        <div class="table-responsive">
+          <table class="table align-middle table-hover">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Project Asset</th>
+                <th>Committed Capital</th>
+                <th>Invoiced Spend</th>
+                <th>Disbursed Invoices</th>
+                <th>Outstanding Balances</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (proj of clientProjects(); track proj.id) {
+                <tr>
+                  <td class="fw-bold text-dark">{{ proj.name }}</td>
+                  <td>${{ proj.budget | number:'1.0-0' }}</td>
+                  <td>${{ proj.spent | number:'1.0-0' }}</td>
+                  <td>${{ (proj.spent * 0.9) | number:'1.0-0' }}</td>
+                  <td class="fw-bold text-primary">${{ (proj.budget - proj.spent) | number:'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'documents') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Assets Blueprints & Documents Locker</h5>
+        <p class="text-muted small">Access final engineering drafts, geological survey certificates, and concrete cylinder pressure reports.</p>
+
+        <div class="table-responsive">
+          <table class="table align-middle table-hover">
+            <thead class="table-light text-muted uppercase small">
+              <tr>
+                <th>Document File Name</th>
+                <th>Size</th>
+                <th>Format</th>
+                <th>Upload Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (doc of clientDocuments(); track doc.id) {
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                      <span class="fw-bold text-dark">{{ doc.name }}</span>
+                    </div>
+                  </td>
+                  <td>{{ doc.size }}</td>
+                  <td class="text-uppercase fw-semibold" style="font-size: 11px;">{{ doc.type }}</td>
+                  <td>{{ doc.uploadDate }}</td>
+                  <td>
+                    <button class="btn btn-outline-primary btn-sm rounded-pill" (click)="downloadDocument(doc.name)">
+                      <i class="bi bi-download"></i> Download
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'images') {
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-3">Site Progress Galleries</h5>
+        
+        <div class="row g-3">
+          @for (photo of clientPhotos(); track photo.id) {
+            <div class="col-md-4">
+              <div class="card border rounded-3 overflow-hidden shadow-sm h-100">
+                <img [src]="photo.url" alt="Site photo" class="img-fluid object-fit-cover" style="height: 200px; width: 100%;">
+                <div class="card-body p-3">
+                  <p class="card-text small text-dark fw-medium mb-1">{{ photo.caption }}</p>
+                  <small class="text-muted">{{ photo.date }} &bull; Site Engineer: {{ photo.uploadedBy }}</small>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'feedback') {
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Submit Portfolio Feedback</h5>
+            
+            <form (ngSubmit)="submitFeedback()">
+              
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Select Project</label>
+                <select class="form-select form-control" name="fbProjectName" [(ngModel)]="fbProjectName">
+                  @for (proj of clientProjects(); track proj.id) {
+                    <option [value]="proj.name">{{ proj.name }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Satisfaction Rating (1 to 5 Stars)</label>
+                <select class="form-select form-control" name="fbRating" [(ngModel)]="fbRating">
+                  <option value="5">⭐⭐⭐⭐⭐ Excellent Progress</option>
+                  <option value="4">⭐⭐⭐⭐ Satisfactory</option>
+                  <option value="3">⭐⭐⭐ Neutral</option>
+                  <option value="2">⭐⭐ Fair</option>
+                  <option value="1">⭐ Concerns / Audit Required</option>
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-semibold small text-muted">Comments / Review Details</label>
+                <textarea name="fbMessage" [(ngModel)]="fbMessage" required rows="4" class="form-control" placeholder="Share satisfaction notes or specify points requiring PM revision..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100 py-2.5">
+                <i class="bi bi-chat-left-text-fill me-1"></i> Submit Review
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">Portfolio Review Logs</h5>
+            
+            <div class="d-flex flex-column gap-3">
+              @for (fb of clientFeedbacks(); track fb.id) {
+                <div class="p-3 border rounded-3 bg-light">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold text-dark">{{ fb.projectName }}</span>
+                    <span class="text-warning">
+                      @for (star of [].constructor(fb.rating); track $index) {
+                        ★
+                      }
+                    </span>
+                  </div>
+                  <p class="text-muted small mb-1">{{ fb.message }}</p>
+                  <small class="text-secondary d-block text-end" style="font-size: 11px;">Submitted: {{ fb.date }}</small>
+                </div>
+              }
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (activeModule === 'workforce') {
+    <app-workforce-management></app-workforce-management>
+  }
+</div>

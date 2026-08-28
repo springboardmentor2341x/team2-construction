@@ -1,0 +1,100 @@
+<header class="navbar navbar-expand-lg fixed-top shadow-sm px-4 bg-white border-bottom">
+  <div class="container-fluid p-0 d-flex justify-content-between align-items-center">
+    
+    <!-- Branding & Sidebar Toggle -->
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-light d-flex align-items-center justify-content-center p-2 rounded-circle border-0" 
+              (click)="toggleSidebar.emit()" 
+              id="sidebarToggleBtn"
+              title="Toggle Sidebar">
+        <i class="bi bi-list fs-5 text-dark"></i>
+      </button>
+      <a class="navbar-brand d-flex align-items-center m-0" routerLink="/">
+        <img src="/BuildTrack_Logo.png" alt="BuildTrack Logo" style="height: 58px; object-fit: contain;">
+      </a>
+    </div>
+
+    <!-- Right Side Actions (Notifications & User Settings) -->
+    <div class="d-flex align-items-center gap-3">
+      
+      <!-- Notifications Indicator -->
+      <div class="position-relative">
+        <button class="btn btn-light d-flex align-items-center justify-content-center p-2 rounded-circle border-0 position-relative" 
+                (click)="toggleNotify()" 
+                [class.active]="showNotifications"
+                title="Notifications">
+          <i class="bi bi-bell fs-5 text-dark"></i>
+          @if (unreadCount > 0) {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white">
+              {{ unreadCount }}
+            </span>
+          }
+        </button>
+        
+        <!-- Notifications Dropdown Panel -->
+        @if (showNotifications) {
+          <div class="dropdown-menu show position-absolute end-0 mt-2 shadow border-0 rounded-3 p-0" style="width: 320px; z-index: 1050;">
+            <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center bg-light rounded-top">
+              <span class="fw-bold text-dark">Notifications</span>
+              @if (unreadCount > 0) {
+                <button class="btn btn-link btn-sm text-decoration-none p-0" (click)="markAllAsRead()">Mark as read</button>
+              }
+            </div>
+            <div class="list-group list-group-flush max-height-300 overflow-y-auto">
+              @for (n of notifications; track n.id) {
+                <div class="list-group-item list-group-item-action p-3" [class.bg-light]="n.unread">
+                  <p class="mb-1 small fw-medium" [class.text-dark]="n.unread" [class.text-muted]="!n.unread">{{ n.text }}</p>
+                  <small class="text-muted d-block mt-1"><i class="bi bi-clock me-1"></i>{{ n.time }}</small>
+                </div>
+              }
+            </div>
+            <div class="p-2 border-top text-center bg-light rounded-bottom">
+              <a href="#" class="small text-primary text-decoration-none fw-semibold">View All Notifications</a>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Vertical Divider -->
+      <div class="vr bg-secondary opacity-25" style="height: 24px;"></div>
+
+      <!-- User Profile Dropdown -->
+      <div class="position-relative">
+        <button class="btn btn-light p-1 d-flex align-items-center gap-2 border-0 rounded-pill pe-3" 
+                (click)="toggleProfile()"
+                [class.active]="showProfileMenu">
+          <img [src]="authService.currentUser()?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'" 
+               alt="User profile" 
+               class="rounded-circle border border-2 border-primary" 
+               style="width: 36px; height: 36px; object-fit: cover;">
+          <div class="d-none d-md-block text-start">
+            <div class="fw-bold text-dark lh-1" style="font-size: 13px;">{{ authService.currentUser()?.name }}</div>
+            <span class="text-muted" style="font-size: 11px;">{{ userRoleLabel }}</span>
+          </div>
+          <i class="bi bi-chevron-down text-muted small"></i>
+        </button>
+
+        <!-- Profile Menu Dropdown Panel -->
+        @if (showProfileMenu) {
+          <div class="dropdown-menu show position-absolute end-0 mt-2 shadow border-0 rounded-3 p-1" style="width: 220px; z-index: 1050;">
+            <div class="px-3 py-2 border-bottom mb-1">
+              <div class="fw-bold text-dark">{{ authService.currentUser()?.name }}</div>
+              <small class="text-muted">{{ authService.currentUser()?.email }}</small>
+            </div>
+            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2 text-dark" routerLink="/profile">
+              <i class="bi bi-person text-muted fs-5"></i> My Profile
+            </a>
+            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2 text-dark" routerLink="/settings">
+              <i class="bi bi-gear text-muted fs-5"></i> Settings
+            </a>
+            <hr class="my-1 border-light">
+            <button class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2 text-danger fw-medium" (click)="logout()">
+              <i class="bi bi-box-arrow-right fs-5"></i> Logout
+            </button>
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</header>

@@ -1,0 +1,684 @@
+<div class="procurement-container">
+
+  <div class="page-header">
+    <div>
+      <h2>Procurement Management</h2>
+      <p>Manage categories, vendors, requests, purchase orders, inventory receipts, invoices and payments.</p>
+    </div>
+
+    <button class="secondary-btn" (click)="refreshAll()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+  </div>
+
+  <div class="success-message" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="error-message" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="loading-message" *ngIf="loading">
+    Processing...
+  </div>
+
+  <div class="procurement-tabs">
+
+    <button [class.active]="activeTab === 'dashboard'" (click)="setActiveTab('dashboard')">
+      Dashboard
+    </button>
+
+    <button [class.active]="activeTab === 'categories'" (click)="setActiveTab('categories')">
+      Categories
+    </button>
+
+    <button [class.active]="activeTab === 'vendors'" (click)="setActiveTab('vendors')">
+      Vendors
+    </button>
+
+    <button [class.active]="activeTab === 'requests'" (click)="setActiveTab('requests')">
+      Requests
+    </button>
+
+    <button [class.active]="activeTab === 'orders'" (click)="setActiveTab('orders')">
+      Purchase Orders
+    </button>
+
+    <button [class.active]="activeTab === 'invoices'" (click)="setActiveTab('invoices')">
+      Invoices & Payments
+    </button>
+
+  </div>
+
+  <!-- DASHBOARD -->
+  <div *ngIf="activeTab === 'dashboard'" class="tab-content">
+
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <p>Total Categories</p>
+        <h3>{{ totalCategories }}</h3>
+      </div>
+
+      <div class="stat-card">
+        <p>Total Vendors</p>
+        <h3>{{ totalVendors }}</h3>
+      </div>
+
+      <div class="stat-card">
+        <p>Procurement Requests</p>
+        <h3>{{ totalRequests }}</h3>
+      </div>
+
+      <div class="stat-card">
+        <p>Pending Requests</p>
+        <h3>{{ pendingRequests }}</h3>
+      </div>
+
+      <div class="stat-card">
+        <p>Purchase Orders</p>
+        <h3>{{ totalOrders }}</h3>
+      </div>
+
+      <div class="stat-card">
+        <p>Invoices</p>
+        <h3>{{ totalInvoices }}</h3>
+      </div>
+
+    </div>
+
+    <div class="info-card">
+      <h4>Live Procurement Workflow</h4>
+      <p>
+        Site Engineer Request → Approval → Vendor → Purchase Order →
+        Goods Receipt → Inventory Update → Invoice → Payment.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- CATEGORIES -->
+  <div *ngIf="activeTab === 'categories'" class="tab-content">
+
+    <div class="section-header">
+      <div>
+        <h3>Material Categories</h3>
+        <p>Categories are loaded from the procurement API.</p>
+      </div>
+
+      <button class="primary-btn" (click)="showCategoryForm = !showCategoryForm">
+        {{ showCategoryForm ? 'Cancel' : 'Add Category' }}
+      </button>
+    </div>
+
+    <form *ngIf="showCategoryForm" class="form-grid" (ngSubmit)="createCategory()">
+      <input type="text" name="categoryName"
+             [(ngModel)]="newCategory.name"
+             placeholder="Category name" required>
+
+      <input type="text" name="categoryDescription"
+             [(ngModel)]="newCategory.description"
+             placeholder="Description">
+
+      <button type="submit" class="primary-btn">Save Category</button>
+    </form>
+
+    <div class="table-wrapper" *ngIf="categories.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let category of categories">
+            <td>{{ category.name }}</td>
+            <td>{{ category.description || '-' }}</td>
+            <td>
+              <button class="danger-btn" (click)="deleteCategory(category)">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="categories.length === 0">
+      No categories found.
+    </div>
+
+  </div>
+
+  <!-- VENDORS -->
+  <div *ngIf="activeTab === 'vendors'" class="tab-content">
+
+    <div class="section-header">
+      <div>
+        <h3>Vendors</h3>
+        <p>Vendor information is loaded from the procurement API.</p>
+      </div>
+
+      <button class="primary-btn" (click)="showVendorForm = !showVendorForm">
+        {{ showVendorForm ? 'Cancel' : 'Add Vendor' }}
+      </button>
+    </div>
+
+    <form *ngIf="showVendorForm" class="form-grid vendor-grid" (ngSubmit)="createVendor()">
+
+      <input type="text" name="vendorName"
+             [(ngModel)]="newVendor.name"
+             placeholder="Vendor name" required>
+
+      <input type="text" name="contactPerson"
+             [(ngModel)]="newVendor.contactPerson"
+             placeholder="Contact person">
+
+      <input type="email" name="vendorEmail"
+             [(ngModel)]="newVendor.email"
+             placeholder="Email">
+
+      <input type="text" name="vendorPhone"
+             [(ngModel)]="newVendor.phone"
+             placeholder="Phone">
+
+      <input type="text" name="vendorAddress"
+             [(ngModel)]="newVendor.address"
+             placeholder="Address">
+
+      <select name="vendorStatus" [(ngModel)]="newVendor.status">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+
+      <button type="submit" class="primary-btn">
+        Save Vendor
+      </button>
+
+    </form>
+
+    <div class="table-wrapper" *ngIf="vendors.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Vendor</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let vendor of vendors">
+            <td>{{ vendor.name }}</td>
+            <td>{{ vendor.contactPerson || '-' }}</td>
+            <td>{{ vendor.email || '-' }}</td>
+            <td>{{ vendor.phone || '-' }}</td>
+            <td>{{ vendor.address || '-' }}</td>
+            <td>{{ vendor.status || 'Active' }}</td>
+            <td>
+              <button class="danger-btn" (click)="deleteVendor(vendor)">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="vendors.length === 0">
+      No vendors found.
+    </div>
+
+  </div>
+
+  <!-- REQUESTS -->
+  <div *ngIf="activeTab === 'requests'" class="tab-content">
+
+    <div class="section-header">
+      <div>
+        <h3>Procurement Requests</h3>
+        <p>Requests are loaded from Site Engineer procurement requests.</p>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="requests.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Item</th>
+            <th>Category</th>
+            <th>Quantity</th>
+            <th>Available</th>
+            <th>Shortage</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let request of requests">
+
+            <td>{{ request.projectName || request.projectId }}</td>
+
+            <td>
+              {{ request.itemName }}
+              <div class="small-text" *ngIf="request.description">
+                {{ request.description }}
+              </div>
+            </td>
+
+            <td>{{ request.categoryName || '-' }}</td>
+
+            <td>{{ request.quantity }} {{ request.unit }}</td>
+
+            <td>{{ request.availableQuantity ?? '-' }}</td>
+
+            <td>{{ request.shortageQuantity ?? '-' }}</td>
+
+            <td>{{ request.priority }}</td>
+
+            <td>
+              <span class="status-badge">{{ request.status }}</span>
+            </td>
+
+            <td class="action-cell">
+
+              <button *ngIf="request.status === 'Pending'"
+                      class="primary-btn"
+                      (click)="approveRequest(request)">
+                Approve
+              </button>
+
+              <button *ngIf="request.status === 'Pending'"
+                      class="danger-btn"
+                      (click)="rejectRequest(request)">
+                Reject
+              </button>
+
+              <span *ngIf="request.status !== 'Pending'">-</span>
+
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="requests.length === 0">
+      No procurement requests found.
+    </div>
+
+  </div>
+
+  <!-- PURCHASE ORDERS -->
+  <div *ngIf="activeTab === 'orders'" class="tab-content">
+
+    <div class="section-header">
+      <div>
+        <h3>Purchase Orders</h3>
+        <p>Create orders and receive goods into inventory.</p>
+      </div>
+
+      <button class="primary-btn" (click)="showOrderForm = !showOrderForm">
+        {{ showOrderForm ? 'Cancel' : 'Create Purchase Order' }}
+      </button>
+    </div>
+
+    <form *ngIf="showOrderForm" class="form-grid" (ngSubmit)="createPurchaseOrder()">
+
+      <select name="poVendor" [(ngModel)]="newOrder.vendor_id" required>
+        <option value="">Select Vendor</option>
+        <option *ngFor="let vendor of vendors" [value]="vendor.id">
+          {{ vendor.name }}
+        </option>
+      </select>
+
+      <select name="poRequest" [(ngModel)]="newOrder.request_id" required>
+        <option value="">Select Approved Request</option>
+        <option *ngFor="let request of approvedRequests()" [value]="request.id">
+          {{ request.itemName }} - {{ request.quantity }} {{ request.unit }}
+        </option>
+      </select>
+
+      <input type="date" name="orderDate"
+             [(ngModel)]="newOrder.order_date">
+
+      <input type="date" name="deliveryDate"
+             [(ngModel)]="newOrder.expected_delivery_date">
+
+      <input type="text" name="orderRemarks"
+             [(ngModel)]="newOrder.remarks"
+             placeholder="Remarks">
+
+      <button type="submit" class="primary-btn">
+        Create Order
+      </button>
+
+    </form>
+
+    <div class="table-wrapper" *ngIf="purchaseOrders.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>PO Number</th>
+            <th>Vendor</th>
+            <th>Status</th>
+            <th>Order Date</th>
+            <th>Expected Delivery</th>
+            <th>Inventory</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let order of purchaseOrders">
+            <td>
+              {{ order.po_number || order.poNumber || order.id }}
+            </td>
+
+            <td>
+              {{ order.vendor?.name || vendorNameById(order.vendor_id || order.vendorId) || '-' }}
+            </td>
+
+            <td>{{ order.status || '-' }}</td>
+
+            <td>
+              {{ order.order_date || order.orderDate || '-' }}
+            </td>
+
+            <td>
+              {{ order.expected_delivery_date || order.expectedDeliveryDate || '-' }}
+            </td>
+
+            <td>
+              <button class="primary-btn"
+                      (click)="openReceiveGoods(order)">
+                Receive Goods
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="purchaseOrders.length === 0">
+      No purchase orders found.
+    </div>
+
+    <!-- GOODS RECEIPT -->
+    <div class="receipt-panel" *ngIf="showReceiveForm">
+
+      <div class="section-header">
+        <div>
+          <h3>Receive Goods</h3>
+          <p>Saving this receipt updates inventory through the backend.</p>
+        </div>
+
+        <button type="button"
+                class="secondary-btn"
+                (click)="showReceiveForm = false">
+          Cancel
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <input type="date"
+               name="receivedDate"
+               [(ngModel)]="receiveForm.received_date">
+
+        <input type="text"
+               name="receiptRemarks"
+               [(ngModel)]="receiveForm.remarks"
+               placeholder="Receipt remarks">
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Ordered Quantity</th>
+              <th>Received Quantity</th>
+              <th>Unit</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let item of receiveForm.items">
+              <td>{{ item.item_name || '-' }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>
+                <input type="number"
+                       min="0"
+                       [max]="item.quantity"
+                       [(ngModel)]="item.received_quantity"
+                       [name]="'received_' + item.purchase_order_item_id">
+              </td>
+              <td>{{ item.unit }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button class="primary-btn receive-btn"
+              (click)="receiveGoods()">
+        Confirm Goods Receipt & Update Inventory
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- INVOICES + PAYMENTS -->
+  <div *ngIf="activeTab === 'invoices'" class="tab-content">
+
+    <div class="section-header">
+      <div>
+        <h3>Invoices & Payments</h3>
+        <p>Invoice payment status is calculated from actual backend payment data.</p>
+      </div>
+
+      <button class="primary-btn"
+              (click)="showInvoiceForm = !showInvoiceForm">
+        {{ showInvoiceForm ? 'Cancel' : 'Add Invoice' }}
+      </button>
+    </div>
+
+    <form *ngIf="showInvoiceForm"
+          class="form-grid"
+          (ngSubmit)="createInvoice()">
+
+      <select name="invoiceVendor"
+              [(ngModel)]="newInvoice.vendor_id"
+              required>
+        <option value="">Select Vendor</option>
+        <option *ngFor="let vendor of vendors" [value]="vendor.id">
+          {{ vendor.name }}
+        </option>
+      </select>
+
+      <select name="invoicePO"
+              [(ngModel)]="newInvoice.purchase_order_id">
+        <option value="">Select Purchase Order</option>
+        <option *ngFor="let order of purchaseOrders" [value]="order.id">
+          {{ order.po_number || order.poNumber || order.id }}
+        </option>
+      </select>
+
+      <input type="text"
+             name="invoiceNumber"
+             [(ngModel)]="newInvoice.invoice_number"
+             placeholder="Invoice number"
+             required>
+
+      <input type="date"
+             name="invoiceDate"
+             [(ngModel)]="newInvoice.invoice_date">
+
+      <input type="date"
+             name="dueDate"
+             [(ngModel)]="newInvoice.due_date">
+
+      <input type="number"
+             name="invoiceAmount"
+             [(ngModel)]="newInvoice.total_amount"
+             min="0.01"
+             step="0.01"
+             placeholder="Total amount">
+
+      <input type="text"
+             name="invoiceRemarks"
+             [(ngModel)]="newInvoice.remarks"
+             placeholder="Remarks">
+
+      <button type="submit" class="primary-btn">
+        Save Invoice
+      </button>
+
+    </form>
+
+    <div class="table-wrapper" *ngIf="invoices.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Vendor</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Remaining</th>
+            <th>Status</th>
+            <th>Payment</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let invoice of invoices">
+
+            <td>{{ invoiceNumber(invoice) }}</td>
+
+            <td>{{ invoiceVendor(invoice) }}</td>
+
+            <td>{{ formatCurrency(invoiceTotal(invoice)) }}</td>
+
+            <td>{{ formatCurrency(invoicePaid(invoice)) }}</td>
+
+            <td>{{ formatCurrency(invoiceRemaining(invoice)) }}</td>
+
+            <td>
+              <span class="status-badge">
+                {{ invoiceStatus(invoice) }}
+              </span>
+            </td>
+
+            <td>
+              <button *ngIf="invoiceRemaining(invoice) > 0"
+                      class="primary-btn"
+                      (click)="selectInvoiceForPayment(invoice)">
+                Pay
+              </button>
+
+              <span *ngIf="invoiceRemaining(invoice) <= 0">
+                Completed
+              </span>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="invoices.length === 0">
+      No invoices found.
+    </div>
+
+    <!-- PAYMENT FORM -->
+    <div class="payment-panel" *ngIf="paymentForm.invoiceId">
+
+      <h3>Record Payment</h3>
+
+      <div class="form-grid">
+
+        <input type="number"
+               name="paymentAmount"
+               [(ngModel)]="paymentForm.amount"
+               min="0.01"
+               step="0.01"
+               placeholder="Payment amount">
+
+        <input type="date"
+               name="paymentDate"
+               [(ngModel)]="paymentForm.payment_date">
+
+        <select name="paymentMethod"
+                [(ngModel)]="paymentForm.payment_method">
+          <option value="Cash">Cash</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="UPI">UPI</option>
+          <option value="Cheque">Cheque</option>
+          <option value="Card">Card</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <input type="text"
+               name="paymentReference"
+               [(ngModel)]="paymentForm.reference_number"
+               placeholder="Reference number">
+
+        <input type="text"
+               name="paymentRemarks"
+               [(ngModel)]="paymentForm.remarks"
+               placeholder="Remarks">
+
+        <button class="primary-btn"
+                (click)="recordPayment()">
+          Record Payment
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- PAYMENT HISTORY -->
+    <div class="history-section" *ngIf="payments.length > 0">
+
+      <h3>Payment History</h3>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Method</th>
+              <th>Reference</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let payment of payments">
+              <td>{{ payment.invoiceNumber || '-' }}</td>
+              <td>{{ formatCurrency(paymentAmount(payment)) }}</td>
+              <td>{{ paymentDate(payment) }}</td>
+              <td>{{ paymentMethod(payment) }}</td>
+              <td>{{ paymentReference(payment) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,227 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import * as i0 from "@angular/core";
+import * as i1 from "@angular/common";
+function ProcurementComponent_div_26_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 11)(1, "div", 12)(2, "div", 13)(3, "div", 14);
+    i0.ɵɵelement(4, "i", 5);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(5, "div")(6, "p");
+    i0.ɵɵtext(7, "Total Categories");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(8, "h3");
+    i0.ɵɵtext(9, "0");
+    i0.ɵɵelementEnd()()();
+    i0.ɵɵelementStart(10, "div", 13)(11, "div", 15);
+    i0.ɵɵelement(12, "i", 6);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(13, "div")(14, "p");
+    i0.ɵɵtext(15, "Total Vendors");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(16, "h3");
+    i0.ɵɵtext(17, "0");
+    i0.ɵɵelementEnd()()();
+    i0.ɵɵelementStart(18, "div", 13)(19, "div", 16);
+    i0.ɵɵelement(20, "i", 7);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(21, "div")(22, "p");
+    i0.ɵɵtext(23, "Procurement Requests");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(24, "h3");
+    i0.ɵɵtext(25, "0");
+    i0.ɵɵelementEnd()()();
+    i0.ɵɵelementStart(26, "div", 13)(27, "div", 17);
+    i0.ɵɵelement(28, "i", 8);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(29, "div")(30, "p");
+    i0.ɵɵtext(31, "Purchase Orders");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(32, "h3");
+    i0.ɵɵtext(33, "0");
+    i0.ɵɵelementEnd()()()();
+    i0.ɵɵelementStart(34, "div", 18);
+    i0.ɵɵelement(35, "i", 19);
+    i0.ɵɵelementStart(36, "div")(37, "h4");
+    i0.ɵɵtext(38, "Procurement Overview");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(39, "p");
+    i0.ɵɵtext(40, " Use the tabs above to manage material categories, vendors, procurement requests, purchase orders and invoices. ");
+    i0.ɵɵelementEnd()()()();
+} }
+function ProcurementComponent_div_27_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 11)(1, "div", 20)(2, "div")(3, "h3");
+    i0.ɵɵtext(4, "Material Categories");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(5, "p");
+    i0.ɵɵtext(6, "Create and manage procurement material categories.");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(7, "button", 21);
+    i0.ɵɵelement(8, "i", 22);
+    i0.ɵɵtext(9, " Add Category ");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(10, "div", 23);
+    i0.ɵɵelement(11, "i", 24);
+    i0.ɵɵelementStart(12, "h3");
+    i0.ɵɵtext(13, "No Categories Yet");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(14, "p");
+    i0.ɵɵtext(15, "Categories from the procurement system will appear here.");
+    i0.ɵɵelementEnd()()();
+} }
+function ProcurementComponent_div_28_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 11)(1, "div", 20)(2, "div")(3, "h3");
+    i0.ɵɵtext(4, "Vendors");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(5, "p");
+    i0.ɵɵtext(6, "Manage suppliers and vendors.");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(7, "button", 21);
+    i0.ɵɵelement(8, "i", 22);
+    i0.ɵɵtext(9, " Add Vendor ");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(10, "div", 23);
+    i0.ɵɵelement(11, "i", 25);
+    i0.ɵɵelementStart(12, "h3");
+    i0.ɵɵtext(13, "No Vendors Yet");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(14, "p");
+    i0.ɵɵtext(15, "Registered vendors will appear here.");
+    i0.ɵɵelementEnd()()();
+} }
+function ProcurementComponent_div_29_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 11)(1, "div", 20)(2, "div")(3, "h3");
+    i0.ɵɵtext(4, "Procurement Requests");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(5, "p");
+    i0.ɵɵtext(6, "View and manage material procurement requests.");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(7, "button", 21);
+    i0.ɵɵelement(8, "i", 22);
+    i0.ɵɵtext(9, " New Request ");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(10, "div", 23);
+    i0.ɵɵelement(11, "i", 26);
+    i0.ɵɵelementStart(12, "h3");
+    i0.ɵɵtext(13, "No Requests Yet");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(14, "p");
+    i0.ɵɵtext(15, "Procurement requests will appear here.");
+    i0.ɵɵelementEnd()()();
+} }
+function ProcurementComponent_div_30_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 11)(1, "div", 20)(2, "div")(3, "h3");
+    i0.ɵɵtext(4, "Purchase Orders");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(5, "p");
+    i0.ɵɵtext(6, "Track and manage purchase orders.");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(7, "button", 21);
+    i0.ɵɵelement(8, "i", 22);
+    i0.ɵɵtext(9, " Create Purchase Order ");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(10, "div", 23);
+    i0.ɵɵelement(11, "i", 27);
+    i0.ɵɵelementStart(12, "h3");
+    i0.ɵɵtext(13, "No Purchase Orders Yet");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(14, "p");
+    i0.ɵɵtext(15, "Purchase orders will appear here.");
+    i0.ɵɵelementEnd()()();
+} }
+function ProcurementComponent_div_31_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 11)(1, "div", 20)(2, "div")(3, "h3");
+    i0.ɵɵtext(4, "Invoices");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(5, "p");
+    i0.ɵɵtext(6, "Track vendor invoices and payment status.");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(7, "button", 21);
+    i0.ɵɵelement(8, "i", 22);
+    i0.ɵɵtext(9, " Add Invoice ");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(10, "div", 23);
+    i0.ɵɵelement(11, "i", 28);
+    i0.ɵɵelementStart(12, "h3");
+    i0.ɵɵtext(13, "No Invoices Yet");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(14, "p");
+    i0.ɵɵtext(15, "Invoices will appear here.");
+    i0.ɵɵelementEnd()()();
+} }
+export class ProcurementComponent {
+    activeTab = 'dashboard';
+    setActiveTab(tab) {
+        this.activeTab = tab;
+    }
+    static ɵfac = function ProcurementComponent_Factory(__ngFactoryType__) { return new (__ngFactoryType__ || ProcurementComponent)(); };
+    static ɵcmp = /*@__PURE__*/ i0.ɵɵdefineComponent({ type: ProcurementComponent, selectors: [["app-procurement"]], decls: 32, vars: 18, consts: [[1, "procurement-container"], [1, "page-header"], [1, "procurement-tabs"], [3, "click"], [1, "bi", "bi-grid-fill"], [1, "bi", "bi-tags-fill"], [1, "bi", "bi-people-fill"], [1, "bi", "bi-clipboard-check-fill"], [1, "bi", "bi-cart-check-fill"], [1, "bi", "bi-receipt-cutoff"], ["class", "tab-content", 4, "ngIf"], [1, "tab-content"], [1, "stats-grid"], [1, "stat-card"], [1, "stat-icon", "categories"], [1, "stat-icon", "vendors"], [1, "stat-icon", "requests"], [1, "stat-icon", "orders"], [1, "info-card"], [1, "bi", "bi-info-circle-fill"], [1, "section-header"], [1, "primary-btn"], [1, "bi", "bi-plus-lg"], [1, "empty-state"], [1, "bi", "bi-tags"], [1, "bi", "bi-building"], [1, "bi", "bi-clipboard-x"], [1, "bi", "bi-cart-x"], [1, "bi", "bi-receipt"]], template: function ProcurementComponent_Template(rf, ctx) { if (rf & 1) {
+            i0.ɵɵelementStart(0, "div", 0)(1, "div", 1)(2, "div")(3, "h2");
+            i0.ɵɵtext(4, "Procurement Management");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(5, "p");
+            i0.ɵɵtext(6, "Manage procurement activities, vendors, purchase orders and invoices.");
+            i0.ɵɵelementEnd()()();
+            i0.ɵɵelementStart(7, "div", 2)(8, "button", 3);
+            i0.ɵɵlistener("click", function ProcurementComponent_Template_button_click_8_listener() { return ctx.setActiveTab("dashboard"); });
+            i0.ɵɵelement(9, "i", 4);
+            i0.ɵɵtext(10, " Dashboard ");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(11, "button", 3);
+            i0.ɵɵlistener("click", function ProcurementComponent_Template_button_click_11_listener() { return ctx.setActiveTab("categories"); });
+            i0.ɵɵelement(12, "i", 5);
+            i0.ɵɵtext(13, " Categories ");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(14, "button", 3);
+            i0.ɵɵlistener("click", function ProcurementComponent_Template_button_click_14_listener() { return ctx.setActiveTab("vendors"); });
+            i0.ɵɵelement(15, "i", 6);
+            i0.ɵɵtext(16, " Vendors ");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(17, "button", 3);
+            i0.ɵɵlistener("click", function ProcurementComponent_Template_button_click_17_listener() { return ctx.setActiveTab("requests"); });
+            i0.ɵɵelement(18, "i", 7);
+            i0.ɵɵtext(19, " Requests ");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(20, "button", 3);
+            i0.ɵɵlistener("click", function ProcurementComponent_Template_button_click_20_listener() { return ctx.setActiveTab("orders"); });
+            i0.ɵɵelement(21, "i", 8);
+            i0.ɵɵtext(22, " Purchase Orders ");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(23, "button", 3);
+            i0.ɵɵlistener("click", function ProcurementComponent_Template_button_click_23_listener() { return ctx.setActiveTab("invoices"); });
+            i0.ɵɵelement(24, "i", 9);
+            i0.ɵɵtext(25, " Invoices ");
+            i0.ɵɵelementEnd()();
+            i0.ɵɵtemplate(26, ProcurementComponent_div_26_Template, 41, 0, "div", 10)(27, ProcurementComponent_div_27_Template, 16, 0, "div", 10)(28, ProcurementComponent_div_28_Template, 16, 0, "div", 10)(29, ProcurementComponent_div_29_Template, 16, 0, "div", 10)(30, ProcurementComponent_div_30_Template, 16, 0, "div", 10)(31, ProcurementComponent_div_31_Template, 16, 0, "div", 10);
+            i0.ɵɵelementEnd();
+        } if (rf & 2) {
+            i0.ɵɵadvance(8);
+            i0.ɵɵclassProp("active", ctx.activeTab === "dashboard");
+            i0.ɵɵadvance(3);
+            i0.ɵɵclassProp("active", ctx.activeTab === "categories");
+            i0.ɵɵadvance(3);
+            i0.ɵɵclassProp("active", ctx.activeTab === "vendors");
+            i0.ɵɵadvance(3);
+            i0.ɵɵclassProp("active", ctx.activeTab === "requests");
+            i0.ɵɵadvance(3);
+            i0.ɵɵclassProp("active", ctx.activeTab === "orders");
+            i0.ɵɵadvance(3);
+            i0.ɵɵclassProp("active", ctx.activeTab === "invoices");
+            i0.ɵɵadvance(3);
+            i0.ɵɵproperty("ngIf", ctx.activeTab === "dashboard");
+            i0.ɵɵadvance();
+            i0.ɵɵproperty("ngIf", ctx.activeTab === "categories");
+            i0.ɵɵadvance();
+            i0.ɵɵproperty("ngIf", ctx.activeTab === "vendors");
+            i0.ɵɵadvance();
+            i0.ɵɵproperty("ngIf", ctx.activeTab === "requests");
+            i0.ɵɵadvance();
+            i0.ɵɵproperty("ngIf", ctx.activeTab === "orders");
+            i0.ɵɵadvance();
+            i0.ɵɵproperty("ngIf", ctx.activeTab === "invoices");
+        } }, dependencies: [CommonModule, i1.NgIf], styles: [".procurement-container[_ngcontent-%COMP%] {\r\n  width: 100%;\r\n  padding: 10px;\r\n}\r\n\r\n\r\n.page-header[_ngcontent-%COMP%] {\r\n  margin-bottom: 24px;\r\n}\r\n\r\n.page-header[_ngcontent-%COMP%]   h2[_ngcontent-%COMP%] {\r\n  margin: 0 0 6px;\r\n  font-size: 28px;\r\n  font-weight: 700;\r\n}\r\n\r\n.page-header[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n\r\n.procurement-tabs[_ngcontent-%COMP%] {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 10px;\r\n  padding-bottom: 20px;\r\n  border-bottom: 1px solid #e9ecef;\r\n}\r\n\r\n.procurement-tabs[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\r\n  border: 1px solid #dee2e6;\r\n  background: #ffffff;\r\n  color: #495057;\r\n  padding: 10px 16px;\r\n  border-radius: 8px;\r\n  cursor: pointer;\r\n  font-size: 14px;\r\n  transition: all 0.2s ease;\r\n}\r\n\r\n.procurement-tabs[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\r\n  margin-right: 7px;\r\n}\r\n\r\n.procurement-tabs[_ngcontent-%COMP%]   button[_ngcontent-%COMP%]:hover {\r\n  background: #f8f9fa;\r\n}\r\n\r\n.procurement-tabs[_ngcontent-%COMP%]   button.active[_ngcontent-%COMP%] {\r\n  background: #0d6efd;\r\n  color: #ffffff;\r\n  border-color: #0d6efd;\r\n}\r\n\r\n\r\n.tab-content[_ngcontent-%COMP%] {\r\n  padding-top: 25px;\r\n}\r\n\r\n\r\n.stats-grid[_ngcontent-%COMP%] {\r\n  display: grid;\r\n  grid-template-columns: repeat(4, minmax(180px, 1fr));\r\n  gap: 20px;\r\n  margin-bottom: 25px;\r\n}\r\n\r\n.stat-card[_ngcontent-%COMP%] {\r\n  background: #ffffff;\r\n  border: 1px solid #e9ecef;\r\n  border-radius: 12px;\r\n  padding: 20px;\r\n  display: flex;\r\n  align-items: center;\r\n  gap: 15px;\r\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);\r\n}\r\n\r\n.stat-card[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\r\n  margin: 0 0 5px;\r\n  color: #6c757d;\r\n  font-size: 14px;\r\n}\r\n\r\n.stat-card[_ngcontent-%COMP%]   h3[_ngcontent-%COMP%] {\r\n  margin: 0;\r\n  font-size: 26px;\r\n  font-weight: 700;\r\n}\r\n\r\n.stat-icon[_ngcontent-%COMP%] {\r\n  width: 50px;\r\n  height: 50px;\r\n  border-radius: 10px;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  font-size: 22px;\r\n}\r\n\r\n.categories[_ngcontent-%COMP%] {\r\n  background: #e7f1ff;\r\n  color: #0d6efd;\r\n}\r\n\r\n.vendors[_ngcontent-%COMP%] {\r\n  background: #e8f7ee;\r\n  color: #198754;\r\n}\r\n\r\n.requests[_ngcontent-%COMP%] {\r\n  background: #fff3cd;\r\n  color: #b58100;\r\n}\r\n\r\n.orders[_ngcontent-%COMP%] {\r\n  background: #f3e8ff;\r\n  color: #6f42c1;\r\n}\r\n\r\n\r\n.info-card[_ngcontent-%COMP%] {\r\n  background: #ffffff;\r\n  border: 1px solid #e9ecef;\r\n  border-radius: 12px;\r\n  padding: 22px;\r\n  display: flex;\r\n  gap: 15px;\r\n  align-items: flex-start;\r\n}\r\n\r\n.info-card[_ngcontent-%COMP%]    > i[_ngcontent-%COMP%] {\r\n  font-size: 24px;\r\n  color: #0d6efd;\r\n}\r\n\r\n.info-card[_ngcontent-%COMP%]   h4[_ngcontent-%COMP%] {\r\n  margin: 0 0 7px;\r\n}\r\n\r\n.info-card[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n\r\n.section-header[_ngcontent-%COMP%] {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  margin-bottom: 25px;\r\n}\r\n\r\n.section-header[_ngcontent-%COMP%]   h3[_ngcontent-%COMP%] {\r\n  margin: 0 0 5px;\r\n  font-size: 22px;\r\n}\r\n\r\n.section-header[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n\r\n.primary-btn[_ngcontent-%COMP%] {\r\n  border: none;\r\n  background: #0d6efd;\r\n  color: white;\r\n  padding: 10px 16px;\r\n  border-radius: 7px;\r\n  cursor: pointer;\r\n  font-size: 14px;\r\n}\r\n\r\n.primary-btn[_ngcontent-%COMP%]   i[_ngcontent-%COMP%] {\r\n  margin-right: 6px;\r\n}\r\n\r\n.primary-btn[_ngcontent-%COMP%]:hover {\r\n  opacity: 0.9;\r\n}\r\n\r\n\r\n.empty-state[_ngcontent-%COMP%] {\r\n  min-height: 300px;\r\n  border: 1px dashed #ced4da;\r\n  border-radius: 12px;\r\n  background: #ffffff;\r\n  display: flex;\r\n  flex-direction: column;\r\n  justify-content: center;\r\n  align-items: center;\r\n  text-align: center;\r\n}\r\n\r\n.empty-state[_ngcontent-%COMP%]    > i[_ngcontent-%COMP%] {\r\n  font-size: 45px;\r\n  color: #adb5bd;\r\n  margin-bottom: 15px;\r\n}\r\n\r\n.empty-state[_ngcontent-%COMP%]   h3[_ngcontent-%COMP%] {\r\n  margin: 0 0 8px;\r\n}\r\n\r\n.empty-state[_ngcontent-%COMP%]   p[_ngcontent-%COMP%] {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n\r\n@media (max-width: 1200px) {\r\n  .stats-grid[_ngcontent-%COMP%] {\r\n    grid-template-columns: repeat(2, 1fr);\r\n  }\r\n}\r\n\r\n@media (max-width: 768px) {\r\n  .procurement-container[_ngcontent-%COMP%] {\r\n    padding: 0;\r\n  }\r\n\r\n  .stats-grid[_ngcontent-%COMP%] {\r\n    grid-template-columns: 1fr;\r\n  }\r\n\r\n  .section-header[_ngcontent-%COMP%] {\r\n    flex-direction: column;\r\n    align-items: flex-start;\r\n    gap: 15px;\r\n  }\r\n\r\n  .procurement-tabs[_ngcontent-%COMP%] {\r\n    gap: 8px;\r\n  }\r\n\r\n  .procurement-tabs[_ngcontent-%COMP%]   button[_ngcontent-%COMP%] {\r\n    padding: 9px 12px;\r\n  }\r\n}"] });
+}
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassMetadata(ProcurementComponent, [{
+        type: Component,
+        args: [{ selector: 'app-procurement', standalone: true, imports: [CommonModule], template: "<div class=\"procurement-container\">\r\n\r\n  <!-- Header -->\r\n  <div class=\"page-header\">\r\n    <div>\r\n      <h2>Procurement Management</h2>\r\n      <p>Manage procurement activities, vendors, purchase orders and invoices.</p>\r\n    </div>\r\n  </div>\r\n\r\n  <!-- Tabs -->\r\n  <div class=\"procurement-tabs\">\r\n\r\n    <button\r\n      [class.active]=\"activeTab === 'dashboard'\"\r\n      (click)=\"setActiveTab('dashboard')\">\r\n      <i class=\"bi bi-grid-fill\"></i>\r\n      Dashboard\r\n    </button>\r\n\r\n    <button\r\n      [class.active]=\"activeTab === 'categories'\"\r\n      (click)=\"setActiveTab('categories')\">\r\n      <i class=\"bi bi-tags-fill\"></i>\r\n      Categories\r\n    </button>\r\n\r\n    <button\r\n      [class.active]=\"activeTab === 'vendors'\"\r\n      (click)=\"setActiveTab('vendors')\">\r\n      <i class=\"bi bi-people-fill\"></i>\r\n      Vendors\r\n    </button>\r\n\r\n    <button\r\n      [class.active]=\"activeTab === 'requests'\"\r\n      (click)=\"setActiveTab('requests')\">\r\n      <i class=\"bi bi-clipboard-check-fill\"></i>\r\n      Requests\r\n    </button>\r\n\r\n    <button\r\n      [class.active]=\"activeTab === 'orders'\"\r\n      (click)=\"setActiveTab('orders')\">\r\n      <i class=\"bi bi-cart-check-fill\"></i>\r\n      Purchase Orders\r\n    </button>\r\n\r\n    <button\r\n      [class.active]=\"activeTab === 'invoices'\"\r\n      (click)=\"setActiveTab('invoices')\">\r\n      <i class=\"bi bi-receipt-cutoff\"></i>\r\n      Invoices\r\n    </button>\r\n\r\n  </div>\r\n\r\n  <!-- Dashboard -->\r\n  <div *ngIf=\"activeTab === 'dashboard'\" class=\"tab-content\">\r\n\r\n    <div class=\"stats-grid\">\r\n\r\n      <div class=\"stat-card\">\r\n        <div class=\"stat-icon categories\">\r\n          <i class=\"bi bi-tags-fill\"></i>\r\n        </div>\r\n        <div>\r\n          <p>Total Categories</p>\r\n          <h3>0</h3>\r\n        </div>\r\n      </div>\r\n\r\n      <div class=\"stat-card\">\r\n        <div class=\"stat-icon vendors\">\r\n          <i class=\"bi bi-people-fill\"></i>\r\n        </div>\r\n        <div>\r\n          <p>Total Vendors</p>\r\n          <h3>0</h3>\r\n        </div>\r\n      </div>\r\n\r\n      <div class=\"stat-card\">\r\n        <div class=\"stat-icon requests\">\r\n          <i class=\"bi bi-clipboard-check-fill\"></i>\r\n        </div>\r\n        <div>\r\n          <p>Procurement Requests</p>\r\n          <h3>0</h3>\r\n        </div>\r\n      </div>\r\n\r\n      <div class=\"stat-card\">\r\n        <div class=\"stat-icon orders\">\r\n          <i class=\"bi bi-cart-check-fill\"></i>\r\n        </div>\r\n        <div>\r\n          <p>Purchase Orders</p>\r\n          <h3>0</h3>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"info-card\">\r\n      <i class=\"bi bi-info-circle-fill\"></i>\r\n      <div>\r\n        <h4>Procurement Overview</h4>\r\n        <p>\r\n          Use the tabs above to manage material categories, vendors,\r\n          procurement requests, purchase orders and invoices.\r\n        </p>\r\n      </div>\r\n    </div>\r\n\r\n  </div>\r\n\r\n  <!-- Categories -->\r\n  <div *ngIf=\"activeTab === 'categories'\" class=\"tab-content\">\r\n\r\n    <div class=\"section-header\">\r\n      <div>\r\n        <h3>Material Categories</h3>\r\n        <p>Create and manage procurement material categories.</p>\r\n      </div>\r\n\r\n      <button class=\"primary-btn\">\r\n        <i class=\"bi bi-plus-lg\"></i>\r\n        Add Category\r\n      </button>\r\n    </div>\r\n\r\n    <div class=\"empty-state\">\r\n      <i class=\"bi bi-tags\"></i>\r\n      <h3>No Categories Yet</h3>\r\n      <p>Categories from the procurement system will appear here.</p>\r\n    </div>\r\n\r\n  </div>\r\n\r\n  <!-- Vendors -->\r\n  <div *ngIf=\"activeTab === 'vendors'\" class=\"tab-content\">\r\n\r\n    <div class=\"section-header\">\r\n      <div>\r\n        <h3>Vendors</h3>\r\n        <p>Manage suppliers and vendors.</p>\r\n      </div>\r\n\r\n      <button class=\"primary-btn\">\r\n        <i class=\"bi bi-plus-lg\"></i>\r\n        Add Vendor\r\n      </button>\r\n    </div>\r\n\r\n    <div class=\"empty-state\">\r\n      <i class=\"bi bi-building\"></i>\r\n      <h3>No Vendors Yet</h3>\r\n      <p>Registered vendors will appear here.</p>\r\n    </div>\r\n\r\n  </div>\r\n\r\n  <!-- Requests -->\r\n  <div *ngIf=\"activeTab === 'requests'\" class=\"tab-content\">\r\n\r\n    <div class=\"section-header\">\r\n      <div>\r\n        <h3>Procurement Requests</h3>\r\n        <p>View and manage material procurement requests.</p>\r\n      </div>\r\n\r\n      <button class=\"primary-btn\">\r\n        <i class=\"bi bi-plus-lg\"></i>\r\n        New Request\r\n      </button>\r\n    </div>\r\n\r\n    <div class=\"empty-state\">\r\n      <i class=\"bi bi-clipboard-x\"></i>\r\n      <h3>No Requests Yet</h3>\r\n      <p>Procurement requests will appear here.</p>\r\n    </div>\r\n\r\n  </div>\r\n\r\n  <!-- Purchase Orders -->\r\n  <div *ngIf=\"activeTab === 'orders'\" class=\"tab-content\">\r\n\r\n    <div class=\"section-header\">\r\n      <div>\r\n        <h3>Purchase Orders</h3>\r\n        <p>Track and manage purchase orders.</p>\r\n      </div>\r\n\r\n      <button class=\"primary-btn\">\r\n        <i class=\"bi bi-plus-lg\"></i>\r\n        Create Purchase Order\r\n      </button>\r\n    </div>\r\n\r\n    <div class=\"empty-state\">\r\n      <i class=\"bi bi-cart-x\"></i>\r\n      <h3>No Purchase Orders Yet</h3>\r\n      <p>Purchase orders will appear here.</p>\r\n    </div>\r\n\r\n  </div>\r\n\r\n  <!-- Invoices -->\r\n  <div *ngIf=\"activeTab === 'invoices'\" class=\"tab-content\">\r\n\r\n    <div class=\"section-header\">\r\n      <div>\r\n        <h3>Invoices</h3>\r\n        <p>Track vendor invoices and payment status.</p>\r\n      </div>\r\n\r\n      <button class=\"primary-btn\">\r\n        <i class=\"bi bi-plus-lg\"></i>\r\n        Add Invoice\r\n      </button>\r\n    </div>\r\n\r\n    <div class=\"empty-state\">\r\n      <i class=\"bi bi-receipt\"></i>\r\n      <h3>No Invoices Yet</h3>\r\n      <p>Invoices will appear here.</p>\r\n    </div>\r\n\r\n  </div>\r\n\r\n</div>\r\n", styles: [".procurement-container {\r\n  width: 100%;\r\n  padding: 10px;\r\n}\r\n\r\n/* Header */\r\n.page-header {\r\n  margin-bottom: 24px;\r\n}\r\n\r\n.page-header h2 {\r\n  margin: 0 0 6px;\r\n  font-size: 28px;\r\n  font-weight: 700;\r\n}\r\n\r\n.page-header p {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n/* Tabs */\r\n.procurement-tabs {\r\n  display: flex;\r\n  flex-wrap: wrap;\r\n  gap: 10px;\r\n  padding-bottom: 20px;\r\n  border-bottom: 1px solid #e9ecef;\r\n}\r\n\r\n.procurement-tabs button {\r\n  border: 1px solid #dee2e6;\r\n  background: #ffffff;\r\n  color: #495057;\r\n  padding: 10px 16px;\r\n  border-radius: 8px;\r\n  cursor: pointer;\r\n  font-size: 14px;\r\n  transition: all 0.2s ease;\r\n}\r\n\r\n.procurement-tabs button i {\r\n  margin-right: 7px;\r\n}\r\n\r\n.procurement-tabs button:hover {\r\n  background: #f8f9fa;\r\n}\r\n\r\n.procurement-tabs button.active {\r\n  background: #0d6efd;\r\n  color: #ffffff;\r\n  border-color: #0d6efd;\r\n}\r\n\r\n/* Content */\r\n.tab-content {\r\n  padding-top: 25px;\r\n}\r\n\r\n/* Statistics */\r\n.stats-grid {\r\n  display: grid;\r\n  grid-template-columns: repeat(4, minmax(180px, 1fr));\r\n  gap: 20px;\r\n  margin-bottom: 25px;\r\n}\r\n\r\n.stat-card {\r\n  background: #ffffff;\r\n  border: 1px solid #e9ecef;\r\n  border-radius: 12px;\r\n  padding: 20px;\r\n  display: flex;\r\n  align-items: center;\r\n  gap: 15px;\r\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);\r\n}\r\n\r\n.stat-card p {\r\n  margin: 0 0 5px;\r\n  color: #6c757d;\r\n  font-size: 14px;\r\n}\r\n\r\n.stat-card h3 {\r\n  margin: 0;\r\n  font-size: 26px;\r\n  font-weight: 700;\r\n}\r\n\r\n.stat-icon {\r\n  width: 50px;\r\n  height: 50px;\r\n  border-radius: 10px;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  font-size: 22px;\r\n}\r\n\r\n.categories {\r\n  background: #e7f1ff;\r\n  color: #0d6efd;\r\n}\r\n\r\n.vendors {\r\n  background: #e8f7ee;\r\n  color: #198754;\r\n}\r\n\r\n.requests {\r\n  background: #fff3cd;\r\n  color: #b58100;\r\n}\r\n\r\n.orders {\r\n  background: #f3e8ff;\r\n  color: #6f42c1;\r\n}\r\n\r\n/* Info Card */\r\n.info-card {\r\n  background: #ffffff;\r\n  border: 1px solid #e9ecef;\r\n  border-radius: 12px;\r\n  padding: 22px;\r\n  display: flex;\r\n  gap: 15px;\r\n  align-items: flex-start;\r\n}\r\n\r\n.info-card > i {\r\n  font-size: 24px;\r\n  color: #0d6efd;\r\n}\r\n\r\n.info-card h4 {\r\n  margin: 0 0 7px;\r\n}\r\n\r\n.info-card p {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n/* Section Header */\r\n.section-header {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  margin-bottom: 25px;\r\n}\r\n\r\n.section-header h3 {\r\n  margin: 0 0 5px;\r\n  font-size: 22px;\r\n}\r\n\r\n.section-header p {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n/* Button */\r\n.primary-btn {\r\n  border: none;\r\n  background: #0d6efd;\r\n  color: white;\r\n  padding: 10px 16px;\r\n  border-radius: 7px;\r\n  cursor: pointer;\r\n  font-size: 14px;\r\n}\r\n\r\n.primary-btn i {\r\n  margin-right: 6px;\r\n}\r\n\r\n.primary-btn:hover {\r\n  opacity: 0.9;\r\n}\r\n\r\n/* Empty State */\r\n.empty-state {\r\n  min-height: 300px;\r\n  border: 1px dashed #ced4da;\r\n  border-radius: 12px;\r\n  background: #ffffff;\r\n  display: flex;\r\n  flex-direction: column;\r\n  justify-content: center;\r\n  align-items: center;\r\n  text-align: center;\r\n}\r\n\r\n.empty-state > i {\r\n  font-size: 45px;\r\n  color: #adb5bd;\r\n  margin-bottom: 15px;\r\n}\r\n\r\n.empty-state h3 {\r\n  margin: 0 0 8px;\r\n}\r\n\r\n.empty-state p {\r\n  margin: 0;\r\n  color: #6c757d;\r\n}\r\n\r\n/* Responsive */\r\n@media (max-width: 1200px) {\r\n  .stats-grid {\r\n    grid-template-columns: repeat(2, 1fr);\r\n  }\r\n}\r\n\r\n@media (max-width: 768px) {\r\n  .procurement-container {\r\n    padding: 0;\r\n  }\r\n\r\n  .stats-grid {\r\n    grid-template-columns: 1fr;\r\n  }\r\n\r\n  .section-header {\r\n    flex-direction: column;\r\n    align-items: flex-start;\r\n    gap: 15px;\r\n  }\r\n\r\n  .procurement-tabs {\r\n    gap: 8px;\r\n  }\r\n\r\n  .procurement-tabs button {\r\n    padding: 9px 12px;\r\n  }\r\n}"] }]
+    }], null, null); })();
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(ProcurementComponent, { className: "ProcurementComponent", filePath: "src/app/pages/admin/procurement/procurement.ts", lineNumber: 11 }); })();
