@@ -16,7 +16,17 @@ def create_equipment_allocation(
     db: Session = Depends(get_db)
 ):
     try:
-        return crud.create_equipment_allocation(db, allocation)
+        new_allocation = crud.create_equipment_allocation(db, allocation)
+
+        notification = schemas.NotificationCreate(
+            title="Equipment Allocated",
+            message=f"Equipment has been allocated to project {allocation.project_id}"
+        )
+
+        crud.create_notification(db, notification)
+
+        return new_allocation
+
     except ValueError as e:
         raise HTTPException(
             status_code=409,

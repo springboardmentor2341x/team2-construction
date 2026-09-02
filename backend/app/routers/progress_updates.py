@@ -20,8 +20,16 @@ def create_progress_update(
     progress_update: schemas.ProgressUpdateCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_progress_update(db, progress_update)
+    new_progress = crud.create_progress_update(db, progress_update)
 
+    notification = schemas.NotificationCreate(
+        title="Progress Update Recorded",
+        message=f"Progress update recorded for project {progress_update.project_id}"
+    )
+
+    crud.create_notification(db, notification)
+
+    return new_progress
 
 # ==========================
 # GET ALL PROGRESS UPDATES

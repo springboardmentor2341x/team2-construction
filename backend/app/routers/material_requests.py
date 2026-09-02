@@ -22,11 +22,19 @@ def create_material_request(
     material_request: schemas.MaterialRequestCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_material_request(
+    new_request = crud.create_material_request(
         db,
         material_request
     )
 
+    notification = schemas.NotificationCreate(
+        title="Material Request Created",
+        message=f"New material request created for project {material_request.project_id}"
+    )
+
+    crud.create_notification(db, notification)
+
+    return new_request
 
 # ==========================
 # GET ALL MATERIAL REQUESTS

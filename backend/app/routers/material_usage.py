@@ -64,8 +64,17 @@ def create_material_usage(
     db.commit()
     db.refresh(db_usage)
 
-    return db_usage
+    # Create notification
+    notification = schemas.NotificationCreate(
+        title="Material Usage Recorded",
+        message=f"{usage.quantity_used} units of material were used for {usage.used_for}"
+    )
 
+    db_notification = models.Notification(**notification.model_dump())
+    db.add(db_notification)
+    db.commit()
+
+    return db_usage
 
 # ==========================
 # GET ALL MATERIAL USAGE

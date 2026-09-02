@@ -42,9 +42,16 @@ def create_site_issue(
     db.commit()
     db.refresh(db_issue)
 
+    # Create notification
+    notification = models.Notification(
+        title="Site Issue Reported",
+        message=f"{issue.severity} site issue reported for project {issue.project_id}: {issue.description}"
+    )
+
+    db.add(notification)
+    db.commit()
+
     return db_issue
-
-
 # ==========================
 # GET ALL SITE ISSUES
 # ==========================

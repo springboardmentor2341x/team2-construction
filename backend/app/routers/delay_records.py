@@ -19,8 +19,16 @@ def create_delay_record(
     delay: schemas.DelayRecordCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_delay_record(db, delay)
+    new_delay = crud.create_delay_record(db, delay)
 
+    notification = schemas.NotificationCreate(
+        title="Project Delay Recorded",
+        message=f"A delay has been recorded for project {delay.project_id}"
+    )
+
+    crud.create_notification(db, notification)
+
+    return new_delay
 
 # ==========================
 # GET ALL DELAY RECORDS

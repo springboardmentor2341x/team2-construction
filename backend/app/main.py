@@ -8,9 +8,10 @@ from app.database import Base, engine, get_db
 from app import schemas, crud
 from app.routers import user,equipment,equipment_allocation,equipment_maintenance,worker,inventory,material_usage
 from app.routers import site_issues,progress_updates,attendence,progress_reports,dashboard,delay_records
-from app.routers import site_activity_logs,progress_photos,weekly_progress_reports,resource,equipment_utilization
+from app.routers import site_activity_logs,progress_photos,weekly_progress_reports,resource,equipment_utilization,report
 from app.routers import material_requests,material_allocations,stock_movements,worker_assignments
 from app.routers import shifts,shift_assignments,payroll,vendors,procurement_requests,purchase_orders,invoice
+from app.routers import budget,cost_estimation,expense,notification
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
@@ -65,6 +66,12 @@ app.include_router(vendors.router)
 app.include_router(procurement_requests.router)
 app.include_router(purchase_orders.router)
 app.include_router(invoice.router)
+app.include_router(budget.router)
+app.include_router(cost_estimation.router)
+app.include_router(expense.router)
+app.include_router(report.router)
+app.include_router(notification.router)
+
 
 
 

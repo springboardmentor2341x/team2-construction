@@ -23,17 +23,25 @@ def create_stock_movement(
     db: Session = Depends(get_db)
 ):
     try:
-        return crud.create_stock_movement(
+        new_movement = crud.create_stock_movement(
             db,
             movement
         )
+
+        notification = schemas.NotificationCreate(
+            title="Stock Movement Recorded",
+            message=f"Stock movement recorded for inventory item {movement.inventory_id}"
+        )
+
+        crud.create_notification(db, notification)
+
+        return new_movement
+
     except ValueError as e:
         raise HTTPException(
             status_code=400,
             detail=str(e)
         )
-
-
 # ==========================
 # GET ALL STOCK MOVEMENTS
 # ==========================
@@ -138,10 +146,20 @@ def receive_material(
     db: Session = Depends(get_db)
 ):
     try:
-        return crud.receive_material(
+        received_material = crud.receive_material(
             db,
             movement
         )
+
+        notification = schemas.NotificationCreate(
+            title="Material Received",
+            message=f"Material received for inventory item {movement.inventory_id}"
+        )
+
+        crud.create_notification(db, notification)
+
+        return received_material
+
     except ValueError as e:
         raise HTTPException(
             status_code=400,

@@ -15,7 +15,16 @@ def create_equipment_maintenance(
     maintenance: schemas.EquipmentMaintenanceCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_equipment_maintenance(db, maintenance)
+    new_maintenance = crud.create_equipment_maintenance(db, maintenance)
+
+    notification = schemas.NotificationCreate(
+        title="Equipment Maintenance Recorded",
+        message=f"Maintenance record created for equipment {maintenance.equipment_id}"
+    )
+
+    crud.create_notification(db, notification)
+
+    return new_maintenance
 
 
 @router.get("/", response_model=list[schemas.EquipmentMaintenance])

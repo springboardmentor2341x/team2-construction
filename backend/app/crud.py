@@ -2048,3 +2048,162 @@ def delete_invoice(
     db.commit()
 
     return db_invoice
+# ==========================
+# BUDGET CRUD - MODULE 11
+# ==========================
+
+def create_budget(db, budget):
+    db_budget = models.Budget(**budget.dict())
+    db.add(db_budget)
+    db.commit()
+    db.refresh(db_budget)
+    return db_budget
+
+
+def get_budgets(db):
+    return db.query(models.Budget).all()
+
+
+def get_budget(db, budget_id):
+    return db.query(models.Budget).filter(
+        models.Budget.id == budget_id
+    ).first()
+
+
+def get_budget_by_project(db, project_id):
+    return db.query(models.Budget).filter(
+        models.Budget.project_id == project_id
+    ).first()
+
+
+def update_budget(db, budget_id, budget):
+    db_budget = get_budget(db, budget_id)
+
+    if not db_budget:
+        return None
+
+    for key, value in budget.dict(exclude_unset=True).items():
+        setattr(db_budget, key, value)
+
+    db.commit()
+    db.refresh(db_budget)
+
+    return db_budget
+
+
+def delete_budget(db, budget_id):
+    db_budget = get_budget(db, budget_id)
+
+    if not db_budget:
+        return None
+
+    db.delete(db_budget)
+    db.commit()
+
+    return db_budget
+# ==========================
+# COST ESTIMATION CRUD - MODULE 11
+# ==========================
+
+def create_cost_estimate(db, estimate):
+    db_estimate = models.CostEstimate(**estimate.dict())
+    db.add(db_estimate)
+    db.commit()
+    db.refresh(db_estimate)
+    return db_estimate
+
+
+def get_cost_estimates(db):
+    return db.query(models.CostEstimate).all()
+
+
+def get_cost_estimate(db, estimate_id):
+    return db.query(models.CostEstimate).filter(
+        models.CostEstimate.id == estimate_id
+    ).first()
+
+
+def get_cost_estimates_by_project(db, project_id):
+    return db.query(models.CostEstimate).filter(
+        models.CostEstimate.project_id == project_id
+    ).all()
+
+
+def update_cost_estimate(db, estimate_id, estimate):
+    db_estimate = get_cost_estimate(db, estimate_id)
+
+    if not db_estimate:
+        return None
+
+    for key, value in estimate.dict(exclude_unset=True).items():
+        setattr(db_estimate, key, value)
+
+    db.commit()
+    db.refresh(db_estimate)
+
+    return db_estimate
+
+
+def delete_cost_estimate(db, estimate_id):
+    db_estimate = get_cost_estimate(db, estimate_id)
+
+    if not db_estimate:
+        return None
+
+    db.delete(db_estimate)
+    db.commit()
+
+    return db_estimate
+# ==========================
+# EXPENSE CRUD - MODULE 11
+# ==========================
+
+def create_expense(db, expense):
+    db_expense = models.Expense(**expense.dict())
+    db.add(db_expense)
+    db.commit()
+    db.refresh(db_expense)
+    return db_expense
+
+
+def get_expenses(db):
+    return db.query(models.Expense).all()
+
+
+def get_expense(db, expense_id):
+    return db.query(models.Expense).filter(
+        models.Expense.id == expense_id
+    ).first()
+
+
+def get_expenses_by_project(db, project_id):
+    return db.query(models.Expense).filter(
+        models.Expense.project_id == project_id
+    ).all()
+
+
+def update_expense(db, expense_id, expense):
+    db_expense = get_expense(db, expense_id)
+
+    if not db_expense:
+        return None
+
+    for key, value in expense.dict(exclude_unset=True).items():
+        setattr(db_expense, key, value)
+
+    db.commit()
+    db.refresh(db_expense)
+
+    return db_expense
+
+
+def delete_expense(db, expense_id):
+    db_expense = get_expense(db, expense_id)
+
+    if not db_expense:
+        return None
+
+    db.delete(db_expense)
+    db.commit()
+
+    return db_expense

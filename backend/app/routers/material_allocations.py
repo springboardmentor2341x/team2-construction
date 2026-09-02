@@ -34,6 +34,13 @@ def create_material_allocation(
                 detail="Inventory item not found"
             )
 
+        notification = schemas.NotificationCreate(
+            title="Material Allocated",
+            message=f"Material has been allocated to project {allocation.project_id}"
+        )
+
+        crud.create_notification(db, notification)
+
         return result
 
     except ValueError as e:
@@ -41,7 +48,6 @@ def create_material_allocation(
             status_code=400,
             detail=str(e)
         )
-
 # ==========================
 # GET ALL MATERIAL ALLOCATIONS
 # ==========================

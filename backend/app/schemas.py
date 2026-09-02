@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from datetime import date,time
+from datetime import date,datetime,time
 
 
 # ==========================
@@ -371,13 +371,9 @@ class Procurement(ProcurementBase):
 # NOTIFICATION SCHEMAS
 # ==========================
 
-from datetime import datetime
-
 class NotificationBase(BaseModel):
+    title: str
     message: str
-    notification_type: str
-    is_read: bool = False
-    created_at: datetime
 
 
 class NotificationCreate(NotificationBase):
@@ -386,6 +382,7 @@ class NotificationCreate(NotificationBase):
 
 class Notification(NotificationBase):
     id: int
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -927,6 +924,77 @@ class InvoiceCreate(InvoiceBase):
 
 
 class InvoiceResponse(InvoiceBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# BUDGET SCHEMAS - MODULE 11
+# ==========================
+
+class BudgetBase(BaseModel):
+    project_id: int
+    total_budget: float
+
+    labor_budget: float = 0
+    material_budget: float = 0
+    equipment_budget: float = 0
+    transportation_budget: float = 0
+    maintenance_budget: float = 0
+    administrative_budget: float = 0
+
+
+class BudgetCreate(BudgetBase):
+    pass
+
+
+class BudgetResponse(BudgetBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+# ==========================
+# COST ESTIMATION SCHEMAS - MODULE 11
+# ==========================
+
+class CostEstimateBase(BaseModel):
+    project_id: int
+    category: str
+    description: str | None = None
+    estimated_amount: float
+    estimate_date: date | None = None
+    status: str = "Estimated"
+
+
+class CostEstimateCreate(CostEstimateBase):
+    pass
+
+
+class CostEstimateResponse(CostEstimateBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# ==========================
+# EXPENSE SCHEMAS - MODULE 11
+# ==========================
+
+class ExpenseBase(BaseModel):
+    project_id: int
+    category: str
+    description: str | None = None
+    amount: float
+    expense_date: date
+    recorded_by: str | None = None
+    status: str = "Recorded"
+
+
+class ExpenseCreate(ExpenseBase):
+    pass
+
+
+class ExpenseResponse(ExpenseBase):
     id: int
 
     class Config:

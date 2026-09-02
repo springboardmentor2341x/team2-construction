@@ -963,3 +963,105 @@ class EquipmentUtilization(Base):
     idle_hours = Column(Float, default=0)
 
     remarks = Column(Text)
+# ==========================
+# BUDGET - MODULE 11
+# ==========================
+
+class Budget(Base):
+    __tablename__ = "budgets"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    total_budget = Column(Float, nullable=False)
+
+    labor_budget = Column(Float, default=0)
+    material_budget = Column(Float, default=0)
+    equipment_budget = Column(Float, default=0)
+    transportation_budget = Column(Float, default=0)
+    maintenance_budget = Column(Float, default=0)
+    administrative_budget = Column(Float, default=0)
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+# ==========================
+# COST ESTIMATION - MODULE 11
+# ==========================
+
+class CostEstimate(Base):
+    __tablename__ = "cost_estimates"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    category = Column(
+        String(100),
+        nullable=False
+    )
+
+    description = Column(Text)
+
+    estimated_amount = Column(
+        Float,
+        nullable=False
+    )
+
+    estimate_date = Column(
+        Date,
+        default=datetime.utcnow
+    )
+
+    status = Column(
+        String(50),
+        default="Estimated"
+    )
+# ==========================
+# EXPENSE TRACKING - MODULE 11
+# ==========================
+
+class Expense(Base):
+    __tablename__ = "expenses"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id"),
+        nullable=False
+    )
+
+    category = Column(
+        String(100),
+        nullable=False
+    )
+
+    description = Column(Text)
+
+    amount = Column(
+        Float,
+        nullable=False
+    )
+
+    expense_date = Column(
+        Date,
+        nullable=False
+    )
+
+    recorded_by = Column(String(150))
+
+    status = Column(
+        String(50),
+        default="Recorded"
+    )
