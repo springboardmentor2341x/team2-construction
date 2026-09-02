@@ -8,9 +8,9 @@
       @for (item of menuItems; track item.module) {
         <li class="nav-item">
           <a class="nav-link text-light d-flex align-items-center gap-3 py-2.5 rounded-3 border-0"
-             [routerLink]="[dashboardPath]"
-             [queryParams]="{ module: item.module }"
-             [class.active]="activeModule === item.module"
+             [routerLink]="item.route ? item.route : [dashboardPath]"
+             [queryParams]="item.route ? {} : { module: item.module }"
+             [class.active]="item.route ? false : (activeModule === item.module)"
              [title]="item.label">
             <i class="bi" [ngClass]="item.icon"></i>
             <span class="sidebar-text">{{ item.label }}</span>

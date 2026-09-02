@@ -18,6 +18,13 @@ import { ContractorDashboard } from './pages/contractor/dashboard/dashboard';
 import { WorkerDashboard } from './pages/worker/dashboard/dashboard';
 import { ClientDashboard } from './pages/client/dashboard/dashboard';
 
+// Procurement Components
+import { ProcurementDashboardComponent } from './components/procurement/dashboard/dashboard';
+import { VendorManagementComponent } from './components/procurement/vendor-management/vendor-management';
+import { ProcurementRequestsComponent } from './components/procurement/procurement-requests/procurement-requests';
+import { PurchaseOrdersComponent } from './components/procurement/purchase-orders/purchase-orders';
+import { InvoicesComponent } from './components/procurement/invoices/invoices';
+
 export const routes: Routes = [
   // Public/Auth routes
   { path: 'login', component: Login },
@@ -65,6 +72,37 @@ export const routes: Routes = [
         component: ClientDashboard,
         canActivate: [roleGuard],
         data: { allowedRoles: ['client'] }
+      },
+      // Procurement Routes
+      {
+        path: 'procurement/dashboard',
+        component: ProcurementDashboardComponent,
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'project_manager'] }
+      },
+      {
+        path: 'procurement/vendors',
+        component: VendorManagementComponent,
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'project_manager', 'site_engineer'] }
+      },
+      {
+        path: 'procurement/requests',
+        component: ProcurementRequestsComponent,
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'project_manager', 'site_engineer'] }
+      },
+      {
+        path: 'procurement/purchase-orders',
+        component: PurchaseOrdersComponent,
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'project_manager', 'site_engineer'] }
+      },
+      {
+        path: 'procurement/invoices',
+        component: InvoicesComponent,
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'project_manager'] }
       },
       // Redirect empty root inside Shell Layout (Default role-based redirecting)
       {

@@ -31,7 +31,7 @@ export class SidebarComponent {
   }
 
   // Generate dynamic links depending on the logged-in role
-  get menuItems() {
+  get menuItems(): any[] {
     const role = this.authService.userRole();
     if (!role) return [];
 
