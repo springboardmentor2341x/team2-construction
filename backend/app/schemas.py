@@ -999,3 +999,85 @@ class ExpenseResponse(ExpenseBase):
 
     class Config:
         from_attributes = True
+
+# ==========================
+# MODULE 10 REPORT SCHEMAS
+# ==========================
+
+class ReportBase(BaseModel):
+    report_title: str
+    summary: str | None = None
+
+class ReportCreate(ReportBase):
+    pass
+
+class ReportResponse(BaseModel):
+    id: int
+    report_type: str
+    description: str | None = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ProjectProgressReportResponse(BaseModel):
+    project_id: int
+    project_name: str
+    project_code: str
+    project_status: str
+    start_date: Optional[date] = None
+    expected_completion_date: Optional[date] = None
+    project_manager: Optional[str] = None
+    overall_progress: float
+    milestones: list[dict] = []
+    progress_updates: list[dict] = []
+    progress_reports: list[dict] = []
+    weekly_progress_reports: list[dict] = []
+    delays: list[dict] = []
+    site_activities: list[dict] = []
+    progress_photos: list[dict] = []
+
+class ResourceUtilizationReportResponse(BaseModel):
+    project_id: int
+    project_name: str
+    total_allocated_equipment: int
+    total_operating_hours: float
+    total_idle_hours: float
+    equipment_allocations: list[dict] = []
+    equipment_utilization: list[dict] = []
+    general_resources: list[dict] = []
+    material_allocations: list[dict] = []
+
+class WorkforceReportResponse(BaseModel):
+    project_id: int
+    project_name: str
+    total_assigned_workers: int
+    attendance_summary: dict = {}
+    worker_assignments: list[dict] = []
+    attendance_records: list[dict] = []
+    shifts: list[dict] = []
+    payroll: list[dict] = []
+
+class ProcurementReportResponse(BaseModel):
+    project_id: int
+    project_name: str
+    total_po_value: float
+    total_invoiced_amount: float
+    total_paid_amount: float
+    outstanding_amount: float
+    procurement_requests: list[dict] = []
+    purchase_orders: list[dict] = []
+    invoices: list[dict] = []
+
+class BudgetReportResponse(BaseModel):
+    project_id: int
+    project_name: str
+    total_budget: float
+    category_budget: dict = {}
+    total_estimated_cost: float
+    total_actual_expenses: float
+    remaining_budget: float
+    utilization_percentage: float
+    estimates: list[dict] = []
+    expenses: list[dict] = []
+    category_variance: list[dict] = []

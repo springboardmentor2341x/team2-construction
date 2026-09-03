@@ -84,6 +84,10 @@ def create_project_schedule(
     return db_schedule
 
 
+def get_project_schedules(db: Session):
+    return db.query(models.ProjectSchedule).all()
+
+
 def get_milestones_by_project(
     db: Session,
     project_id: int
@@ -2207,3 +2211,637 @@ def delete_expense(db, expense_id):
     db.commit()
 
     return db_expense
+
+
+# ==============================================================================
+# MODULE 10 REPORTING CRUD FUNCTIONS
+# ==============================================================================
+
+from datetime import date, datetime
+
+
+def get_project_progress_report_data(
+    db: Session,
+    project_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        return None
+
+    milestones_query = db.query(models.Milestone).filter(models.Milestone.project_id == project_id)
+    if start_date:
+        milestones_query = milestones_query.filter(models.Milestone.planned_date >= start_date)
+    if end_date:
+        milestones_query = milestones_query.filter(models.Milestone.planned_date <= end_date)
+    milestones = milestones_query.all()
+
+    pu_query = db.query(models.ProgressUpdate).filter(models.ProgressUpdate.project_id == project_id)
+    if start_date:
+        pu_query = pu_query.filter(models.ProgressUpdate.update_date >= start_date)
+    if end_date:
+        pu_query = pu_query.filter(models.ProgressUpdate.update_date <= end_date)
+    progress_updates = pu_query.all()
+
+    pr_query = db.query(models.ProgressReport).filter(models.ProgressReport.project_id == project_id)
+    if start_date:
+        pr_query = pr_query.filter(models.ProgressReport.report_date >= start_date)
+    if end_date:
+        pr_query = pr_query.filter(models.ProgressReport.report_date <= end_date)
+    progress_reports = pr_query.all()
+
+    wpr_query = db.query(models.WeeklyProgressReport).filter(models.WeeklyProgressReport.project_id == project_id)
+    if start_date:
+        wpr_query = wpr_query.filter(models.WeeklyProgressReport.week_start_date >= start_date)
+    if end_date:
+        wpr_query = wpr_query.filter(models.WeeklyProgressReport.week_end_date <= end_date)
+    weekly_progress_reports = wpr_query.all()
+
+    delay_query = db.query(models.DelayRecord).filter(models.DelayRecord.project_id == project_id)
+    if start_date:
+        delay_query = delay_query.filter(models.DelayRecord.delay_date >= start_date)
+    if end_date:
+        delay_query = delay_query.filter(models.DelayRecord.delay_date <= end_date)
+    delays = delay_query.all()
+
+    act_query = db.query(models.SiteActivityLog).filter(models.SiteActivityLog.project_id == project_id)
+    if start_date:
+        act_query = act_query.filter(models.SiteActivityLog.activity_date >= start_date)
+    if end_date:
+        act_query = act_query.filter(models.SiteActivityLog.activity_date <= end_date)
+    site_activities = act_query.all()
+
+    photo_query = db.query(models.ProgressPhoto).filter(models.ProgressPhoto.project_id == project_id)
+    if start_date:
+        photo_query = photo_query.filter(models.ProgressPhoto.uploaded_date >= start_date)
+    if end_date:
+        photo_query = photo_query.filter(models.ProgressPhoto.uploaded_date <= end_date)
+    progress_photos = photo_query.all()
+
+    if milestones:
+        overall_progress = sum(m.progress_percentage or 0 for m in milestones) / len(milestones)
+    elif progress_updates:
+        overall_progress = sum(u.progress_percentage or 0 for u in progress_updates) / len(progress_updates)
+    elif progress_reports:
+        overall_progress = sum(r.overall_progress or 0 for r in progress_reports) / len(progress_reports)
+    else:
+        overall_progress = 0.0
+
+    return {
+        "project_id": project.id,
+        "project_name": project.name,
+        "project_code": project.project_code,
+        "project_status": project.status,
+        "start_date": str(project.start_date) if project.start_date else None,
+        "expected_completion_date": str(project.expected_completion_date) if project.expected_completion_date else None,
+        "project_manager": project.project_manager,
+        "overall_progress": round(overall_progress, 2),
+        "milestones": [
+            {
+                "id": m.id,
+                "title": m.title,
+                "planned_date": str(m.planned_date) if m.planned_date else None,
+                "actual_completion_date": str(m.actual_completion_date) if m.actual_completion_date else None,
+                "progress_percentage": m.progress_percentage,
+                "status": m.status
+            }
+            for m in milestones
+        ],
+        "progress_updates": [
+            {
+                "id": u.id,
+                "activity_name": u.activity_name,
+                "work_category": u.work_category,
+                "progress_percentage": u.progress_percentage,
+                "update_date": str(u.update_date) if u.update_date else None,
+                "status": u.status,
+                "updated_by": u.updated_by
+            }
+            for u in progress_updates
+        ],
+        "progress_reports": [
+            {
+                "id": r.id,
+                "report_date": str(r.report_date) if r.report_date else None,
+                "overall_progress": r.overall_progress,
+                "summary": r.summary,
+                "status": r.status
+            }
+            for r in progress_reports
+        ],
+        "weekly_progress_reports": [
+            {
+                "id": w.id,
+                "week_start_date": str(w.week_start_date) if w.week_start_date else None,
+                "week_end_date": str(w.week_end_date) if w.week_end_date else None,
+                "work_completed": w.work_completed,
+                "progress_percentage": w.progress_percentage,
+                "overall_status": w.overall_status
+            }
+            for w in weekly_progress_reports
+        ],
+        "delays": [
+            {
+                "id": d.id,
+                "delay_date": str(d.delay_date) if d.delay_date else None,
+                "reason": d.reason,
+                "duration_hours": d.duration_hours,
+                "affected_work_category": d.affected_work_category,
+                "status": d.status
+            }
+            for d in delays
+        ],
+        "site_activities": [
+            {
+                "id": a.id,
+                "activity_date": str(a.activity_date) if a.activity_date else None,
+                "activity_type": a.activity_type,
+                "description": a.description,
+                "responsible_person": a.responsible_person
+            }
+            for a in site_activities
+        ],
+        "progress_photos": [
+            {
+                "id": p.id,
+                "photo_path": p.photo_path,
+                "description": p.description,
+                "uploaded_by": p.uploaded_by,
+                "uploaded_date": str(p.uploaded_date) if p.uploaded_date else None
+            }
+            for p in progress_photos
+        ]
+    }
+
+
+def get_resource_utilization_report_data(
+    db: Session,
+    project_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        return None
+
+    alloc_query = db.query(models.EquipmentAllocation, models.Equipment).join(
+        models.Equipment, models.EquipmentAllocation.equipment_id == models.Equipment.id
+    ).filter(models.EquipmentAllocation.project_id == project_id)
+
+    if start_date:
+        alloc_query = alloc_query.filter(models.EquipmentAllocation.start_date >= start_date)
+    if end_date:
+        alloc_query = alloc_query.filter(models.EquipmentAllocation.start_date <= end_date)
+
+    allocations_db = alloc_query.all()
+
+    allocations_list = []
+    for alloc, eq in allocations_db:
+        allocations_list.append({
+            "allocation_id": alloc.id,
+            "equipment_id": eq.id,
+            "equipment_code": eq.equipment_id,
+            "equipment_name": eq.name,
+            "category": eq.category,
+            "model_number": eq.model_number,
+            "serial_number": eq.serial_number,
+            "hourly_rate": eq.hourly_rate,
+            "start_date": str(alloc.start_date) if alloc.start_date else None,
+            "end_date": str(alloc.end_date) if alloc.end_date else None,
+            "responsible_person": alloc.responsible_person,
+            "status": alloc.status
+        })
+
+    util_query = db.query(models.EquipmentUtilization, models.Equipment).join(
+        models.Equipment, models.EquipmentUtilization.equipment_id == models.Equipment.id
+    ).filter(models.EquipmentUtilization.project_id == project_id)
+
+    if start_date:
+        util_query = util_query.filter(models.EquipmentUtilization.usage_date >= start_date)
+    if end_date:
+        util_query = util_query.filter(models.EquipmentUtilization.usage_date <= end_date)
+
+    utilization_db = util_query.all()
+
+    utilization_list = []
+    total_op_hours = 0.0
+    total_idle_hours = 0.0
+
+    for util, eq in utilization_db:
+        op_h = util.operating_hours or 0.0
+        id_h = util.idle_hours or 0.0
+        total_op_hours += op_h
+        total_idle_hours += id_h
+        utilization_list.append({
+            "id": util.id,
+            "equipment_name": eq.name,
+            "usage_date": str(util.usage_date) if util.usage_date else None,
+            "operating_hours": op_h,
+            "idle_hours": id_h,
+            "remarks": util.remarks
+        })
+
+    gen_resources = db.query(models.Resource).all()
+    general_res_list = [
+        {
+            "id": r.id,
+            "resource_name": r.resource_name,
+            "type": r.type,
+            "quantity": r.quantity,
+            "status": r.status
+        }
+        for r in gen_resources
+    ]
+
+    mat_query = db.query(models.MaterialAllocation, models.Inventory).join(
+        models.Inventory, models.MaterialAllocation.inventory_id == models.Inventory.id
+    ).filter(models.MaterialAllocation.project_id == project_id)
+
+    if start_date:
+        mat_query = mat_query.filter(models.MaterialAllocation.allocation_date >= start_date)
+    if end_date:
+        mat_query = mat_query.filter(models.MaterialAllocation.allocation_date <= end_date)
+
+    mat_alloc_db = mat_query.all()
+    mat_alloc_list = [
+        {
+            "id": ma.id,
+            "item_name": inv.item_name,
+            "unit": inv.unit,
+            "allocated_quantity": ma.allocated_quantity,
+            "allocation_date": str(ma.allocation_date) if ma.allocation_date else None,
+            "work_activity": ma.work_activity,
+            "responsible_user": ma.responsible_user,
+            "status": ma.status
+        }
+        for ma, inv in mat_alloc_db
+    ]
+
+    return {
+        "project_id": project.id,
+        "project_name": project.name,
+        "total_allocated_equipment": len(allocations_list),
+        "total_operating_hours": round(total_op_hours, 2),
+        "total_idle_hours": round(total_idle_hours, 2),
+        "equipment_allocations": allocations_list,
+        "equipment_utilization": utilization_list,
+        "general_resources": general_res_list,
+        "material_allocations": mat_alloc_list
+    }
+
+
+def get_workforce_report_data(
+    db: Session,
+    project_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        return None
+
+    wa_query = db.query(models.WorkerAssignment, models.Worker).join(
+        models.Worker, models.WorkerAssignment.worker_id == models.Worker.id
+    ).filter(models.WorkerAssignment.project_id == project_id)
+
+    if start_date:
+        wa_query = wa_query.filter(models.WorkerAssignment.start_date >= start_date)
+    if end_date:
+        wa_query = wa_query.filter(models.WorkerAssignment.start_date <= end_date)
+
+    worker_assignments_db = wa_query.all()
+
+    assignments_list = [
+        {
+            "id": wa.id,
+            "worker_id": w.id,
+            "worker_name": w.full_name,
+            "designation": w.designation,
+            "workforce_category": w.workforce_category,
+            "contractor_name": wa.contractor_name,
+            "work_activity": wa.work_activity,
+            "start_date": str(wa.start_date) if wa.start_date else None,
+            "end_date": str(wa.end_date) if wa.end_date else None,
+            "assignment_status": wa.assignment_status
+        }
+        for wa, w in worker_assignments_db
+    ]
+
+    att_query = db.query(models.Attendance, models.Worker).join(
+        models.Worker, models.Attendance.worker_id == models.Worker.id
+    ).filter(models.Attendance.project_id == project_id)
+
+    if start_date:
+        att_query = att_query.filter(models.Attendance.date >= start_date)
+    if end_date:
+        att_query = att_query.filter(models.Attendance.date <= end_date)
+
+    attendance_db = att_query.all()
+
+    attendance_list = []
+    total_present = 0
+    total_absent = 0
+    total_leave = 0
+    total_working_hours = 0.0
+
+    for att, w in attendance_db:
+        status_clean = (att.status or "").title()
+        if status_clean in ["Present", "P"]:
+            total_present += 1
+        elif status_clean in ["Absent", "A"]:
+            total_absent += 1
+        elif status_clean in ["Leave", "On Leave", "L"]:
+            total_leave += 1
+
+        hrs = att.working_hours or 0.0
+        total_working_hours += hrs
+
+        attendance_list.append({
+            "id": att.id,
+            "worker_id": w.id,
+            "worker_name": w.full_name,
+            "date": str(att.date) if att.date else None,
+            "status": att.status,
+            "check_in_time": str(att.check_in_time) if att.check_in_time else None,
+            "check_out_time": str(att.check_out_time) if att.check_out_time else None,
+            "working_hours": hrs,
+            "remarks": att.remarks
+        })
+
+    shifts_query = db.query(models.Shift).filter(models.Shift.project_id == project_id)
+    if start_date:
+        shifts_query = shifts_query.filter(models.Shift.shift_date >= start_date)
+    if end_date:
+        shifts_query = shifts_query.filter(models.Shift.shift_date <= end_date)
+    shifts = shifts_query.all()
+
+    shifts_list = [
+        {
+            "id": s.id,
+            "shift_name": s.shift_name,
+            "start_time": str(s.start_time),
+            "end_time": str(s.end_time),
+            "shift_date": str(s.shift_date),
+            "status": s.status
+        }
+        for s in shifts
+    ]
+
+    payroll_query = db.query(models.Payroll, models.Worker).join(
+        models.Worker, models.Payroll.worker_id == models.Worker.id
+    ).filter(models.Payroll.project_id == project_id)
+    payroll_db = payroll_query.all()
+
+    payroll_list = [
+        {
+            "id": p.id,
+            "worker_id": w.id,
+            "worker_name": w.full_name,
+            "pay_rate": p.pay_rate,
+            "working_days": p.working_days,
+            "working_hours": p.working_hours,
+            "overtime_hours": p.overtime_hours,
+            "leave_days": p.leave_days,
+            "estimated_pay": p.estimated_pay,
+            "payroll_status": p.payroll_status
+        }
+        for p, w in payroll_db
+    ]
+
+    return {
+        "project_id": project.id,
+        "project_name": project.name,
+        "total_assigned_workers": len(assignments_list),
+        "attendance_summary": {
+            "total_records": len(attendance_list),
+            "total_present": total_present,
+            "total_absent": total_absent,
+            "total_leave": total_leave,
+            "total_working_hours": round(total_working_hours, 2)
+        },
+        "worker_assignments": assignments_list,
+        "attendance_records": attendance_list,
+        "shifts": shifts_list,
+        "payroll": payroll_list
+    }
+
+
+def get_procurement_report_data(
+    db: Session,
+    project_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    status: str | None = None
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        return None
+
+    pr_query = db.query(models.ProcurementRequest).filter(models.ProcurementRequest.project_id == project_id)
+    if start_date:
+        pr_query = pr_query.filter(models.ProcurementRequest.request_date >= start_date)
+    if end_date:
+        pr_query = pr_query.filter(models.ProcurementRequest.request_date <= end_date)
+    if status:
+        pr_query = pr_query.filter(models.ProcurementRequest.request_status == status)
+
+    procurement_requests = pr_query.all()
+    requests_list = [
+        {
+            "id": r.id,
+            "requested_by": r.requested_by,
+            "item_name": r.item_name,
+            "category": r.category,
+            "requested_quantity": r.requested_quantity,
+            "required_date": str(r.required_date) if r.required_date else None,
+            "purpose": r.purpose,
+            "priority": r.priority,
+            "request_date": str(r.request_date) if r.request_date else None,
+            "request_status": r.request_status,
+            "remarks": r.remarks
+        }
+        for r in procurement_requests
+    ]
+
+    po_query = db.query(models.PurchaseOrder, models.Vendor).join(
+        models.Vendor, models.PurchaseOrder.vendor_id == models.Vendor.id
+    ).filter(models.PurchaseOrder.project_id == project_id)
+
+    if start_date:
+        po_query = po_query.filter(models.PurchaseOrder.order_date >= start_date)
+    if end_date:
+        po_query = po_query.filter(models.PurchaseOrder.order_date <= end_date)
+    if status:
+        po_query = po_query.filter(models.PurchaseOrder.order_status == status)
+
+    purchase_orders_db = po_query.all()
+    total_po_value = 0.0
+    po_list = []
+
+    for po, v in purchase_orders_db:
+        total_po_value += (po.total_amount or 0.0)
+        po_list.append({
+            "id": po.id,
+            "procurement_request_id": po.procurement_request_id,
+            "vendor_id": v.id,
+            "vendor_name": v.vendor_name,
+            "contact_person": v.contact_person,
+            "email": v.email,
+            "order_date": str(po.order_date) if po.order_date else None,
+            "expected_delivery_date": str(po.expected_delivery_date) if po.expected_delivery_date else None,
+            "quantity": po.quantity,
+            "unit_price": po.unit_price,
+            "total_amount": po.total_amount,
+            "order_status": po.order_status,
+            "remarks": po.remarks
+        })
+
+    inv_query = db.query(models.Invoice, models.Vendor).join(
+        models.Vendor, models.Invoice.vendor_id == models.Vendor.id
+    ).filter(models.Invoice.project_id == project_id)
+
+    if start_date:
+        inv_query = inv_query.filter(models.Invoice.invoice_date >= start_date)
+    if end_date:
+        inv_query = inv_query.filter(models.Invoice.invoice_date <= end_date)
+    if status:
+        inv_query = inv_query.filter(models.Invoice.payment_status == status)
+
+    invoices_db = inv_query.all()
+    total_invoiced = 0.0
+    total_paid = 0.0
+    inv_list = []
+
+    for inv, v in invoices_db:
+        amt = inv.invoice_amount or 0.0
+        total_invoiced += amt
+        if (inv.payment_status or "").lower() in ["paid", "completed", "success"]:
+            total_paid += amt
+        inv_list.append({
+            "id": inv.id,
+            "invoice_number": inv.invoice_number,
+            "vendor_id": v.id,
+            "vendor_name": v.vendor_name,
+            "purchase_order_id": inv.purchase_order_id,
+            "invoice_date": str(inv.invoice_date) if inv.invoice_date else None,
+            "due_date": str(inv.due_date) if inv.due_date else None,
+            "invoice_amount": amt,
+            "payment_status": inv.payment_status,
+            "invoice_status": inv.invoice_status,
+            "remarks": inv.remarks
+        })
+
+    outstanding_amount = max(total_invoiced - total_paid, 0.0)
+
+    return {
+        "project_id": project.id,
+        "project_name": project.name,
+        "total_po_value": round(total_po_value, 2),
+        "total_invoiced_amount": round(total_invoiced, 2),
+        "total_paid_amount": round(total_paid, 2),
+        "outstanding_amount": round(outstanding_amount, 2),
+        "procurement_requests": requests_list,
+        "purchase_orders": po_list,
+        "invoices": inv_list
+    }
+
+
+def get_budget_report_data(
+    db: Session,
+    project_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    category: str | None = None
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        return None
+
+    budget = db.query(models.Budget).filter(models.Budget.project_id == project_id).first()
+    total_budget = budget.total_budget if (budget and budget.total_budget) else (project.budget or 0.0)
+
+    category_budget = {
+        "Labor": budget.labor_budget if budget else 0.0,
+        "Material": budget.material_budget if budget else 0.0,
+        "Equipment": budget.equipment_budget if budget else 0.0,
+        "Transportation": budget.transportation_budget if budget else 0.0,
+        "Maintenance": budget.maintenance_budget if budget else 0.0,
+        "Administrative": budget.administrative_budget if budget else 0.0,
+    }
+
+    est_query = db.query(models.CostEstimate).filter(models.CostEstimate.project_id == project_id)
+    if category:
+        est_query = est_query.filter(models.CostEstimate.category == category)
+    estimates = est_query.all()
+
+    estimates_list = [
+        {
+            "id": e.id,
+            "category": e.category,
+            "description": e.description,
+            "estimated_amount": e.estimated_amount,
+            "estimate_date": str(e.estimate_date) if e.estimate_date else None,
+            "status": e.status
+        }
+        for e in estimates
+    ]
+
+    exp_query = db.query(models.Expense).filter(models.Expense.project_id == project_id)
+    if start_date:
+        exp_query = exp_query.filter(models.Expense.expense_date >= start_date)
+    if end_date:
+        exp_query = exp_query.filter(models.Expense.expense_date <= end_date)
+    if category:
+        exp_query = exp_query.filter(models.Expense.category == category)
+    expenses = exp_query.all()
+
+    expenses_list = [
+        {
+            "id": e.id,
+            "category": e.category,
+            "description": e.description,
+            "amount": e.amount,
+            "expense_date": str(e.expense_date) if e.expense_date else None,
+            "recorded_by": e.recorded_by,
+            "status": e.status
+        }
+        for e in expenses
+    ]
+
+    total_estimated = sum(e["estimated_amount"] for e in estimates_list)
+    total_expenses = sum(e["amount"] for e in expenses_list)
+    remaining_budget = total_budget - total_expenses
+    util_percentage = round((total_expenses / total_budget * 100), 2) if total_budget > 0 else 0.0
+
+    category_expenses_map = {}
+    for exp in expenses_list:
+        cat = exp["category"]
+        category_expenses_map[cat] = category_expenses_map.get(cat, 0.0) + exp["amount"]
+
+    all_categories = set(list(category_budget.keys()) + list(category_expenses_map.keys()))
+    category_variance = []
+    for cat in sorted(all_categories):
+        alloc = category_budget.get(cat, 0.0)
+        spent = category_expenses_map.get(cat, 0.0)
+        rem = alloc - spent
+        category_variance.append({
+            "category": cat,
+            "allocated": round(alloc, 2),
+            "actual_spent": round(spent, 2),
+            "remaining": round(rem, 2)
+        })
+
+    return {
+        "project_id": project.id,
+        "project_name": project.name,
+        "total_budget": round(total_budget, 2),
+        "category_budget": category_budget,
+        "total_estimated_cost": round(total_estimated, 2),
+        "total_actual_expenses": round(total_expenses, 2),
+        "remaining_budget": round(remaining_budget, 2),
+        "utilization_percentage": util_percentage,
+        "estimates": estimates_list,
+        "expenses": expenses_list,
+        "category_variance": category_variance
+    }

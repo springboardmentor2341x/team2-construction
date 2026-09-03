@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends,HTTPException
-from sqlalchemy.orm import Session
+from datetime import date
 from io import BytesIO
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-
-from reportlab.pdfgen import canvas
-from openpyxl import Workbook
+from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app import models, schemas
+from app import models, schemas, crud
+from app.auth import get_current_user, check_project_access
+from app.services import report_service
 
 router = APIRouter(
     prefix="/reports",
@@ -15,419 +15,360 @@ router = APIRouter(
 )
 
 
-@router.post("/")
+# ==============================================================================
+# GENERIC REPORT ENDPOINTS
+# ==============================================================================
+
+@router.post("/", response_model=schemas.ReportResponse)
 def create_report(
     report: schemas.ReportCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
     new_report = models.Report(
         report_type=report.report_title,
         description=report.summary
     )
-
     db.add(new_report)
     db.commit()
     db.refresh(new_report)
-
     return new_report
 
 
-@router.get("/")
+@router.get("/", response_model=list[schemas.ReportResponse])
 def get_reports(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
     return db.query(models.Report).all()
-@router.get("/project-progress/{project_id}")
+
+
+# ==============================================================================
+# 1. PROJECT PROGRESS REPORT
+# ==============================================================================
+
+@router.get("/project-progress/{project_id}", response_model=schemas.ProjectProgressReportResponse)
 def project_progress_report(
     project_id: int,
-    db: Session = Depends(get_db)
+    start_date: date | None = Query(None, description="Start date filter (YYYY-MM-DD)"),
+    end_date: date | None = Query(None, description="End date filter (YYYY-MM-DD)"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id
-    ).first()
+    check_project_access(db, project_id, current_user)
+    data = crud.get_project_progress_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return data
 
-    if not project:
-        raise HTTPException(
-            status_code=404,
-            detail="Project not found"
-        )
 
-    progress_updates = db.query(
-        models.ProgressUpdate
-    ).filter(
-        models.ProgressUpdate.project_id == project_id
-    ).all()
+@router.get("/project-progress/{project_id}/pdf")
+def project_progress_report_pdf(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_project_progress_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    progress_reports = db.query(
-        models.ProgressReport
-    ).filter(
-        models.ProgressReport.project_id == project_id
-    ).all()
+    pdf_buffer = report_service.generate_project_progress_pdf(data)
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=project_progress_report_{project_id}.pdf"
+        }
+    )
 
-    delays = db.query(
-        models.DelayRecord
-    ).filter(
-        models.DelayRecord.project_id == project_id
-    ).all()
 
-    return {
-        "project_id": project.id,
-        "project_name": project.name,
-        "project_status": project.status,
-        "progress_updates": progress_updates,
-        "progress_reports": progress_reports,
-        "delays": delays
-    }
-@router.get("/resource-utilization/{project_id}")
+@router.get("/project-progress/{project_id}/excel")
+def project_progress_report_excel(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_project_progress_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    excel_buffer = report_service.generate_project_progress_excel(data)
+    return StreamingResponse(
+        excel_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename=project_progress_report_{project_id}.xlsx"
+        }
+    )
+
+
+# ==============================================================================
+# 2. RESOURCE UTILIZATION REPORT
+# ==============================================================================
+
+@router.get("/resource-utilization/{project_id}", response_model=schemas.ResourceUtilizationReportResponse)
 def resource_utilization_report(
     project_id: int,
-    db: Session = Depends(get_db)
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id
-    ).first()
+    check_project_access(db, project_id, current_user)
+    data = crud.get_resource_utilization_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return data
 
-    if not project:
-        raise HTTPException(
-            status_code=404,
-            detail="Project not found"
-        )
 
-    allocations = db.query(
-        models.EquipmentAllocation
-    ).filter(
-        models.EquipmentAllocation.project_id == project_id
-    ).all()
+@router.get("/resource-utilization/{project_id}/pdf")
+def resource_utilization_report_pdf(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_resource_utilization_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    return {
-        "project_id": project.id,
-        "project_name": project.name,
-        "resource_allocations": allocations
-    }
-@router.get("/workforce/{project_id}")
+    pdf_buffer = report_service.generate_resource_utilization_pdf(data)
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=resource_utilization_report_{project_id}.pdf"
+        }
+    )
+
+
+@router.get("/resource-utilization/{project_id}/excel")
+def resource_utilization_report_excel(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_resource_utilization_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    excel_buffer = report_service.generate_resource_utilization_excel(data)
+    return StreamingResponse(
+        excel_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename=resource_utilization_report_{project_id}.xlsx"
+        }
+    )
+
+
+# ==============================================================================
+# 3. WORKFORCE REPORT
+# ==============================================================================
+
+@router.get("/workforce/{project_id}", response_model=schemas.WorkforceReportResponse)
 def workforce_report(
     project_id: int,
-    db: Session = Depends(get_db)
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id
-    ).first()
+    check_project_access(db, project_id, current_user)
+    data = crud.get_workforce_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return data
 
-    if not project:
-        raise HTTPException(
-            status_code=404,
-            detail="Project not found"
-        )
 
-    worker_assignments = db.query(
-        models.WorkerAssignment
-    ).filter(
-        models.WorkerAssignment.project_id == project_id
-    ).all()
+@router.get("/workforce/{project_id}/pdf")
+def workforce_report_pdf(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_workforce_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    attendance = db.query(
-        models.Attendance
-    ).filter(
-        models.Attendance.project_id == project_id
-    ).all()
+    pdf_buffer = report_service.generate_workforce_pdf(data)
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=workforce_report_{project_id}.pdf"
+        }
+    )
 
-    payroll = db.query(
-        models.Payroll
-    ).filter(
-        models.Payroll.project_id == project_id
-    ).all()
 
-    return {
-        "project_id": project.id,
-        "project_name": project.name,
-        "worker_assignments": worker_assignments,
-        "attendance": attendance,
-        "payroll": payroll
-    }
-@router.get("/procurement/{project_id}")
+@router.get("/workforce/{project_id}/excel")
+def workforce_report_excel(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_workforce_report_data(db, project_id, start_date, end_date)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    excel_buffer = report_service.generate_workforce_excel(data)
+    return StreamingResponse(
+        excel_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename=workforce_report_{project_id}.xlsx"
+        }
+    )
+
+
+# ==============================================================================
+# 4. PROCUREMENT REPORT
+# ==============================================================================
+
+@router.get("/procurement/{project_id}", response_model=schemas.ProcurementReportResponse)
 def procurement_report(
     project_id: int,
-    db: Session = Depends(get_db)
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    status: str | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id
-    ).first()
+    check_project_access(db, project_id, current_user)
+    data = crud.get_procurement_report_data(db, project_id, start_date, end_date, status)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return data
 
-    if not project:
-        raise HTTPException(
-            status_code=404,
-            detail="Project not found"
-        )
 
-    requests = db.query(
-        models.ProcurementRequest
-    ).filter(
-        models.ProcurementRequest.project_id == project_id
-    ).all()
+@router.get("/procurement/{project_id}/pdf")
+def procurement_report_pdf(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    status: str | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_procurement_report_data(db, project_id, start_date, end_date, status)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    purchase_orders = db.query(
-        models.PurchaseOrder
-    ).filter(
-        models.PurchaseOrder.project_id == project_id
-    ).all()
+    pdf_buffer = report_service.generate_procurement_pdf(data)
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=procurement_report_{project_id}.pdf"
+        }
+    )
 
-    invoices = db.query(
-        models.Invoice
-    ).filter(
-        models.Invoice.project_id == project_id
-    ).all()
 
-    return {
-        "project_id": project.id,
-        "project_name": project.name,
-        "procurement_requests": requests,
-        "purchase_orders": purchase_orders,
-        "invoices": invoices
-    }
-@router.get("/budget/{project_id}")
+@router.get("/procurement/{project_id}/excel")
+def procurement_report_excel(
+    project_id: int,
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    status: str | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    check_project_access(db, project_id, current_user)
+    data = crud.get_procurement_report_data(db, project_id, start_date, end_date, status)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    excel_buffer = report_service.generate_procurement_excel(data)
+    return StreamingResponse(
+        excel_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename=procurement_report_{project_id}.xlsx"
+        }
+    )
+
+
+# ==============================================================================
+# 5. BUDGET REPORT
+# ==============================================================================
+
+@router.get("/budget/{project_id}", response_model=schemas.BudgetReportResponse)
 def budget_report(
     project_id: int,
-    db: Session = Depends(get_db)
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    category: str | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id
-    ).first()
+    check_project_access(db, project_id, current_user)
+    data = crud.get_budget_report_data(db, project_id, start_date, end_date, category)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return data
 
-    if not project:
-        raise HTTPException(
-            status_code=404,
-            detail="Project not found"
-        )
 
-    budget = db.query(models.Budget).filter(
-        models.Budget.project_id == project_id
-    ).first()
-
-    if not budget:
-        raise HTTPException(
-            status_code=404,
-            detail="Budget not found for this project"
-        )
-
-    estimates = db.query(
-        models.CostEstimate
-    ).filter(
-        models.CostEstimate.project_id == project_id
-    ).all()
-
-    expenses = db.query(
-        models.Expense
-    ).filter(
-        models.Expense.project_id == project_id
-    ).all()
-
-    total_estimated = sum(
-        item.estimated_amount for item in estimates
-    )
-
-    total_expenses = sum(
-        item.amount for item in expenses
-    )
-
-    remaining_budget = budget.total_budget - total_expenses
-
-    return {
-        "project_id": project.id,
-        "project_name": project.name,
-        "total_budget": budget.total_budget,
-        "total_estimated_cost": total_estimated,
-        "total_actual_expenses": total_expenses,
-        "remaining_budget": remaining_budget,
-        "estimates": estimates,
-        "expenses": expenses
-    }
 @router.get("/budget/{project_id}/pdf")
 def budget_report_pdf(
     project_id: int,
-    db: Session = Depends(get_db)
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    category: str | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id
-    ).first()
+    check_project_access(db, project_id, current_user)
+    data = crud.get_budget_report_data(db, project_id, start_date, end_date, category)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    if not project:
-        raise HTTPException(
-            status_code=404,
-            detail="Project not found"
-        )
-
-    budget = db.query(models.Budget).filter(
-        models.Budget.project_id == project_id
-    ).first()
-
-    if not budget:
-        raise HTTPException(
-            status_code=404,
-            detail="Budget not found for this project"
-        )
-
-    expenses = db.query(models.Expense).filter(
-        models.Expense.project_id == project_id
-    ).all()
-
-    total_expenses = sum(
-        expense.amount for expense in expenses
-    )
-
-    remaining_budget = (
-        budget.total_budget - total_expenses
-    )
-
-    buffer = BytesIO()
-
-    pdf = canvas.Canvas(buffer)
-
-    pdf.setTitle("Budget Report")
-
-    pdf.drawString(50, 800, "PROJECT BUDGET REPORT")
-    pdf.drawString(50, 770, f"Project: {project.name}")
-    pdf.drawString(50, 750, f"Project ID: {project.id}")
-
-    pdf.drawString(
-        50, 710,
-        f"Total Budget: {budget.total_budget}"
-    )
-
-    pdf.drawString(
-        50, 690,
-        f"Actual Expenses: {total_expenses}"
-    )
-
-    pdf.drawString(
-        50, 670,
-        f"Remaining Budget: {remaining_budget}"
-    )
-
-    pdf.drawString(50, 630, "Expenses:")
-
-    y = 610
-
-    for expense in expenses:
-        pdf.drawString(
-            60,
-            y,
-            f"{expense.category}: {expense.amount}"
-        )
-        y -= 20
-
-        if y < 50:
-            pdf.showPage()
-            y = 800
-
-    pdf.save()
-
-    buffer.seek(0)
-
+    pdf_buffer = report_service.generate_budget_pdf(data)
     return StreamingResponse(
-        buffer,
+        pdf_buffer,
         media_type="application/pdf",
         headers={
-            "Content-Disposition":
-                f"attachment; filename=budget_report_{project_id}.pdf"
+            "Content-Disposition": f"attachment; filename=budget_report_{project_id}.pdf"
         }
     )
+
+
 @router.get("/budget/{project_id}/excel")
 def budget_report_excel(
     project_id: int,
-    db: Session = Depends(get_db)
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    category: str | None = Query(None),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id
-    ).first()
+    check_project_access(db, project_id, current_user)
+    data = crud.get_budget_report_data(db, project_id, start_date, end_date, category)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-    if not project:
-        raise HTTPException(
-            status_code=404,
-            detail="Project not found"
-        )
-
-    budget = db.query(models.Budget).filter(
-        models.Budget.project_id == project_id
-    ).first()
-
-    if not budget:
-        raise HTTPException(
-            status_code=404,
-            detail="Budget not found for this project"
-        )
-
-    estimates = db.query(
-        models.CostEstimate
-    ).filter(
-        models.CostEstimate.project_id == project_id
-    ).all()
-
-    expenses = db.query(
-        models.Expense
-    ).filter(
-        models.Expense.project_id == project_id
-    ).all()
-
-    total_estimated = sum(
-        item.estimated_amount for item in estimates
-    )
-
-    total_expenses = sum(
-        item.amount for item in expenses
-    )
-
-    remaining_budget = (
-        budget.total_budget - total_expenses
-    )
-
-    workbook = Workbook()
-    sheet = workbook.active
-    sheet.title = "Budget Report"
-
-    sheet["A1"] = "PROJECT BUDGET REPORT"
-    sheet["A3"] = "Project ID"
-    sheet["B3"] = project.id
-
-    sheet["A4"] = "Project Name"
-    sheet["B4"] = project.name
-
-    sheet["A5"] = "Total Budget"
-    sheet["B5"] = budget.total_budget
-
-    sheet["A6"] = "Estimated Cost"
-    sheet["B6"] = total_estimated
-
-    sheet["A7"] = "Actual Expenses"
-    sheet["B7"] = total_expenses
-
-    sheet["A8"] = "Remaining Budget"
-    sheet["B8"] = remaining_budget
-
-    sheet["A10"] = "Expense Category"
-    sheet["B10"] = "Description"
-    sheet["C10"] = "Amount"
-
-    row = 11
-
-    for expense in expenses:
-        sheet.cell(row=row, column=1).value = expense.category
-        sheet.cell(row=row, column=2).value = expense.description
-        sheet.cell(row=row, column=3).value = expense.amount
-        row += 1
-
-    output = BytesIO()
-
-    workbook.save(output)
-    output.seek(0)
-
+    excel_buffer = report_service.generate_budget_excel(data)
     return StreamingResponse(
-        output,
-        media_type=(
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet"
-        ),
+        excel_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={
-            "Content-Disposition":
-                f"attachment; filename=budget_report_{project_id}.xlsx"
+            "Content-Disposition": f"attachment; filename=budget_report_{project_id}.xlsx"
         }
     )
