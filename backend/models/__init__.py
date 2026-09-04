@@ -940,3 +940,52 @@ class ProcurementInvoice(Base):
     remarks = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+# ==========================================
+# MODULE 11: BUDGET & COST MANAGEMENT
+# ==========================================
+
+class BudgetCategory(Base):
+    __tablename__ = "budget_categories"
+    
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class BudgetAllocation(Base):
+    __tablename__ = "budget_allocations"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    category_id = Column(String, ForeignKey("budget_categories.id", ondelete="CASCADE"), nullable=False)
+    
+    allocated_amount = Column(Float, nullable=False, default=0.0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    project = relationship("Project")
+    category = relationship("BudgetCategory")
+
+
+class ExpenseRecord(Base):
+    __tablename__ = "expense_records"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    category_id = Column(String, ForeignKey("budget_categories.id", ondelete="CASCADE"), nullable=False)
+    
+    description = Column(String, nullable=False)
+    amount = Column(Float, nullable=False)
+    expense_date = Column(DateTime, nullable=False)
+    recorded_by_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    status = Column(String, nullable=False, default="Approved") # Pending, Approved, Rejected
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    project = relationship("Project")
+    category = relationship("BudgetCategory")
+    recorded_by = relationship("User")

@@ -6,6 +6,7 @@ import { roleGuard } from './guards/role.guard';
 import { Login } from './pages/auth/login/login';
 import { Register } from './pages/auth/register/register';
 import { ForgotPassword } from './pages/auth/forgot-password/forgot-password';
+import { ProjectManagerBudget } from './pages/project-manager/budget/budget';
 
 // Master Page Shell
 import { DashboardLayoutComponent } from './layouts/dashboard-layout';
@@ -106,6 +107,19 @@ export const routes: Routes = [
         component: InvoicesComponent,
         canActivate: [roleGuard],
         data: { allowedRoles: ['admin', 'project_manager'] }
+      },
+      // Budget Management
+      {
+        path: 'admin/budget',
+        component: ProjectManagerBudget,
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin'] }
+      },
+      {
+        path: 'project-manager/budget',
+        component: ProjectManagerBudget,
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['project_manager'] }
       },
       // Notifications
       {

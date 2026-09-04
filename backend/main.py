@@ -31,6 +31,7 @@ from app.api.payments import router as payments_router
 from app.api.progress import router as progress_router
 from app.api.resources import router as resources_router
 from app.api.procurement import router as procurement_router
+from app.api.budget import router as budget_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -76,7 +77,7 @@ app.include_router(notifications_router, prefix=f"{settings.API_STR}/notificatio
 app.include_router(dashboard_router, prefix=f"{settings.API_STR}/dashboard", tags=["Dashboard"])
 app.include_router(payments_router, prefix=f"{settings.API_STR}/payments", tags=["Payments"])
 app.include_router(procurement_router, prefix=f"{settings.API_STR}", tags=["Procurement Management"])
-
+app.include_router(budget_router, tags=["Budget Management"])
 # Empty placeholder routers
 app.include_router(contractors_router, prefix=f"{settings.API_STR}/contractors", tags=["Contractors Placeholder"])
 app.include_router(site_engineers_router, prefix=f"{settings.API_STR}/site_engineers", tags=["Site Engineers Placeholder"])
