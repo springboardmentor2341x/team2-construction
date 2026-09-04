@@ -1,9 +1,17 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends,HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from datetime import date
+from app import models
 
 from app.database import Base, engine, get_db
-from app import models, schemas, crud
-
+from app import schemas, crud
+from app.routers import user,equipment,equipment_allocation,equipment_maintenance,worker,inventory,material_usage
+from app.routers import site_issues,progress_updates,attendence,progress_reports,dashboard,delay_records
+from app.routers import site_activity_logs,progress_photos,weekly_progress_reports,resource,equipment_utilization,report
+from app.routers import material_requests,material_allocations,stock_movements,worker_assignments
+from app.routers import shifts,shift_assignments,payroll,vendors,procurement_requests,purchase_orders,invoice
+from app.routers import budget,cost_estimation,expense,notification
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
@@ -14,21 +22,80 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Home Endpoint
+# ==========================
+# CORS
+# ==========================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include User Router
+app.include_router(user.router)
+app.include_router(equipment.router)
+app.include_router(equipment_allocation.router)
+app.include_router(equipment_maintenance.router)
+app.include_router(worker.router)
+app.include_router(inventory.router)
+app.include_router(material_usage.router)
+app.include_router(site_issues.router)
+app.include_router(progress_updates.router)
+app.include_router(attendence.router)
+app.include_router(progress_reports.router)
+app.include_router(dashboard.router)
+app.include_router(delay_records.router)
+app.include_router(site_activity_logs.router)
+app.include_router(progress_photos.router)
+app.include_router(weekly_progress_reports.router)
+app.include_router(resource.router)
+app.include_router(equipment_utilization.router)
+app.include_router(material_requests.router)
+app.include_router(material_allocations.router)
+app.include_router(stock_movements.router)
+app.include_router(worker_assignments.router)
+app.include_router(shifts.router)
+app.include_router(shift_assignments.router)
+app.include_router(payroll.router)
+app.include_router(vendors.router)
+app.include_router(procurement_requests.router)
+app.include_router(purchase_orders.router)
+app.include_router(invoice.router)
+app.include_router(budget.router)
+app.include_router(cost_estimation.router)
+app.include_router(expense.router)
+app.include_router(report.router)
+app.include_router(notification.router)
+
+
+
+
+# ==========================
+# HOME
+# ==========================
+
 @app.get("/")
 def home():
     return {
         "message": "Welcome to Construction Project Management API"
     }
 
-# Health Check Endpoint
+
 @app.get("/health")
 def health():
     return {
         "status": "Running"
     }
 
-# Create Project
+# ==========================
+# PROJECTS
+# ==========================
+
 @app.post("/projects", response_model=schemas.Project)
 def create_project(
     project: schemas.ProjectCreate,
@@ -36,10 +103,12 @@ def create_project(
 ):
     return crud.create_project(db=db, project=project)
 
-# Get All Projects
+
 @app.get("/projects", response_model=list[schemas.Project])
 def get_projects(db: Session = Depends(get_db)):
     return crud.get_projects(db)
+
+
 @app.put("/projects/{project_id}", response_model=schemas.Project)
 def update_project(
     project_id: int,
@@ -47,6 +116,8 @@ def update_project(
     db: Session = Depends(get_db)
 ):
     return crud.update_project(db, project_id, project)
+
+
 @app.delete("/projects/{project_id}")
 def delete_project(
     project_id: int,
@@ -54,8 +125,9 @@ def delete_project(
 ):
     crud.delete_project(db, project_id)
     return {"message": "Project deleted successfully"}
+
 # ==========================
-# USER APIs
+# USERS
 # ==========================
 
 @app.post("/users", response_model=schemas.UserResponse)
@@ -67,12 +139,11 @@ def create_user(
 
 
 @app.get("/users", response_model=list[schemas.UserResponse])
-def get_users(
-    db: Session = Depends(get_db)
-):
+def get_users(db: Session = Depends(get_db)):
     return crud.get_users(db)
+
 # ==========================
-# MILESTONE ENDPOINTS
+# MILESTONES
 # ==========================
 
 @app.post("/milestones", response_model=schemas.Milestone)
@@ -81,127 +152,192 @@ def create_milestone(
     db: Session = Depends(get_db)
 ):
     return crud.create_milestone(db=db, milestone=milestone)
-
-
-@app.get("/milestones", response_model=list[schemas.Milestone])
-def get_milestones(db: Session = Depends(get_db)):
-    return crud.get_milestones(db)
 # ==========================
-# RESOURCE ENDPOINTS
+# GET ALL MILESTONES
 # ==========================
 
-@app.post("/resources", response_model=schemas.Resource)
-def create_resource(
-    resource: schemas.ResourceCreate,
+@app.get("/milestones")
+def get_milestones(
     db: Session = Depends(get_db)
 ):
-    return crud.create_resource(db, resource)
+    return crud.get_milestones(db=db)
 
 
-@app.get("/resources", response_model=list[schemas.Resource])
-def get_resources(
-    db: Session = Depends(get_db)
-):
-    return crud.get_resources(db)
 # ==========================
-# INVENTORY ENDPOINTS
+# GET MILESTONES BY PROJECT
 # ==========================
 
-@app.post("/inventory", response_model=schemas.Inventory)
-def create_inventory(
-    inventory: schemas.InventoryCreate,
+@app.get("/milestones/project/{project_id}")
+def get_project_milestones(
+    project_id: int,
     db: Session = Depends(get_db)
 ):
-    return crud.create_inventory(db, inventory)
+    return crud.get_milestones_by_project(
+        db=db,
+        project_id=project_id
+    )
 
 
-@app.get("/inventory", response_model=list[schemas.Inventory])
-def get_inventory(
-    db: Session = Depends(get_db)
-):
-    return crud.get_inventory(db)
 # ==========================
-# WORKER ENDPOINTS
+# GET MILESTONE BY ID
 # ==========================
 
-@app.post("/workers", response_model=schemas.Worker)
-def create_worker(
-    worker: schemas.WorkerCreate,
+@app.get("/milestones/{milestone_id}")
+def get_milestone(
+    milestone_id: int,
     db: Session = Depends(get_db)
 ):
-    return crud.create_worker(db, worker)
+    milestone = crud.get_milestone_by_id(
+        db=db,
+        milestone_id=milestone_id
+    )
+
+    if milestone is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Milestone not found"
+        )
+
+    return milestone
 
 
-@app.get("/workers", response_model=list[schemas.Worker])
-def get_workers(
-    db: Session = Depends(get_db)
-):
-    return crud.get_workers(db)
 # ==========================
-# ATTENDANCE ENDPOINTS
-# ==========================
-
-@app.post("/attendance", response_model=schemas.Attendance)
-def create_attendance(
-    attendance: schemas.AttendanceCreate,
-    db: Session = Depends(get_db)
-):
-    return crud.create_attendance(db, attendance)
-
-
-@app.get("/attendance", response_model=list[schemas.Attendance])
-def get_attendance(
-    db: Session = Depends(get_db)
-):
-    return crud.get_attendance(db)
-# ==========================
-# PROCUREMENT ENDPOINTS
+# UPDATE MILESTONE PROGRESS
 # ==========================
 
-@app.post("/procurements", response_model=schemas.Procurement)
-def create_procurement(
-    procurement: schemas.ProcurementCreate,
+@app.put("/milestones/{milestone_id}/progress")
+def update_milestone_progress(
+    milestone_id: int,
+    progress_percentage: float,
+    status: str,
+    actual_completion_date: date | None = None,
     db: Session = Depends(get_db)
 ):
-    return crud.create_procurement(db, procurement)
+    milestone = crud.update_milestone_progress(
+        db=db,
+        milestone_id=milestone_id,
+        progress_percentage=progress_percentage,
+        status=status,
+        actual_completion_date=actual_completion_date
+    )
 
+    if milestone is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Milestone not found"
+        )
 
-@app.get("/procurements", response_model=list[schemas.Procurement])
-def get_procurements(
-    db: Session = Depends(get_db)
-):
-    return crud.get_procurements(db)
+    return milestone
 # ==========================
-# NOTIFICATION ENDPOINTS
-# ==========================
-
-@app.post("/notifications", response_model=schemas.Notification)
-def create_notification(
-    notification: schemas.NotificationCreate,
-    db: Session = Depends(get_db)
-):
-    return crud.create_notification(db, notification)
-
-
-@app.get("/notifications", response_model=list[schemas.Notification])
-def get_notifications(
-    db: Session = Depends(get_db)
-):
-    return crud.get_notifications(db)
-# ==========================
-# REPORT ENDPOINTS
+# PROJECT SCHEDULE
 # ==========================
 
-@app.post("/reports", response_model=schemas.Report)
-def create_report(
-    report: schemas.ReportCreate,
+@app.post("/project-schedules", response_model=schemas.ProjectSchedule)
+def create_project_schedule(
+    schedule: schemas.ProjectScheduleCreate,
     db: Session = Depends(get_db)
 ):
-    return crud.create_report(db, report)
+    return crud.create_project_schedule(db, schedule)
 
 
-@app.get("/reports", response_model=list[schemas.Report])
-def get_reports(
+@app.get("/project-schedules", response_model=list[schemas.ProjectSchedule])
+def get_project_schedules(
     db: Session = Depends(get_db)
 ):
-    return crud.get_reports(db)
+    return crud.get_project_schedules(db)
+# ==========================
+# SITE ENGINEER ASSIGNMENT
+# ==========================
+
+@app.post(
+    "/site-engineers",
+    response_model=schemas.SiteEngineerAssignment
+)
+def create_site_engineer_assignment(
+    assignment: schemas.SiteEngineerAssignmentCreate,
+    db: Session = Depends(get_db)
+):
+    return crud.create_site_engineer_assignment(db, assignment)
+
+
+@app.get(
+    "/site-engineers",
+    response_model=list[schemas.SiteEngineerAssignment]
+)
+def get_site_engineer_assignments(
+    db: Session = Depends(get_db)
+):
+    return crud.get_site_engineer_assignments(db)
+# ==========================
+# CONTRACTOR ASSIGNMENT
+# ==========================
+
+@app.post(
+    "/contractors",
+    response_model=schemas.ContractorAssignment
+)
+def create_contractor_assignment(
+    assignment: schemas.ContractorAssignmentCreate,
+    db: Session = Depends(get_db)
+):
+    return crud.create_contractor_assignment(db, assignment)
+
+
+@app.get(
+    "/contractors",
+    response_model=list[schemas.ContractorAssignment]
+)
+def get_contractor_assignments(
+    db: Session = Depends(get_db)
+):
+    return crud.get_contractor_assignments(db)
+# ==========================
+# PROJECT STATUS UPDATE
+# ==========================
+
+@app.put("/projects/{project_id}/status", response_model=schemas.Project)
+def update_project_status(
+    project_id: int,
+    status: str,
+    db: Session = Depends(get_db)
+):
+    project = crud.update_project_status(db, project_id, status)
+
+    if project is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
+
+    return project
+# ==========================
+# ==========================
+# PROJECT COMPLETION - MODULE 3
+# ==========================
+
+@app.get("/projects/{project_id}/completion")
+def get_project_completion(
+    project_id: int,
+    db: Session = Depends(get_db)
+):
+    project = db.query(
+        models.Project
+    ).filter(
+        models.Project.id == project_id
+    ).first()
+
+    if project is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Project not found"
+        )
+
+    completion = crud.get_project_completion_percentage(
+        db=db,
+        project_id=project_id
+    )
+
+    return {
+        "project_id": project_id,
+        "completion_percentage": completion
+    }
