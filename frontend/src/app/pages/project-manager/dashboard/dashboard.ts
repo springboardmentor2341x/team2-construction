@@ -10,6 +10,7 @@ import {
 } from '../../../services/project.service';
 import { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';
 import { ChartsComponent } from '../../../components/charts/charts';
+import { DashboardService } from '../../../services/dashboard.service';
 
 import { WorkforceManagementComponent } from '../../../components/workforce-management/workforce-management';
 
@@ -22,9 +23,11 @@ import { WorkforceManagementComponent } from '../../../components/workforce-mana
 })
 export class ProjectManagerDashboard implements OnInit {
   projectService = inject(ProjectService);
+  dashboardService = inject(DashboardService);
   route = inject(ActivatedRoute);
 
   queryParams = toSignal(this.route.queryParams);
+  dashboardData = signal<any>(null);
 
   get activeModule(): string {
     return this.queryParams()?.['module'] || 'projects';
@@ -35,86 +38,75 @@ export class ProjectManagerDashboard implements OnInit {
 
   // Filter projects managed by this user (Shradha S) or available
   managedProjects = computed(() => {
-    const list = this.projectService.projects().filter(p => p.manager === 'Shradha S');
-    return list.length > 0 ? list : this.projectService.projects();
+    return this.dashboardData()?.projects || [];
   });
 
-  totalBudget = computed(() => 
-    this.managedProjects().reduce((sum, p) => sum + p.budget, 0)
-  );
+  totalBudget = computed(() => {
+    return this.dashboardData()?.budget?.planned || 0;
+  });
 
-  totalSpent = computed(() => 
-    this.managedProjects().reduce((sum, p) => sum + p.spent, 0)
-  );
+  totalSpent = computed(() => {
+    return this.dashboardData()?.budget?.utilized || 0;
+  });
 
   averageProgress = computed(() => {
-    const projs = this.managedProjects();
-    if (projs.length === 0) return 0;
-    return Math.round(projs.reduce((sum, p) => sum + p.progress, 0) / projs.length);
+    return this.dashboardData()?.progress?.overall || 0;
   });
 
   // Budget chart computed signals
-  budgetChartLabels = computed(() =>
-    this.managedProjects().length > 0
-      ? this.managedProjects().map(p => p.name.split(' ').slice(0, 2).join(' '))
-      : ['Vanguard Tower', 'Riverfront II', 'Metro Transit', 'Eco-Resort']
-  );
-  budgetChartCommitted = computed(() =>
-    this.managedProjects().length > 0
-      ? this.managedProjects().map(p => parseFloat((p.budget / 1_000_000).toFixed(2)))
-      : [12.5, 8.2, 15.0, 5.4]
-  );
-  budgetChartSpent = computed(() =>
-    this.managedProjects().length > 0
-      ? this.managedProjects().map(p => parseFloat((p.spent / 1_000_000).toFixed(2)))
-      : [9.1, 6.7, 8.3, 3.2]
-  );
+  budgetChartLabels = computed(() => {
+    const projs = this.managedProjects();
+    return projs.length > 0
+      ? projs.map((p: any) => p.name.split(' ').slice(0, 2).join(' '))
+      : [];
+  });
+  budgetChartCommitted = computed(() => {
+    const projs = this.managedProjects();
+    return projs.length > 0
+      ? projs.map((p: any) => parseFloat((p.budget / 1_000_000).toFixed(2)))
+      : [];
+  });
+  budgetChartSpent = computed(() => {
+    const projs = this.managedProjects();
+    return projs.length > 0
+      ? projs.map((p: any) => parseFloat((p.spent / 1_000_000).toFixed(2)))
+      : [];
+  });
 
   // Module 3 Computations
   managedMilestones = computed(() =>
     this.projectService.milestones().filter(m => 
-      this.managedProjects().some(p => p.id === m.projectId)
+      this.managedProjects().some((p: any) => p.id === m.projectId)
     )
   );
 
   managedDailyReports = computed(() =>
     this.projectService.dailyProgressReports().filter(r =>
-      this.managedProjects().some(p => p.id === r.projectId)
+      this.managedProjects().some((p: any) => p.id === r.projectId)
     )
   );
 
   managedDelays = computed(() =>
     this.projectService.delays().filter(d =>
-      this.managedProjects().some(p => p.id === d.projectId)
+      this.managedProjects().some((p: any) => p.id === d.projectId)
     )
   );
 
   managedActivityLogs = computed(() =>
     this.projectService.activityLogs().filter(a =>
-      this.managedProjects().some(p => p.id === a.projectId)
+      this.managedProjects().some((p: any) => p.id === a.projectId)
     )
   );
 
-  // Static team member fallback
-  staticTeamMembers: WorkforceMember[] = [
-    { id: 'tm1', name: 'Ramesh Kumar', role: 'Mason', assignedProject: 'Vanguard Heights Tower', phone: '+91-9812345678', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Ramesh+Kumar&background=0d6efd&color=fff' },
-    { id: 'tm2', name: 'Priya Nair', role: 'Electrician', assignedProject: 'Vanguard Heights Tower', phone: '+91-9823456789', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Priya+Nair&background=198754&color=fff' },
-    { id: 'tm3', name: 'Suresh Patil', role: 'Plumber', assignedProject: 'Riverfront Residency II', phone: '+91-9834567890', status: 'On Leave', avatar: 'https://ui-avatars.com/api/?name=Suresh+Patil&background=ffc107&color=000' },
-    { id: 'tm4', name: 'Kavita Sharma', role: 'Site Supervisor', assignedProject: 'Vanguard Heights Tower', phone: '+91-9845678901', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Kavita+Sharma&background=0dcaf0&color=fff' },
-    { id: 'tm5', name: 'Mohan Das', role: 'Welder', assignedProject: 'Metro Transit Hub', phone: '+91-9856789012', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Mohan+Das&background=6f42c1&color=fff' },
-    { id: 'tm6', name: 'Arjun Singh', role: 'Safety Officer', assignedProject: 'Riverfront Residency II', phone: '+91-9878901234', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Arjun+Singh&background=fd7e14&color=fff' },
-  ];
-
   teamMembers = computed(() => {
-    const live = this.projectService.workforce().filter(member =>
-      this.managedProjects().some(p => p.name === member.assignedProject)
+    return this.projectService.workforce().filter(member =>
+      this.managedProjects().some((p: any) => p.name === member.assignedProject)
     );
-    return live.length > 0 ? live : this.staticTeamMembers;
   });
 
   projectIssues = computed(() => 
     this.projectService.issues().filter(issue => 
-      this.managedProjects().some(p => p.name === issue.projectName)
+      this.managedProjects().some((p: any) => p.name === issue.projectName)
     )
   );
 
@@ -250,10 +242,23 @@ export class ProjectManagerDashboard implements OnInit {
     this.projectService.loadModule3Data();
     this.projectService.loadModule4Data();
     this.projectService.loadWeeklySummary(this.selectedProjectId);
+    this.loadDashboardData();
+  }
+
+  loadDashboardData() {
+    this.dashboardService.getPmDashboard(this.selectedProjectId).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.dashboardData.set(res.data);
+        }
+      },
+      error: (err) => console.error("Error loading dashboard data:", err)
+    });
   }
 
   onProjectSelectChange() {
     this.projectService.loadWeeklySummary(this.selectedProjectId);
+    this.loadDashboardData();
   }
 
   // ==========================================
@@ -702,8 +707,8 @@ export class ProjectManagerDashboard implements OnInit {
   exportBudget() {
     const projs = this.managedProjects();
     const rows = projs.length > 0
-      ? projs.map(p => [p.name, '$' + p.budget.toLocaleString(), '$' + p.spent.toLocaleString(), '$' + (p.budget - p.spent).toLocaleString(), p.progress + '%', p.status])
-      : [['Vanguard Heights Tower', '$12,500,000', '$9,100,000', '$3,400,000', '65%', 'In Progress']];
+      ? projs.map((p: any) => [p.name, '$' + p.budget.toLocaleString(), '$' + p.spent.toLocaleString(), '$' + (p.budget - p.spent).toLocaleString(), p.progress + '%', p.status])
+      : [];
     this.downloadCSV('Budget_Analysis', [
       ['BuildTrack – Budget Utilization Report'],
       ['Generated: ' + new Date().toLocaleDateString()],

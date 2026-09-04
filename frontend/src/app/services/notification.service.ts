@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
 
+const environment = { apiUrl: 'http://localhost:8000' };
 export interface Notification {
   id: string;
   user_id: string;

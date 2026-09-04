@@ -37,7 +37,7 @@ import { AuthService } from '../../../services/auth.service';
         <tbody>
           <tr *ngFor="let inv of invoices" [class.table-danger]="inv.is_overdue">
             <td>{{ inv.invoice_number }}</td>
-            <td>{{ inv.purchase_order_id?.substring(0, 8) }}</td>
+  <td>{{ inv.purchase_order_id ? inv.purchase_order_id.substring(0, 8) : '' }}</td>
             <td>{{ inv.vendor_name }}</td>
             <td>\${{ inv.invoice_amount | number:'1.2-2' }}</td>
             <td>

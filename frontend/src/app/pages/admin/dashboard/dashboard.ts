@@ -8,6 +8,7 @@ import { AuthService } from '../../../services/auth.service';
 import { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';
 import { ChartsComponent } from '../../../components/charts/charts';
 import { User, UserRole } from '../../../models/user.model';
+import { DashboardService } from '../../../services/dashboard.service';
 
 import { WorkforceManagementComponent } from '../../../components/workforce-management/workforce-management';
 
@@ -20,10 +21,23 @@ import { WorkforceManagementComponent } from '../../../components/workforce-mana
 })
 export class AdministratorDashboard {
   projectService = inject(ProjectService);
+  dashboardService = inject(DashboardService);
   authService = inject(AuthService);
   route = inject(ActivatedRoute);
 
   queryParams = toSignal(this.route.queryParams);
+  dashboardData = signal<any>(null);
+
+  ngOnInit() {
+    this.dashboardService.getAdminDashboard().subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.dashboardData.set(res.data);
+        }
+      },
+      error: (err) => console.error("Error loading admin dashboard:", err)
+    });
+  }
 
   get activeModule(): string {
     return this.queryParams()?.['module'] || 'overview';
@@ -119,9 +133,18 @@ export class AdministratorDashboard {
   ];
 
   // Budget chart computed data from real projects
-  budgetChartLabels = computed(() => this.projectService.projects().map(p => p.name.split(' ').slice(0,2).join(' ')));
-  budgetChartCommitted = computed(() => this.projectService.projects().map(p => parseFloat((p.budget / 1_000_000).toFixed(2))));
-  budgetChartSpent = computed(() => this.projectService.projects().map(p => parseFloat((p.spent / 1_000_000).toFixed(2))));
+  budgetChartLabels = computed(() => {
+    const data = this.dashboardData();
+    return data?.projects?.map((p: any) => p.name.split(' ').slice(0,2).join(' ')) || [];
+  });
+  budgetChartCommitted = computed(() => {
+    const data = this.dashboardData();
+    return data?.projects?.map((p: any) => parseFloat((p.budget / 1_000_000).toFixed(2))) || [];
+  });
+  budgetChartSpent = computed(() => {
+    const data = this.dashboardData();
+    return data?.projects?.map((p: any) => parseFloat((p.spent / 1_000_000).toFixed(2))) || [];
+  });
 
   // Computed workforce: use backend data if available, else static
   workforceData = computed(() => {
@@ -194,21 +217,21 @@ export class AdministratorDashboard {
   }
 
   // Computations
-  totalBudgetPool = computed(() => 
-    this.projectService.projects().reduce((sum, p) => sum + p.budget, 0)
-  );
+  totalBudgetPool = computed(() => {
+    return this.dashboardData()?.projects?.reduce((sum: number, p: any) => sum + p.budget, 0) || 0;
+  });
 
-  totalSpentPool = computed(() => 
-    this.projectService.projects().reduce((sum, p) => sum + p.spent, 0)
-  );
+  totalSpentPool = computed(() => {
+    return this.dashboardData()?.projects?.reduce((sum: number, p: any) => sum + p.spent, 0) || 0;
+  });
 
-  criticalStockCount = computed(() => 
-    this.projectService.materials().filter(m => m.inStock <= m.reorderLevel).length
-  );
+  criticalStockCount = computed(() => {
+    return this.projectService.materials().filter(m => m.inStock <= m.reorderLevel).length;
+  });
 
-  pendingRequestsCount = computed(() => 
-    this.projectService.materialRequests().filter(r => r.status === 'Pending').length
-  );
+  pendingRequestsCount = computed(() => {
+    return this.projectService.materialRequests().filter(r => r.status === 'Pending').length;
+  });
 
   // User Actions
   addUser() {

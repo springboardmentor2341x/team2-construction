@@ -589,6 +589,185 @@ class DashboardService:
             kpi["attendanceRate"] = rate
         return kpi
 
+    def get_admin_dashboard(self, db: Session):
+        projects = db.query(Project).all()
+        users = db.query(User).all()
+        materials = db.query(Material).all()
+        pending_requests = db.query(MaterialRequest).filter(MaterialRequest.status == "Pending").all()
+        workers = db.query(Worker).all()
+        resources = db.query(Resource).all()
+
+        total_users = len(users)
+        users_by_role = {}
+        for u in users:
+            rname = u.role.name if u.role else "unknown"
+            users_by_role[rname] = users_by_role.get(rname, 0) + 1
+            
+        active_users = sum(1 for w in workers if w.status == "Active")
+
+        total_projects = len(projects)
+        active_projects = sum(1 for p in projects if p.status == "In Progress")
+        completed_projects = sum(1 for p in projects if p.status == "Completed")
+        delayed_projects = sum(1 for p in projects if p.status == "Delayed")
+        overall_progress = int(sum(p.progress for p in projects) / total_projects) if total_projects else 0
+
+        projects_by_status = {
+            "In Progress": active_projects,
+            "Completed": completed_projects,
+            "Delayed": delayed_projects,
+            "Planning": sum(1 for p in projects if p.status == "Planning")
+        }
+
+        total_budget = sum(p.budget for p in projects)
+        total_spent = sum(p.spent for p in projects)
+
+        total_equipment = len(resources)
+        operating_equip = sum(1 for r in resources if r.status == "Operating")
+        allocated_equip = sum(1 for r in resources if r.status == "Allocated")
+        available_equip = sum(1 for r in resources if r.status == "Available")
+
+        return {
+            "userManagement": {
+                "totalUsers": total_users,
+                "usersByRole": users_by_role,
+                "activeUsers": active_users
+            },
+            "projectMonitoring": {
+                "totalProjects": total_projects,
+                "activeProjects": active_projects,
+                "completedProjects": completed_projects,
+                "delayedProjects": delayed_projects,
+                "overallProgress": overall_progress,
+                "projectsByStatus": projects_by_status
+            },
+            "systemAnalytics": {
+                "totalBudget": total_budget,
+                "totalSpent": total_spent,
+                "equipmentUtilization": {
+                    "total": total_equipment,
+                    "operating": operating_equip,
+                    "allocated": allocated_equip,
+                    "available": available_equip
+                }
+            }
+        }
+
+    def get_pm_dashboard(self, db: Session, user_id: str, project_id: Optional[str] = None):
+        if project_id:
+            managed = db.query(Project).filter(Project.manager_id == user_id, Project.id == project_id).all()
+        else:
+            managed = db.query(Project).filter(Project.manager_id == user_id).all()
+            
+        if not managed:
+            return None
+
+        proj_ids = [p.id for p in managed]
+
+        # Project Progress
+        overall_progress = int(sum(p.progress for p in managed) / len(managed)) if managed else 0
+        status_counts = {"In Progress": 0, "Completed": 0, "Delayed": 0, "Planning": 0}
+        for p in managed:
+            status_counts[p.status] = status_counts.get(p.status, 0) + 1
+
+        milestones = db.query(Milestone).filter(Milestone.project_id.in_(proj_ids)).all()
+        completed_milestones = sum(1 for m in milestones if m.status == "Completed")
+        pending_milestones = sum(1 for m in milestones if m.status == "Pending")
+        in_progress_milestones = sum(1 for m in milestones if m.status == "In Progress")
+
+        # Budget Utilization
+        planned_budget = sum(p.budget for p in managed)
+        utilized_amount = sum(p.spent for p in managed)
+        remaining_amount = planned_budget - utilized_amount
+        utilization_percentage = int((utilized_amount / planned_budget) * 100) if planned_budget > 0 else 0
+
+        # Workforce Status
+        workers = db.query(Worker).filter(Worker.assigned_project_id.in_(proj_ids)).all()
+        worker_ids = [w.id for w in workers]
+        
+        today = datetime.datetime.utcnow().date()
+        today_attendance = db.query(Attendance).filter(Attendance.worker_id.in_(worker_ids), func.date(Attendance.date) == today).all()
+        
+        present_count = sum(1 for a in today_attendance if a.status == "Present")
+        absent_count = sum(1 for a in today_attendance if a.status == "Absent")
+        leave_count = sum(1 for a in today_attendance if a.status == "Leave")
+        total_workers = len(workers)
+        attendance_percentage = int((present_count / total_workers) * 100) if total_workers > 0 else 0
+
+        # Resource Utilization
+        resources = db.query(Resource).filter(Resource.current_project_id.in_(proj_ids)).all()
+        total_equip = len(resources)
+        operating_equip = sum(1 for r in resources if r.status == "Operating")
+        allocated_equip = sum(1 for r in resources if r.status == "Allocated")
+        available_equip = sum(1 for r in resources if r.status == "Available")
+        maintenance_equip = sum(1 for r in resources if r.status == "Under Maintenance")
+        resource_utilization_pct = int(((operating_equip + allocated_equip) / total_equip) * 100) if total_equip > 0 else 0
+
+        # Procurement Overview
+        requests = db.query(MaterialRequest).filter(MaterialRequest.project_id.in_(proj_ids)).all()
+        total_requests = len(requests)
+        pending_requests = sum(1 for r in requests if r.status == "Pending")
+        approved_requests = sum(1 for r in requests if r.status == "Approved")
+        rejected_requests = sum(1 for r in requests if r.status == "Rejected")
+
+        # Delays
+        delays = db.query(DelayRecord).filter(DelayRecord.project_id.in_(proj_ids)).all()
+        active_delays = sum(1 for d in delays if d.status == "Active")
+
+        return {
+            "projects": [
+                {
+                    "id": p.id, 
+                    "name": p.name, 
+                    "budget": p.budget, 
+                    "spent": p.spent, 
+                    "progress": p.progress, 
+                    "status": p.status, 
+                    "manager": p.manager.full_name if p.manager else "Unknown"
+                } 
+                for p in managed
+            ],
+            "progress": {
+                "overall": overall_progress,
+                "statusCounts": status_counts,
+                "milestones": {
+                    "total": len(milestones),
+                    "completed": completed_milestones,
+                    "pending": pending_milestones,
+                    "inProgress": in_progress_milestones
+                }
+            },
+            "budget": {
+                "planned": planned_budget,
+                "utilized": utilized_amount,
+                "remaining": remaining_amount,
+                "percentage": utilization_percentage
+            },
+            "workforce": {
+                "total": total_workers,
+                "present": present_count,
+                "absent": absent_count,
+                "leave": leave_count,
+                "attendancePercentage": attendance_percentage
+            },
+            "resources": {
+                "total": total_equip,
+                "operating": operating_equip,
+                "allocated": allocated_equip,
+                "available": available_equip,
+                "maintenance": maintenance_equip,
+                "utilizationPercentage": resource_utilization_pct
+            },
+            "procurement": {
+                "totalRequests": total_requests,
+                "pending": pending_requests,
+                "approved": approved_requests,
+                "rejected": rejected_requests
+            },
+            "delays": {
+                "active": active_delays,
+                "total": len(delays)
+            }
+        }
 
 # ==========================================
 # ATTENDANCE SERVICE

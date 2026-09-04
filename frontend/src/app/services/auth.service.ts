@@ -58,6 +58,12 @@ export class AuthService {
       }
     }
   }
+  getToken(): string | null {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return localStorage.getItem('bt_token');
+    }
+    return null;
+  }
 
   private saveSession(user: User, token: string) {
     if (typeof window !== 'undefined' && window.localStorage) {

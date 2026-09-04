@@ -16,7 +16,7 @@
   <!-- KPI summary cards -->
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-lg-3">
-      <app-dashboard-card title="Active Projects" [value]="projectService.projects().length" icon="bi-briefcase-fill" colorType="primary"></app-dashboard-card>
+      <app-dashboard-card title="Active Projects" [value]="dashboardData()?.projects?.length || 0" icon="bi-briefcase-fill" colorType="primary"></app-dashboard-card>
     </div>
     <div class="col-sm-6 col-lg-3">
       <app-dashboard-card title="Total Budget Pools" [value]="'$' + (totalBudgetPool() | number:'1.0-0')" icon="bi-cash-coin" colorType="success"></app-dashboard-card>
@@ -66,7 +66,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (proj of projectService.projects(); track proj.id) {
+              @for (proj of (dashboardData()?.projects || []); track proj.id) {
                 <tr>
                   <td>
                     <div class="fw-bold text-dark">{{ proj.name }}</div>
