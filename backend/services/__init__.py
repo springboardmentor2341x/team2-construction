@@ -714,27 +714,41 @@ class AttendanceService:
 # NOTIFICATIONS SERVICE
 # ==========================================
 class NotificationsService:
-    def get_notifications(self, db: Session, user_id: str):
-        return db.query(Notification).filter(Notification.user_id == user_id).order_by(Notification.date.desc()).all()
+    def get_notifications(self, db: Session, user_id: str, unread_only: bool = False, limit: int = 50):
+        query = db.query(Notification).filter(Notification.user_id == user_id)
+        if unread_only:
+            query = query.filter(Notification.is_read == False)
+        return query.order_by(Notification.created_at.desc()).limit(limit).all()
+
+    def get_unread_count(self, db: Session, user_id: str):
+        return db.query(Notification).filter(Notification.user_id == user_id, Notification.is_read == False).count()
 
     def mark_as_read(self, db: Session, user_id: str, note_id: str):
         note = db.query(Notification).filter(Notification.id == note_id, Notification.user_id == user_id).first()
-        if not note:
-            raise HTTPException(status_code=404, detail="Notification not found")
-        note.read = True
-        db.commit()
-        db.refresh(note)
+        if note:
+            note.is_read = True
+            db.commit()
+            db.refresh(note)
         return note
 
-    def create_notification(self, db: Session, data: dict):
+    def mark_all_as_read(self, db: Session, user_id: str):
+        db.query(Notification).filter(Notification.user_id == user_id, Notification.is_read == False).update({"is_read": True})
+        db.commit()
+
+    def create_notification(self, db: Session, data):
+        # data is a NotificationCreate pydantic model
         import uuid
         note = Notification(
-            id=str(uuid.uuid4())[:8],
-            user_id=data["userId"],
-            message=data["message"],
-            type=data.get("type") or "info",
-            read=False,
-            date=datetime.datetime.utcnow()
+            id=str(uuid.uuid4()),
+            user_id=data.user_id,
+            project_id=data.project_id,
+            notification_type=data.notification_type,
+            title=data.title,
+            message=data.message,
+            related_entity_type=data.related_entity_type,
+            related_entity_id=data.related_entity_id,
+            is_read=False,
+            created_at=datetime.datetime.utcnow()
         )
         db.add(note)
         db.commit()
@@ -2509,6 +2523,33 @@ class ProcurementService:
         db.add(req)
         db.commit()
         db.refresh(req)
+
+        # TRIGGER NOTIFICATION (Module 8 Integration)
+        try:
+            # Find the project manager for this project
+            pm_assignment = db.query(ProjectMember).filter(
+                ProjectMember.project_id == req.project_id,
+                ProjectMember.role == "project_manager"
+            ).first()
+            
+            if pm_assignment:
+                pm_id = pm_assignment.user_id
+                # Avoid importing NotificationCreate here to prevent circular deps, just use a mock object or dict if we update create_notification
+                notif_service = NotificationsService()
+                
+                class MockData:
+                    user_id = pm_id
+                    project_id = req.project_id
+                    notification_type = "PROCUREMENT_ALERT"
+                    title = "Procurement Approval Required"
+                    message = f"A new procurement request ({req.id}) for {req.item_name} has been submitted and requires your approval."
+                    related_entity_type = "PROCUREMENT"
+                    related_entity_id = req.id
+
+                notif_service.create_notification(db, MockData())
+        except Exception as e:
+            print("Failed to trigger notification:", e)
+
         return req
 
     def update_request(self, db: Session, req_id: str, data: dict) -> ProcurementRequest:

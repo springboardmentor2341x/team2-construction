@@ -25,6 +25,9 @@ import { ProcurementRequestsComponent } from './components/procurement/procureme
 import { PurchaseOrdersComponent } from './components/procurement/purchase-orders/purchase-orders';
 import { InvoicesComponent } from './components/procurement/invoices/invoices';
 
+// Notifications
+import { NotificationsComponent } from './pages/notifications/notifications';
+
 export const routes: Routes = [
   // Public/Auth routes
   { path: 'login', component: Login },
@@ -103,6 +106,11 @@ export const routes: Routes = [
         component: InvoicesComponent,
         canActivate: [roleGuard],
         data: { allowedRoles: ['admin', 'project_manager'] }
+      },
+      // Notifications
+      {
+        path: 'notifications',
+        component: NotificationsComponent
       },
       // Redirect empty root inside Shell Layout (Default role-based redirecting)
       {

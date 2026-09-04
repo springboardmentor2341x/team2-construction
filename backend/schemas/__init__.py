@@ -456,18 +456,26 @@ class WorkerPayslipCreate(BaseModel):
 # ==========================================
 class NotificationResponse(BaseModel):
     id: str
-    userId: str
+    user_id: str
+    project_id: Optional[str] = None
+    notification_type: str
+    title: str
     message: str
-    read: bool
-    type: str
-    date: str
+    is_read: bool
+    created_at: datetime
+    related_entity_type: Optional[str] = None
+    related_entity_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 class NotificationCreate(BaseModel):
-    userId: str
+    user_id: str
+    project_id: Optional[str] = None
+    notification_type: str
+    title: str
     message: str
-    type: Optional[str] = "info"
+    related_entity_type: Optional[str] = None
+    related_entity_id: Optional[str] = None
 
 # ==========================================
 # MODULE 3: SITE PROGRESS MONITORING SCHEMAS

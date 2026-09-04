@@ -456,14 +456,21 @@ class WorkerPayslip(Base):
 class Notification(Base):
     __tablename__ = "notifications"
 
-    id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", back_populates="notifications")
+    
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=True)
+    project = relationship("Project")
 
+    notification_type = Column(String, nullable=False) # e.g. PROJECT_UPDATE, PROCUREMENT_ALERT
+    title = Column(String, nullable=False, default="Notification")
     message = Column(String, nullable=False)
-    read = Column(Boolean, default=False)
-    type = Column(String, nullable=False) # info, alert, success, warning
-    date = Column(DateTime, default=datetime.datetime.utcnow)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    related_entity_type = Column(String, nullable=True)
+    related_entity_id = Column(String, nullable=True)
 
 class FeedbackMessage(Base):
     __tablename__ = "feedback_messages"
