@@ -1,0 +1,241 @@
+<div class="reports-page">
+
+  <div class="page-header">
+    <div>
+      <h1>Reports & Documentation</h1>
+      <p>Generate, view and manage construction project reports.</p>
+    </div>
+
+    <button class="generate-report-btn" (click)="generateReport()">
+      + Generate Report
+    </button>
+  </div>
+
+  <div class="stats-container">
+
+    <div class="stat-card">
+      <div class="stat-icon">📄</div>
+      <div>
+        <h3>{{ reports.length }}</h3>
+        <p>Total Reports</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div>
+        <h3>{{ monthlyReports }}</h3>
+        <p>Monthly Reports</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📁</div>
+      <div>
+        <h3>16</h3>
+        <p>Project Documents</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="reports-section">
+
+    <div class="section-header">
+      <h2>Recent Reports</h2>
+
+      <input
+        type="text"
+        placeholder="Search reports..."
+        [(ngModel)]="searchText"
+      >
+    </div>
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Report Name</th>
+            <th>Project</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let report of filteredReports">
+
+            <td>{{ report.name }}</td>
+
+            <td>{{ report.project }}</td>
+
+            <td>{{ report.type }}</td>
+
+            <td>{{ report.date }}</td>
+
+            <td>
+              <span
+                class="status"
+                [class.completed]="report.status === 'Completed'"
+                [class.pending]="report.status === 'Pending'"
+              >
+                {{ report.status }}
+              </span>
+            </td>
+
+            <td>
+
+              <button
+                class="view-btn"
+                (click)="viewReport(report)"
+              >
+                View
+              </button>
+
+              <button
+                class="delete-btn"
+                (click)="openDeleteDialog(report)"
+              >
+                Delete
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- VIEW REPORT DIALOG -->
+
+  <div
+    class="modal-overlay"
+    *ngIf="selectedReport"
+  >
+
+    <div class="modal">
+
+      <div class="modal-header">
+
+        <h2>Report Details</h2>
+
+        <button
+          class="close-btn"
+          (click)="closeReport()"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="modal-content">
+
+        <div class="detail-row">
+          <span>Report Name</span>
+          <strong>{{ selectedReport.name }}</strong>
+        </div>
+
+        <div class="detail-row">
+          <span>Project</span>
+          <strong>{{ selectedReport.project }}</strong>
+        </div>
+
+        <div class="detail-row">
+          <span>Report Type</span>
+          <strong>{{ selectedReport.type }}</strong>
+        </div>
+
+        <div class="detail-row">
+          <span>Date</span>
+          <strong>{{ selectedReport.date }}</strong>
+        </div>
+
+        <div class="detail-row">
+
+          <span>Status</span>
+
+          <span
+            class="status"
+            [class.completed]="selectedReport.status === 'Completed'"
+            [class.pending]="selectedReport.status === 'Pending'"
+          >
+            {{ selectedReport.status }}
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          class="close-modal-btn"
+          (click)="closeReport()"
+        >
+          Close
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- DELETE CONFIRMATION DIALOG -->
+
+  <div
+    class="modal-overlay"
+    *ngIf="reportToDelete"
+  >
+
+    <div class="delete-modal">
+
+      <h2>Delete Report?</h2>
+
+      <p>
+        Are you sure you want to delete this report?
+      </p>
+
+      <p class="delete-report-name">
+        {{ reportToDelete.name }}
+      </p>
+
+      <p class="warning-text">
+        This action cannot be undone.
+      </p>
+
+      <div class="delete-actions">
+
+        <button
+          class="cancel-delete-btn"
+          (click)="cancelDelete()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="confirm-delete-btn"
+          (click)="confirmDelete()"
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

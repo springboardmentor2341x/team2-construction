@@ -1,0 +1,47 @@
+* {
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.app-container {
+  min-height: 100vh;
+  background-color: #f4f6f8;
+}
+
+.topbar {
+  height: 70px;
+  background-color: #1f2937;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.logo-icon {
+  font-size: 28px;
+}
+
+.user-section {
+  font-size: 14px;
+  color: #d1d5db;
+}
+
+.main-content {
+  min-height: calc(100vh - 70px);
+  padding: 30px;
+}

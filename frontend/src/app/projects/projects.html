@@ -1,0 +1,336 @@
+<div class="projects-page">
+
+  <div class="page-header">
+
+    <div>
+      <h1>Project Management</h1>
+      <p>Manage and track all construction projects.</p>
+    </div>
+
+    <button class="add-project-btn" (click)="addProject()">
+      + Add Project
+    </button>
+
+  </div>
+
+
+  <div class="stats-container">
+
+    <div class="stat-card">
+      <div class="stat-icon">🏗️</div>
+
+      <div>
+        <h3>{{ totalProjects }}</h3>
+        <p>Total Projects</p>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon">🚧</div>
+
+      <div>
+        <h3>{{ activeProjects }}</h3>
+        <p>Active Projects</p>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+
+      <div>
+        <h3>{{ planningProjects }}</h3>
+        <p>Planning Stage</p>
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="form-section" *ngIf="showForm">
+
+    <h2>Add New Project</h2>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Project Name</label>
+
+        <input
+          type="text"
+          placeholder="Enter project name"
+          [(ngModel)]="newProject.name"
+        >
+      </div>
+
+
+      <div class="form-group">
+        <label>Project Manager</label>
+
+        <input
+          type="text"
+          placeholder="Enter project manager name"
+          [(ngModel)]="newProject.manager"
+        >
+      </div>
+
+
+      <div class="form-group">
+        <label>Start Date</label>
+
+        <input
+          type="date"
+          [(ngModel)]="newProject.startDate"
+        >
+      </div>
+
+
+      <div class="form-group">
+        <label>End Date</label>
+
+        <input
+          type="date"
+          [(ngModel)]="newProject.endDate"
+        >
+      </div>
+
+
+      <div class="form-group">
+        <label>Status</label>
+
+        <select [(ngModel)]="newProject.status">
+          <option>Planning</option>
+          <option>In Progress</option>
+          <option>Completed</option>
+        </select>
+      </div>
+
+    </div>
+
+
+    <div class="form-actions">
+
+      <button class="save-btn" (click)="saveProject()">
+        Save Project
+      </button>
+
+      <button class="cancel-btn" (click)="cancelProject()">
+        Cancel
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="project-section">
+
+    <div class="section-header">
+
+      <h2>Project Overview</h2>
+
+      <input
+        type="text"
+        placeholder="Search projects..."
+        [(ngModel)]="searchText"
+      >
+
+    </div>
+
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Project Manager</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr *ngFor="let project of filteredProjects">
+
+            <td>{{ project.name }}</td>
+
+            <td>{{ project.manager }}</td>
+
+            <td>{{ project.startDate }}</td>
+
+            <td>{{ project.endDate }}</td>
+
+
+            <td>
+
+              <span
+                class="status"
+                [class.planning]="project.status === 'Planning'"
+                [class.in-progress]="project.status === 'In Progress'"
+                [class.completed]="project.status === 'Completed'"
+              >
+                {{ project.status }}
+              </span>
+
+            </td>
+
+
+            <td class="action-buttons">
+
+              <button
+                class="view-btn"
+                (click)="viewProject(project)"
+              >
+                View
+              </button>
+
+
+              <button
+                class="delete-btn"
+                (click)="deleteProject(project)"
+              >
+                Delete
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="modal-overlay"
+    *ngIf="showDetails"
+  >
+
+    <div class="modal-box">
+
+      <div class="modal-header">
+
+        <h2>Project Details</h2>
+
+        <button
+          class="close-icon"
+          (click)="closeDetails()"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="details-content" *ngIf="selectedProject">
+
+        <div class="detail-row">
+          <span>Project Name</span>
+          <strong>{{ selectedProject.name }}</strong>
+        </div>
+
+
+        <div class="detail-row">
+          <span>Project Manager</span>
+          <strong>{{ selectedProject.manager }}</strong>
+        </div>
+
+
+        <div class="detail-row">
+          <span>Start Date</span>
+          <strong>{{ selectedProject.startDate }}</strong>
+        </div>
+
+
+        <div class="detail-row">
+          <span>End Date</span>
+          <strong>{{ selectedProject.endDate }}</strong>
+        </div>
+
+
+        <div class="detail-row">
+
+          <span>Status</span>
+
+          <strong>
+
+            <span
+              class="status"
+              [class.planning]="selectedProject.status === 'Planning'"
+              [class.in-progress]="selectedProject.status === 'In Progress'"
+              [class.completed]="selectedProject.status === 'Completed'"
+            >
+              {{ selectedProject.status }}
+            </span>
+
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          class="close-btn"
+          (click)="closeDetails()"
+        >
+          Close
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="modal-overlay"
+    *ngIf="showDeleteConfirmation"
+  >
+
+    <div class="delete-modal">
+
+      <h2>Delete Project</h2>
+
+      <p>
+        Are you sure you want to delete
+        <strong>{{ projectToDelete?.name }}</strong>?
+      </p>
+
+      <div class="delete-actions">
+
+        <button
+          class="cancel-delete-btn"
+          (click)="cancelDelete()"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="confirm-delete-btn"
+          (click)="confirmDelete()"
+        >
+          Delete
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
