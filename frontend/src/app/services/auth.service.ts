@@ -126,6 +126,39 @@ export class AuthService {
     return of(true).pipe(delay(500));
   }
 
+  updateProfile(data: any): Observable<User> {
+    return this.http.patch<{ success: boolean; data: User }>('/api/auth/me', data).pipe(
+      map(res => {
+        this.saveSession(res.data, this.getToken()!);
+        return res.data;
+      })
+    );
+  }
+
+  updateSettings(preferences: string): Observable<User> {
+    return this.http.patch<{ success: boolean; data: User }>('/api/auth/settings', { preferences }).pipe(
+      map(res => {
+        this.saveSession(res.data, this.getToken()!);
+        return res.data;
+      })
+    );
+  }
+
+  changePassword(data: any): Observable<any> {
+    return this.http.post('/api/auth/change-password', data);
+  }
+
+  uploadProfilePicture(file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ success: boolean; data: User }>('/api/auth/profile-picture', formData).pipe(
+      map(res => {
+        this.saveSession(res.data, this.getToken()!);
+        return res.data;
+      })
+    );
+  }
+
   logout() {
     this.clearSession();
     this.router.navigate(['/login']);

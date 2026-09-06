@@ -36,6 +36,7 @@ class UserResponse(BaseModel):
     avatar: Optional[str] = None
     role: str
     profile: Optional[dict] = None
+    preferences: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -75,6 +76,18 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
     trade: Optional[str] = None
     specialty: Optional[str] = None
+
+class UpdateProfileRequest(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    company: Optional[str] = None
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class UpdateSettingsRequest(BaseModel):
+    preferences: str
 
 # ==========================================
 # PROJECT & TASK SCHEMAS

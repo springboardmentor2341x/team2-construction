@@ -22,6 +22,7 @@ class User(Base):
     phone = Column(String, nullable=True)
     company = Column(String, nullable=True)
     avatar = Column(String, nullable=True)
+    preferences = Column(String, nullable=True)
 
     role_id = Column(String, ForeignKey("roles.id"), nullable=False)
     role = relationship("Role", back_populates="users")

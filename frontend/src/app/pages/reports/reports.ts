@@ -9,7 +9,7 @@ import { DashboardCardComponent } from '../../components/dashboard-card/dashboar
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, DashboardCardComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './reports.html',
   styleUrl: './reports.css'
 })

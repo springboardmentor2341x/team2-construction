@@ -1,3 +1,213 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+/* Enterprise Dark Mode Architecture */
+[data-bs-theme="dark"] {
+  /* Color Palette */
+  --bt-bg-darkest: #0f1115;       /* Body / App background */
+  --bt-bg-surface: #1a1d24;       /* Cards, Sidebar, Navbar */
+  --bt-bg-elevated: #242830;      /* Modals, Dropdowns, Hover states */
+  --bt-bg-input: #15171c;         /* Input fields */
+  
+  --bt-text-primary: #f1f5f9;     /* Main text */
+  --bt-text-secondary: #cbd5e1;   /* Secondary text */
+  --bt-text-muted: #94a3b8;       /* Muted / Placeholder */
+  
+  --bt-border-color: #2d333b;     /* Subtle borders */
+  
+  /* Bootstrap Overrides mapped to our palette */
+  --bs-body-bg: var(--bt-bg-darkest);
+  --bs-body-color: var(--bt-text-primary);
+  --bs-secondary-color: var(--bt-text-muted);
+  --bs-tertiary-bg: var(--bt-bg-elevated);
+  --bs-border-color: var(--bt-border-color);
+  
+  background-color: var(--bt-bg-darkest) !important;
+  color: var(--bt-text-primary) !important;
+}
+
+/* Global Background & Text Utility Overrides */
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-light,
+[data-bs-theme="dark"] .bg-body {
+  background-color: var(--bt-bg-surface) !important;
+}
+
+[data-bs-theme="dark"] .bg-dark {
+  background-color: var(--bt-bg-elevated) !important;
+}
+
+[data-bs-theme="dark"] .text-dark,
+[data-bs-theme="dark"] .text-body {
+  color: var(--bt-text-primary) !important;
+}
+
+[data-bs-theme="dark"] .text-muted {
+  color: var(--bt-text-muted) !important;
+}
+
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--bt-text-secondary) !important;
+}
+
+/* Borders */
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] .border-top,
+[data-bs-theme="dark"] .border-bottom,
+[data-bs-theme="dark"] .border-start,
+[data-bs-theme="dark"] .border-end,
+[data-bs-theme="dark"] .border-light,
+[data-bs-theme="dark"] .border-secondary {
+  border-color: var(--bt-border-color) !important;
+}
+
+/* Cards & Elevated Surfaces */
+[data-bs-theme="dark"] .card {
+  background-color: var(--bt-bg-surface) !important;
+  border-color: var(--bt-border-color) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .card-header,
+[data-bs-theme="dark"] .card-footer {
+  background-color: var(--bt-bg-surface) !important;
+  border-color: var(--bt-border-color) !important;
+}
+
+/* Modals */
+[data-bs-theme="dark"] .modal-content {
+  background-color: var(--bt-bg-surface) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .modal-header,
+[data-bs-theme="dark"] .modal-footer {
+  border-color: var(--bt-border-color) !important;
+}
+
+/* Dropdowns & Lists */
+[data-bs-theme="dark"] .dropdown-menu {
+  background-color: var(--bt-bg-elevated) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .dropdown-item {
+  color: var(--bt-text-primary) !important;
+}
+[data-bs-theme="dark"] .dropdown-item:hover,
+[data-bs-theme="dark"] .dropdown-item:focus {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
+[data-bs-theme="dark"] .list-group-item {
+  background-color: var(--bt-bg-surface) !important;
+  color: var(--bt-text-primary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .list-group-item:hover {
+  background-color: var(--bt-bg-elevated) !important;
+}
+
+/* Tables */
+[data-bs-theme="dark"] .table {
+  color: var(--bt-text-primary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .table > :not(caption) > * > * {
+  background-color: var(--bt-bg-surface) !important;
+  color: var(--bt-text-primary) !important;
+  border-bottom-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .table-light,
+[data-bs-theme="dark"] .table-light > th,
+[data-bs-theme="dark"] .table-light > td,
+[data-bs-theme="dark"] thead.table-light th {
+  background-color: var(--bt-bg-elevated) !important;
+  color: var(--bt-text-secondary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .table-hover > tbody > tr:hover > * {
+  background-color: var(--bt-bg-elevated) !important;
+}
+
+/* Forms & Inputs */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+  background-color: var(--bt-bg-input) !important;
+  color: var(--bt-text-primary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus {
+  background-color: var(--bt-bg-input) !important;
+  color: var(--bt-text-primary) !important;
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+[data-bs-theme="dark"] .form-control::placeholder {
+  color: var(--bt-text-muted) !important;
+  opacity: 1;
+}
+[data-bs-theme="dark"] .form-label {
+  color: var(--bt-text-secondary) !important;
+}
+[data-bs-theme="dark"] .input-group-text {
+  background-color: var(--bt-bg-elevated) !important;
+  color: var(--bt-text-secondary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+
+/* Buttons (Outline overrides for contrast) */
+[data-bs-theme="dark"] .btn-outline-secondary {
+  color: var(--bt-text-primary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .btn-outline-secondary:hover {
+  background-color: var(--bt-bg-elevated) !important;
+  color: #fff !important;
+}
+[data-bs-theme="dark"] .btn-light {
+  background-color: var(--bt-bg-elevated) !important;
+  color: var(--bt-text-primary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .btn-light:hover {
+  background-color: var(--bt-border-color) !important;
+  color: #fff !important;
+}
+
+/* Badges */
+[data-bs-theme="dark"] .badge.bg-light {
+  background-color: var(--bt-bg-elevated) !important;
+  color: var(--bt-text-primary) !important;
+  border-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .badge.bg-secondary-subtle {
+  background-color: rgba(148, 163, 184, 0.15) !important;
+  color: var(--bt-text-secondary) !important;
+}
+
+/* Sidebar Specific */
+[data-bs-theme="dark"] .sidebar {
+  background-color: var(--bt-bg-surface) !important;
+  border-right-color: var(--bt-border-color) !important;
+}
+[data-bs-theme="dark"] .sidebar .nav-link:hover {
+  background-color: var(--bt-bg-elevated) !important;
+}
+
+/* Navbar Specific */
+[data-bs-theme="dark"] .navbar {
+  background-color: var(--bt-bg-surface) !important;
+  border-bottom-color: var(--bt-border-color) !important;
+}
+
+/* Progress bars background inside table */
+[data-bs-theme="dark"] .progress {
+  background-color: var(--bt-bg-elevated) !important;
+}
+
+/* Modal backdrop fix */
+[data-bs-theme="dark"] .modal-backdrop-overlay {
+  background: rgba(0, 0, 0, 0.75) !important;
+}

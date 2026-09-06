@@ -1,6 +1,7 @@
 {
   "routes": {
     "/": {},
+    "/admin/budget": {},
     "/admin/dashboard": {},
     "/client/dashboard": {},
     "/contractor/dashboard": {},
@@ -12,8 +13,12 @@
     "/procurement/purchase-orders": {},
     "/procurement/requests": {},
     "/procurement/vendors": {},
+    "/profile": {},
+    "/project-manager/budget": {},
     "/project-manager/dashboard": {},
     "/register": {},
+    "/reports": {},
+    "/settings": {},
     "/site-engineer/dashboard": {},
     "/worker/dashboard": {}
   }

@@ -1,6 +1,5 @@
 .chart-container-card {
-  border: 1px solid rgba(0, 0, 0, 0.04) !important;
-  background-color: #ffffff;
+  /* Removed hardcoded #ffffff and relying on Bootstrap .card class */
 }
 
 .min-h-200 {
@@ -25,11 +24,19 @@
 .interactive-dot {
   cursor: pointer;
   transition: r 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), stroke-width 0.2s;
+  fill: #ffffff; /* Default light mode fill */
 }
 
 .interactive-dot:hover {
   r: 8px;
   stroke-width: 4px;
+}
+
+.chart-grid-line {
+  stroke: #f1f3f9;
+}
+.chart-baseline {
+  stroke: #e2e8f0;
 }
 
 /* Bar Chart CSS */
@@ -54,6 +61,10 @@
   height: 150px;
 }
 
+.donut-bg-circle {
+  stroke: #f1f3f9;
+}
+
 .donut-center-label {
   top: 50%;
   left: 50%;
@@ -61,7 +72,7 @@
   pointer-events: none;
   width: 80px;
   height: 80px;
-  background: white;
+  background: white; /* Default light mode */
   border-radius: 50%;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
 }
@@ -78,4 +89,24 @@
 .legend-color-dot {
   display: inline-block;
   flex-shrink: 0;
+}
+
+/* ------------------------------------- */
+/* Global Dark Mode Overrides for Charts */
+/* ------------------------------------- */
+[data-bs-theme="dark"] .chart-grid-line {
+  stroke: var(--bt-border-color);
+}
+[data-bs-theme="dark"] .chart-baseline {
+  stroke: var(--bt-text-muted);
+}
+[data-bs-theme="dark"] .interactive-dot {
+  fill: var(--bt-bg-surface);
+}
+[data-bs-theme="dark"] .donut-bg-circle {
+  stroke: var(--bt-border-color);
+}
+[data-bs-theme="dark"] .donut-center-label {
+  background: var(--bt-bg-surface);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
 }

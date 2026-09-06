@@ -19,11 +19,11 @@
       @if (type === 'line') {
         <svg viewBox="0 0 500 220" width="100%" height="100%" class="svg-line-chart">
           <!-- Grids -->
-          <line x1="25" y1="25" x2="475" y2="25" stroke="#f1f3f9" stroke-width="1" />
-          <line x1="25" y1="73" x2="475" y2="73" stroke="#f1f3f9" stroke-width="1" />
-          <line x1="25" y1="121" x2="475" y2="121" stroke="#f1f3f9" stroke-width="1" />
-          <line x1="25" y1="169" x2="475" y2="169" stroke="#f1f3f9" stroke-width="1" />
-          <line x1="25" y1="195" x2="475" y2="195" stroke="#e2e8f0" stroke-width="1.5" /> <!-- Baseline -->
+          <line x1="25" y1="25" x2="475" y2="25" class="chart-grid-line" stroke-width="1" />
+          <line x1="25" y1="73" x2="475" y2="73" class="chart-grid-line" stroke-width="1" />
+          <line x1="25" y1="121" x2="475" y2="121" class="chart-grid-line" stroke-width="1" />
+          <line x1="25" y1="169" x2="475" y2="169" class="chart-grid-line" stroke-width="1" />
+          <line x1="25" y1="195" x2="475" y2="195" class="chart-baseline" stroke-width="1.5" /> <!-- Baseline -->
 
           <!-- Gradient Definitions -->
           <defs>
@@ -44,7 +44,6 @@
             <circle [attr.cx]="pt.x" 
                     [attr.cy]="pt.y" 
                     r="5" 
-                    fill="#ffffff" 
                     stroke="#0d6efd" 
                     stroke-width="2.5" 
                     class="interactive-dot"
@@ -128,7 +127,7 @@
           
           <div class="position-relative donut-svg-wrapper">
             <svg viewBox="0 0 120 120" width="150" height="150">
-              <circle cx="60" cy="60" r="50" fill="none" stroke="#f1f3f9" stroke-width="12"></circle>
+              <circle cx="60" cy="60" r="50" fill="none" class="donut-bg-circle" stroke-width="12"></circle>
               @for (seg of donutSegments; track $index) {
                 <circle cx="60" 
                         cy="60" 

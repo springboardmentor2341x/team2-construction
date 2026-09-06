@@ -32,6 +32,10 @@ import { NotificationsComponent } from './pages/notifications/notifications';
 // Reports
 import { ReportsComponent } from './pages/reports/reports';
 
+// Profile and Settings
+import { Profile } from './pages/profile/profile';
+import { Settings } from './pages/settings/settings';
+
 export const routes: Routes = [
   // Public/Auth routes
   { path: 'login', component: Login },
@@ -135,6 +139,15 @@ export const routes: Routes = [
         component: ReportsComponent,
         canActivate: [roleGuard],
         data: { allowedRoles: ['admin', 'project_manager'] }
+      },
+      // Profile and Settings
+      {
+        path: 'profile',
+        component: Profile
+      },
+      {
+        path: 'settings',
+        component: Settings
       },
       // Redirect empty root inside Shell Layout (Default role-based redirecting)
       {

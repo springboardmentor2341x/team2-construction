@@ -9,6 +9,8 @@ export interface User {
   phone?: string;
   company?: string;
   assignedProjectIds?: string[];
+  preferences?: string;
+  profile?: any;
 }
 
 export interface AuthResponse {

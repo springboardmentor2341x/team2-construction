@@ -156,8 +156,46 @@ class AuthService:
             "avatar": user.avatar,
             "phone": user.phone,
             "company": user.company,
-            "profile": profile
+            "profile": profile,
+            "preferences": user.preferences
         }
+
+    def update_profile(self, db: Session, user_id: str, data: dict):
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if data.get("name"): user.name = data["name"]
+        if data.get("phone") is not None: user.phone = data["phone"]
+        if data.get("company") is not None: user.company = data["company"]
+        db.commit()
+        db.refresh(user)
+        return self.get_user_profile(db, user_id)
+
+    def update_settings(self, db: Session, user_id: str, preferences: str):
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user.preferences = preferences
+        db.commit()
+        return self.get_user_profile(db, user_id)
+
+    def change_password(self, db: Session, user_id: str, data: dict):
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if not verify_password(data["current_password"], user.password_hash):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+        user.password_hash = get_password_hash(data["new_password"])
+        db.commit()
+        return {"success": True, "message": "Password updated successfully"}
+
+    def update_avatar(self, db: Session, user_id: str, url: str):
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user.avatar = url
+        db.commit()
+        return self.get_user_profile(db, user_id)
 
 # ==========================================
 # PROJECTS SERVICE
