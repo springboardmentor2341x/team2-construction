@@ -9,7 +9,8 @@ from models import (
     SitePhoto, IssueReport, WorkerPayslip, Notification, FeedbackMessage, ProjectDocument,
     DailyProgressReport, DailyReportMaterial, Milestone, DelayRecord, SiteActivityLog,
     ResourceCategory, Resource, ResourceAllocation, ResourceUtilization, MaintenanceRecord,
-    WorkforceCategory, WorkerAssignment, Shift, ShiftAssignment, PayrollRecord
+    WorkforceCategory, WorkerAssignment, Shift, ShiftAssignment, PayrollRecord,
+    ProcurementInvoice, ExpenseRecord
 )
 from core.security import get_password_hash, verify_password, create_access_token
 
@@ -619,7 +620,24 @@ class DashboardService:
         }
 
         total_budget = sum(p.budget for p in projects)
-        total_spent = sum(p.spent for p in projects)
+        
+        # Dynamic Budget Calculation (Module 11)
+        total_spent = 0
+        all_proj_ids = [p.id for p in projects]
+        
+        labor_costs = sum(r.estimated_pay for r in db.query(PayrollRecord).filter(PayrollRecord.project_id.in_(all_proj_ids), PayrollRecord.status == "Approved").all() if r.estimated_pay)
+        material_costs = sum(i.invoice_amount for i in db.query(ProcurementInvoice).filter(ProcurementInvoice.project_id.in_(all_proj_ids), ProcurementInvoice.invoice_status == "Approved").all() if i.invoice_amount)
+        
+        eq_costs = 0
+        for u in db.query(ResourceUtilization).filter(ResourceUtilization.project_id.in_(all_proj_ids)).all():
+            if u.resource and hasattr(u.resource, 'hourly_cost') and u.resource.hourly_cost:
+                eq_costs += (u.hours_used * u.resource.hourly_cost)
+                
+        other_costs = sum(e.amount for e in db.query(ExpenseRecord).filter(ExpenseRecord.project_id.in_(all_proj_ids), ExpenseRecord.status == "Approved").all() if e.amount)
+        
+        total_estimated = sum(c.estimated_amount for c in db.query(CostEstimate).filter(CostEstimate.project_id.in_(all_proj_ids)).all() if c.estimated_amount)
+        
+        total_spent = labor_costs + material_costs + eq_costs + other_costs
 
         total_equipment = len(resources)
         operating_equip = sum(1 for r in resources if r.status == "Operating")
@@ -627,6 +645,14 @@ class DashboardService:
         available_equip = sum(1 for r in resources if r.status == "Available")
 
         return {
+            "projects": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "budget": p.budget,
+                    "spent": p.spent
+                } for p in projects
+            ],
             "userManagement": {
                 "totalUsers": total_users,
                 "usersByRole": users_by_role,
@@ -642,6 +668,7 @@ class DashboardService:
             },
             "systemAnalytics": {
                 "totalBudget": total_budget,
+                "totalEstimated": total_estimated,
                 "totalSpent": total_spent,
                 "equipmentUtilization": {
                     "total": total_equipment,
@@ -674,9 +701,20 @@ class DashboardService:
         pending_milestones = sum(1 for m in milestones if m.status == "Pending")
         in_progress_milestones = sum(1 for m in milestones if m.status == "In Progress")
 
-        # Budget Utilization
+        # Budget Utilization (Dynamic from Module 11)
         planned_budget = sum(p.budget for p in managed)
-        utilized_amount = sum(p.spent for p in managed)
+        
+        labor_costs = sum(r.estimated_pay for r in db.query(PayrollRecord).filter(PayrollRecord.project_id.in_(proj_ids), PayrollRecord.status == "Approved").all() if r.estimated_pay)
+        material_costs = sum(i.invoice_amount for i in db.query(ProcurementInvoice).filter(ProcurementInvoice.project_id.in_(proj_ids), ProcurementInvoice.invoice_status == "Approved").all() if i.invoice_amount)
+        eq_costs = 0
+        for u in db.query(ResourceUtilization).filter(ResourceUtilization.project_id.in_(proj_ids)).all():
+            if u.resource and hasattr(u.resource, 'hourly_cost') and u.resource.hourly_cost:
+                eq_costs += (u.hours_used * u.resource.hourly_cost)
+        other_costs = sum(e.amount for e in db.query(ExpenseRecord).filter(ExpenseRecord.project_id.in_(proj_ids), ExpenseRecord.status == "Approved").all() if e.amount)
+        
+        total_estimated = sum(c.estimated_amount for c in db.query(CostEstimate).filter(CostEstimate.project_id.in_(proj_ids)).all() if c.estimated_amount)
+        
+        utilized_amount = labor_costs + material_costs + eq_costs + other_costs
         remaining_amount = planned_budget - utilized_amount
         utilization_percentage = int((utilized_amount / planned_budget) * 100) if planned_budget > 0 else 0
 
@@ -739,6 +777,7 @@ class DashboardService:
             "budget": {
                 "planned": planned_budget,
                 "utilized": utilized_amount,
+                "estimated": total_estimated,
                 "remaining": remaining_amount,
                 "percentage": utilization_percentage
             },

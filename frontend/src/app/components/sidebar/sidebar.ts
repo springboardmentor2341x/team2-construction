@@ -48,7 +48,7 @@ export class SidebarComponent {
           { module: 'contractors', label: 'Contractors', icon: 'bi-shield-check' },
           { module: 'inventory', label: 'Material Inventory', icon: 'bi-box-seam-fill' },
           { module: 'budget', label: 'Budget & Expenses', icon: 'bi-wallet-fill', route: '/admin/budget' },
-          { module: 'reports', label: 'Reports', icon: 'bi-graph-up-arrow' },
+          { module: 'reports', label: 'Reports', icon: 'bi-graph-up-arrow', route: '/reports' },
           { module: 'notifications', label: 'Notifications', icon: 'bi-chat-dots-fill' },
           { module: 'settings', label: 'Settings', icon: 'bi-gear-fill' }
         ];
@@ -67,7 +67,7 @@ export class SidebarComponent {
           { module: 'weekly', label: 'Weekly Analytics', icon: 'bi-calendar-week-fill' },
           { module: 'team', label: 'Team Members', icon: 'bi-people-fill' },
           { module: 'budget', label: 'Budget Progress', icon: 'bi-cash-coin', route: '/project-manager/budget' },
-          { module: 'reports', label: 'Reports', icon: 'bi-file-earmark-bar-graph' }
+          { module: 'reports', label: 'Reports', icon: 'bi-file-earmark-bar-graph', route: '/reports' }
         ];
       case 'site_engineer':
         return [

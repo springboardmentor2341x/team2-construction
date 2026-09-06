@@ -25,4 +25,9 @@ export class DashboardService {
     const url = projectId ? `${this.apiUrl}/project-manager?project_id=${projectId}` : `${this.apiUrl}/project-manager`;
     return this.http.get(url, { headers: this.getHeaders() });
   }
+
+  exportAnalyticsReport(reportType: string, projectId: string, format: string): Observable<Blob> {
+    const url = `http://localhost:8000/reports/analytics/export?report_type=${reportType}&project_id=${projectId}&format=${format}`;
+    return this.http.get(url, { headers: this.getHeaders(), responseType: 'blob' });
+  }
 }

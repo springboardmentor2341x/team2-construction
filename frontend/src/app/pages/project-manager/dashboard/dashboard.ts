@@ -676,30 +676,26 @@ export class ProjectManagerDashboard implements OnInit {
   exportReportModal(format: 'excel' | 'pdf') {
     const rpt = this.selectedReport;
     if (!rpt) return;
-    if (format === 'excel') {
-      this.downloadCSV(rpt.title.replace(/[^a-zA-Z0-9]/g, '_'), [
-        ['BuildTrack – ' + rpt.title],
-        ['Generated: ' + new Date().toLocaleDateString()],
-        [''],
-        ['#', 'Section'],
-        ...rpt.contents.map((c, i) => [String(i + 1), c])
-      ]);
-    } else {
-      const html = `<html><head><title>${rpt.title}</title>
-        <style>body{font-family:Arial,sans-serif;padding:40px;color:#222;}h1{font-size:20px;color:#0d6efd;border-bottom:2px solid #0d6efd;padding-bottom:8px;}p{color:#666;font-size:13px;}ul{margin-top:16px;}li{margin-bottom:8px;font-size:14px;}footer{margin-top:40px;font-size:11px;color:#aaa;}</style>
-        </head><body>
-        <h1>${rpt.title}</h1><p>${rpt.description}</p><p>Generated: ${new Date().toLocaleString()}</p>
-        <ul>${rpt.contents.map(c => `<li>${c}</li>`).join('')}</ul>
-        <footer>BuildTrack – Project Manager Workspace – Confidential</footer>
-        </body></html>`;
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = rpt.title.replace(/[^a-zA-Z0-9]/g, '_') + '.html';
-      a.click();
-      URL.revokeObjectURL(url);
+    
+    // Map frontend report titles to backend report_type enum
+    let reportType = 'progress';
+    if (rpt.title.includes('Budget') || rpt.title.includes('Allocation')) {
+        reportType = 'budget';
     }
+
+    this.dashboardService.exportAnalyticsReport(reportType, this.selectedProjectId, format).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const ext = format === 'excel' ? 'xlsx' : 'pdf';
+        a.download = `${rpt.title.replace(/[^a-zA-Z0-9]/g, '_')}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: (err) => alert('Error generating report: ' + err.message)
+    });
+    
     this.closeReportModal();
   }
 
@@ -722,7 +718,22 @@ export class ProjectManagerDashboard implements OnInit {
     if (reportName === 'Resource_Allocations') {
       this.exportAllocations();
     } else {
-      console.log(`Downloading ${reportName} in ${format} format...`);
+      let reportType = 'progress';
+      if (reportName.includes('Allocation') || reportName.includes('Budget')) {
+          reportType = 'budget';
+      }
+      this.dashboardService.exportAnalyticsReport(reportType, this.selectedProjectId, format).subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const ext = format === 'excel' ? 'xlsx' : 'pdf';
+          a.download = `${reportName}.${ext}`;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        error: (err) => alert('Error generating report: ' + err.message)
+      });
     }
   }
 }

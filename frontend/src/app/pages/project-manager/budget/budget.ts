@@ -83,6 +83,7 @@ export class ProjectManagerBudget implements OnInit {
       this.budgetService.createExpense(this.selectedProjectId(), this.newExpense).subscribe(() => {
         this.closeExpenseModal();
         this.newExpense = { category_id: '', description: '', amount: 0, expense_date: new Date().toISOString().split('T')[0] };
+        this.loadBudget();
       });
     }
   }
@@ -92,7 +93,36 @@ export class ProjectManagerBudget implements OnInit {
       this.budgetService.createBudgetAllocation(this.selectedProjectId(), this.newAllocation).subscribe(() => {
         this.closeAllocationModal();
         this.newAllocation = { category_id: '', allocated_amount: 0 };
+        this.loadBudget();
+      });
+    }
+  }
+
+  // Cost Estimates
+  showEstimateModal = signal(false);
+  newEstimate = {
+    category_id: '',
+    activity: '',
+    description: '',
+    estimated_amount: 0
+  };
+
+  openEstimateModal() {
+    this.showEstimateModal.set(true);
+  }
+
+  closeEstimateModal() {
+    this.showEstimateModal.set(false);
+  }
+
+  submitEstimate() {
+    if (this.selectedProjectId() && this.newEstimate.category_id && this.newEstimate.activity && this.newEstimate.estimated_amount > 0) {
+      this.budgetService.createCostEstimate(this.selectedProjectId(), this.newEstimate).subscribe(() => {
+        this.closeEstimateModal();
+        this.newEstimate = { category_id: '', activity: '', description: '', estimated_amount: 0 };
+        this.loadBudget();
       });
     }
   }
 }
+

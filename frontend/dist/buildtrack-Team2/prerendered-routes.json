@@ -1,0 +1,20 @@
+{
+  "routes": {
+    "/": {},
+    "/admin/dashboard": {},
+    "/client/dashboard": {},
+    "/contractor/dashboard": {},
+    "/forgot-password": {},
+    "/login": {},
+    "/notifications": {},
+    "/procurement/dashboard": {},
+    "/procurement/invoices": {},
+    "/procurement/purchase-orders": {},
+    "/procurement/requests": {},
+    "/procurement/vendors": {},
+    "/project-manager/dashboard": {},
+    "/register": {},
+    "/site-engineer/dashboard": {},
+    "/worker/dashboard": {}
+  }
+}

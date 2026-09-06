@@ -12,9 +12,9 @@ from schemas.budget import (
     BudgetCategoryResponse, BudgetCategoryCreate,
     BudgetAllocationResponse, BudgetAllocationCreate,
     ExpenseRecordResponse, ExpenseRecordCreate,
-    ProjectBudgetSummary
+    ProjectBudgetSummary, CostEstimateResponse, CostEstimateCreate
 )
-from models import BudgetCategory, BudgetAllocation, ExpenseRecord, ProcurementInvoice, PayrollRecord, ResourceUtilization
+from models import BudgetCategory, BudgetAllocation, ExpenseRecord, ProcurementInvoice, PayrollRecord, ResourceUtilization, CostEstimate
 
 router = APIRouter(prefix="/api/budget", tags=["budget"])
 
@@ -76,15 +76,20 @@ def get_project_budget_summary(project_id: str, db: Session = Depends(get_db), c
     months_elapsed = max(1, (datetime.datetime.utcnow().date() - project.start_date.date()).days / 30.0)
     burn_rate = total_spent / months_elapsed
 
+    cost_estimates = db.query(CostEstimate).filter(CostEstimate.project_id == project_id).all()
+    total_estimated = sum(c.estimated_amount for c in cost_estimates)
+
     return ProjectBudgetSummary(
         project_id=project.id,
         total_budget=project.budget,
         total_allocated=total_allocated,
         total_spent=total_spent,
+        total_estimated=total_estimated,
         remaining_budget=project.budget - total_spent,
         burn_rate=burn_rate,
         allocations=allocations,
         expenses=expenses,
+        cost_estimates=cost_estimates,
         labor_costs=labor_costs,
         material_costs=material_costs,
         equipment_costs=equipment_costs,
@@ -129,3 +134,26 @@ def create_expense(project_id: str, data: ExpenseRecordCreate, db: Session = Dep
     db.commit()
     db.refresh(expense)
     return expense
+
+@router.get("/projects/{project_id}/cost-estimates", response_model=List[CostEstimateResponse])
+def get_cost_estimates(project_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    return db.query(CostEstimate).filter(CostEstimate.project_id == project_id).all()
+
+@router.post("/projects/{project_id}/cost-estimates", response_model=CostEstimateResponse)
+def create_cost_estimate(project_id: str, data: CostEstimateCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") not in ["Administrator", "Project Manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    estimate = CostEstimate(
+        id=f"EST-{uuid.uuid4().hex[:6].upper()}",
+        project_id=project_id,
+        category_id=data.category_id,
+        activity=data.activity,
+        description=data.description,
+        estimated_amount=data.estimated_amount,
+        created_by_id=current_user.get("sub")
+    )
+    db.add(estimate)
+    db.commit()
+    db.refresh(estimate)
+    return estimate

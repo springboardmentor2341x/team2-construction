@@ -969,6 +969,27 @@ class BudgetAllocation(Base):
     category = relationship("BudgetCategory")
 
 
+class CostEstimate(Base):
+    __tablename__ = "cost_estimates"
+
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    category_id = Column(String, ForeignKey("budget_categories.id", ondelete="CASCADE"), nullable=False)
+    
+    activity = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    estimated_amount = Column(Float, nullable=False)
+    
+    created_by_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    project = relationship("Project")
+    category = relationship("BudgetCategory")
+    created_by = relationship("User")
+
+
 class ExpenseRecord(Base):
     __tablename__ = "expense_records"
 

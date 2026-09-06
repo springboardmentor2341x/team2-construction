@@ -218,11 +218,11 @@ export class AdministratorDashboard {
 
   // Computations
   totalBudgetPool = computed(() => {
-    return this.dashboardData()?.projects?.reduce((sum: number, p: any) => sum + p.budget, 0) || 0;
+    return this.dashboardData()?.systemAnalytics?.totalBudget || 0;
   });
 
   totalSpentPool = computed(() => {
-    return this.dashboardData()?.projects?.reduce((sum: number, p: any) => sum + p.spent, 0) || 0;
+    return this.dashboardData()?.systemAnalytics?.totalSpent || 0;
   });
 
   criticalStockCount = computed(() => {
@@ -354,51 +354,52 @@ export class AdministratorDashboard {
   exportExcel(report?: typeof this.reports[0]) {
     const rpt = report || this.selectedReport;
     if (!rpt) return;
-    const rows: string[][] = [
-      ['BuildTrack – ' + rpt.title],
-      ['Generated on: ' + new Date().toLocaleDateString()],
-      [''],
-      ['Section', 'Details']
-    ];
-    rpt.contents.forEach((c, i) => rows.push([(i + 1).toString(), c]));
-    const csvContent = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = rpt.title.replace(/[^a-zA-Z0-9]/g, '_') + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    
+    let reportType = 'progress';
+    if (rpt.title.includes('Revenue') || rpt.title.includes('Budget')) {
+        reportType = 'budget';
+    }
+    
+    const projectId = this.dashboardData()?.projects?.[0]?.id || 'P-101';
+    
+    this.dashboardService.exportAnalyticsReport(reportType, projectId, 'excel').subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${rpt.title.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: (err) => alert('Error generating report: ' + err.message)
+    });
+    
     this.closeReportModal();
   }
 
   exportPDF(report?: typeof this.reports[0]) {
     const rpt = report || this.selectedReport;
     if (!rpt) return;
-    const htmlContent = `
-      <html><head><title>${rpt.title}</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 40px; color: #222; }
-        h1 { font-size: 20px; color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px; }
-        p { color: #666; font-size: 13px; }
-        ul { margin-top: 16px; }
-        li { margin-bottom: 8px; font-size: 14px; }
-        footer { margin-top: 40px; font-size: 11px; color: #aaa; }
-      </style></head>
-      <body>
-        <h1>${rpt.title}</h1>
-        <p>${rpt.description}</p>
-        <p>Generated: ${new Date().toLocaleString()}</p>
-        <ul>${rpt.contents.map(c => `<li>${c}</li>`).join('')}</ul>
-        <footer>BuildTrack Administrative Console – Confidential</footer>
-      </body></html>`;
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = rpt.title.replace(/[^a-zA-Z0-9]/g, '_') + '.html';
-    a.click();
-    URL.revokeObjectURL(url);
+    
+    let reportType = 'progress';
+    if (rpt.title.includes('Revenue') || rpt.title.includes('Budget')) {
+        reportType = 'budget';
+    }
+    
+    const projectId = this.dashboardData()?.projects?.[0]?.id || 'P-101';
+    
+    this.dashboardService.exportAnalyticsReport(reportType, projectId, 'pdf').subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${rpt.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: (err) => alert('Error generating report: ' + err.message)
+    });
+    
     this.closeReportModal();
   }
 }

@@ -790,7 +790,7 @@ export class ProjectService {
   }
 
   addResource(resource: any): Observable<any> {
-    return this.http.post<any>('/api/resources', resource);
+    return this.http.post<any>('/api/resources/', resource);
   }
 
   updateResource(id: string, resource: any): Observable<any> {
@@ -802,7 +802,7 @@ export class ProjectService {
   }
 
   allocateResource(alloc: any): Observable<any> {
-    return this.http.post<any>('/api/resource-allocations', alloc);
+    return this.http.post<any>('/api/resource-allocations/', alloc);
   }
 
   updateAllocation(id: string, alloc: any): Observable<any> {
@@ -819,11 +819,11 @@ export class ProjectService {
   }
 
   logResourceUtilization(utl: any): Observable<any> {
-    return this.http.post<any>('/api/resource-utilization', utl);
+    return this.http.post<any>('/api/resource-utilization/', utl);
   }
 
   scheduleMaintenance(mnt: any): Observable<any> {
-    return this.http.post<any>('/api/maintenance', mnt);
+    return this.http.post<any>('/api/maintenance/', mnt);
   }
 
   updateMaintenanceRecord(id: string, mnt: any): Observable<any> {
@@ -851,7 +851,7 @@ export class ProjectService {
 
   // Add Daily Progress Report (Module 3)
   addDailyProgressReport(report: any): Observable<any> {
-    return this.http.post<any>('/api/progress/daily', report);
+    return this.http.post<any>('/api/progress/daily/', report);
   }
 
   updateDailyProgressReport(id: string, report: any): Observable<any> {
@@ -864,7 +864,7 @@ export class ProjectService {
 
   // Milestones CRUD
   addMilestone(milestone: any): Observable<any> {
-    return this.http.post<any>('/api/progress/milestones', milestone);
+    return this.http.post<any>('/api/progress/milestones/', milestone);
   }
 
   updateMilestone(id: string, milestone: any): Observable<any> {
@@ -877,7 +877,7 @@ export class ProjectService {
 
   // Delay Records CRUD
   addDelayRecord(delay: any): Observable<any> {
-    return this.http.post<any>('/api/progress/delays', delay);
+    return this.http.post<any>('/api/progress/delays/', delay);
   }
 
   updateDelay(id: string, delay: any): Observable<any> {
@@ -890,7 +890,7 @@ export class ProjectService {
 
   // Site Activity Logs CRUD
   addSiteActivityLog(log: any): Observable<any> {
-    return this.http.post<any>('/api/progress/activity-logs', log);
+    return this.http.post<any>('/api/progress/activity-logs/', log);
   }
 
   updateSiteActivityLog(id: string, log: any): Observable<any> {
@@ -903,21 +903,21 @@ export class ProjectService {
 
   // Add Daily Progress Log (Legacy compatibility)
   addDailyLog(log: Omit<DailyProgressLog, 'id'>) {
-    this.http.post<any>('/api/reports', log).subscribe(() => {
+    this.http.post<any>('/api/reports/', log).subscribe(() => {
       this.loadAllData();
     });
   }
 
   // Add Site Photo
   addSitePhoto(photo: Omit<SitePhoto, 'id' | 'date'>) {
-    this.http.post<any>(`/api/projects/${photo.projectId}/photos`, photo).subscribe(() => {
+    this.http.post<any>(`/api/projects/${photo.projectId}/photos/`, photo).subscribe(() => {
       this.loadAllData();
     });
   }
 
   // Report Issue
   reportIssue(issue: Omit<IssueReport, 'id' | 'status' | 'reportedDate'>) {
-    this.http.post<any>(`/api/projects/${issue.projectId}/issues`, issue).subscribe(() => {
+    this.http.post<any>(`/api/projects/${issue.projectId}/issues/`, issue).subscribe(() => {
       this.loadAllData();
     });
   }
@@ -934,7 +934,7 @@ export class ProjectService {
 
   // Submit Material Request (Contractor)
   submitMaterialRequest(req: Omit<MaterialRequest, 'id' | 'requestDate' | 'status'>) {
-    this.http.post<any>('/api/materials/requests/submit', req).subscribe(() => {
+    this.http.post<any>('/api/materials/requests/submit/', req).subscribe(() => {
       this.loadAllData();
     });
   }
@@ -950,14 +950,14 @@ export class ProjectService {
   submitFeedback(fb: Omit<FeedbackMessage, 'id' | 'date'>) {
     const proj = this.projects().find(p => p.name === fb.projectName);
     const projectId = proj?.id || 'P-101';
-    this.http.post<any>(`/api/projects/${projectId}/feedback`, fb).subscribe(() => {
+    this.http.post<any>(`/api/projects/${projectId}/feedback/`, fb).subscribe(() => {
       this.loadAllData();
     });
   }
 
   // Assign Task to Worker / Contractor (Admin / PM)
   assignWorkPackage(wp: Omit<WorkPackage, 'id' | 'progress' | 'status'>) {
-    this.http.post<any>(`/api/projects/${wp.projectId}/tasks`, wp).subscribe(() => {
+    this.http.post<any>(`/api/projects/${wp.projectId}/tasks/`, wp).subscribe(() => {
       this.loadAllData();
     });
   }
@@ -976,7 +976,7 @@ export class ProjectService {
   addWorkforceMember(member: Omit<WorkforceMember, 'id' | 'status'>) {
     const nameSplit = member.name.split(' ');
     const email = `${nameSplit[0]?.toLowerCase() || 'user'}_${Math.floor(Math.random() * 100)}@buildtrack.com`;
-    this.http.post<any>('/api/users', {
+    this.http.post<any>('/api/users/', {
       name: member.name,
       email,
       password: 'password123',
@@ -998,7 +998,7 @@ export class ProjectService {
   // Add Project (Admin)
   addProject(project: Omit<Project, 'id' | 'spent' | 'progress'>) {
     const projId = `P-${Math.floor(100 + Math.random() * 900)}`;
-    this.http.post<any>('/api/projects', { ...project, id: projId }).subscribe(() => {
+    this.http.post<any>('/api/projects/', { ...project, id: projId }).subscribe(() => {
       this.loadAllData();
     });
   }
@@ -1083,8 +1083,8 @@ export class ProjectService {
     });
   }
 
-  registerWorker(workerData: Partial<WorkforceMember>) {
-    return this.http.post<{ success: boolean; message: string; data: any }>('/api/workers', workerData);
+  registerWorker(workerData: any) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/workers/', workerData);
   }
 
   bulkUploadWorkers(file: File) {
@@ -1097,16 +1097,16 @@ export class ProjectService {
     return this.http.put<{ success: boolean; message: string; data: any }>(`/api/workers/${id}`, workerData);
   }
 
-  allocateWorker(assignmentData: { workerId: string; projectId: string; contractorId?: string; workActivity: string; startDate: string; endDate?: string }) {
-    return this.http.post<{ success: boolean; message: string; data: any }>('/api/worker-assignments', assignmentData);
+  allocateWorker(assignmentData: any) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/worker-assignments/', assignmentData);
   }
 
-  logAttendanceRecord(attendanceData: { workerId: string; status: string; checkIn?: string; checkOut?: string; date: string; remarks?: string; projectId?: string; contractorId?: string; shiftId?: string }) {
-    return this.http.post<{ success: boolean; message: string; data: any }>('/api/attendance', attendanceData);
+  logAttendanceRecord(attendanceData: any) {
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/attendance/', attendanceData);
   }
 
   createShiftSchedule(shiftData: { name: string; startTime: string; endTime: string; projectId: string; shiftDate: string }) {
-    return this.http.post<{ success: boolean; message: string; data: any }>('/api/shifts', shiftData);
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/shifts/', shiftData);
   }
 
   assignWorkersToShift(shiftId: string, workerIds: string[]) {
@@ -1114,7 +1114,7 @@ export class ProjectService {
   }
 
   generatePayrollRecord(payrollData: { workerId: string; monthYear: string; payRate?: number; projectId?: string; contractorId?: string }) {
-    return this.http.post<{ success: boolean; message: string; data: any }>('/api/payroll', payrollData);
+    return this.http.post<{ success: boolean; message: string; data: any }>('/api/payroll/', payrollData);
   }
 
   updatePayrollStatus(payrollId: string, status: string) {

@@ -990,7 +990,7 @@
   @if (activeModule === 'budget') {
     <div class="row g-4">
       <div class="col-lg-6">
-        <app-chart type="bar" title="Budget Utilization ($ Millions)" [labels]="['Vanguard Tower', 'Riverfront II', 'Metro Transit', 'Eco-Resort']" [data]="[12.5, 8.2, 15.0, 5.4]" [customColors]="['#0d6efd', '#198754', '#ffc107', '#dc3545']"></app-chart>
+        <app-chart type="bar" title="Budget Utilization ($ Millions)" [labels]="budgetChartLabels()" [data]="budgetChartSpent()" [customColors]="['#0d6efd', '#198754', '#ffc107', '#dc3545']"></app-chart>
       </div>
       <div class="col-lg-6">
         <app-chart type="line" title="Expenditure Accumulation ($ Millions)" [labels]="['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']" [data]="[1.2, 2.5, 3.8, 5.0, 7.2, 9.5, 11.3]"></app-chart>

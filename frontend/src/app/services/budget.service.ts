@@ -31,15 +31,28 @@ export interface ExpenseRecord {
   category?: BudgetCategory;
 }
 
+export interface CostEstimate {
+  id: string;
+  project_id: string;
+  category_id: string;
+  activity: string;
+  description: string;
+  estimated_amount: number;
+  created_at: string;
+  category?: BudgetCategory;
+}
+
 export interface ProjectBudgetSummary {
   project_id: string;
   total_budget: number;
   total_allocated: number;
   total_spent: number;
+  total_estimated: number;
   remaining_budget: number;
   burn_rate: number;
   allocations: BudgetAllocation[];
   expenses: ExpenseRecord[];
+  cost_estimates: CostEstimate[];
   labor_costs: number;
   material_costs: number;
   equipment_costs: number;
@@ -87,6 +100,12 @@ export class BudgetService {
 
   createExpense(projectId: string, expense: { category_id: string, description: string, amount: number, expense_date: string }): Observable<ExpenseRecord> {
     return this.http.post<ExpenseRecord>(`${this.apiUrl}/projects/${projectId}/expenses`, expense, { headers: this.getHeaders() }).pipe(
+      tap(() => this.getProjectBudgetSummary(projectId).subscribe())
+    );
+  }
+
+  createCostEstimate(projectId: string, estimate: { category_id: string, activity: string, description: string, estimated_amount: number }): Observable<CostEstimate> {
+    return this.http.post<CostEstimate>(`${this.apiUrl}/projects/${projectId}/cost-estimates`, estimate, { headers: this.getHeaders() }).pipe(
       tap(() => this.getProjectBudgetSummary(projectId).subscribe())
     );
   }

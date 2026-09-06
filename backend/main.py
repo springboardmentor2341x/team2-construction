@@ -25,6 +25,7 @@ from app.api.project_managers import router as project_managers_router
 from app.api.clients import router as clients_router
 from app.api.materials import router as materials_router
 from app.api.reports import router as reports_router
+from app.api.reports_engine import router as reports_engine_router
 from app.api.notifications import router as notifications_router
 from app.api.dashboard import router as dashboard_router
 from app.api.payments import router as payments_router
@@ -73,6 +74,7 @@ app.include_router(payroll_router, prefix=f"{settings.API_STR}/payroll", tags=["
 app.include_router(workforce_analytics_router, prefix=f"{settings.API_STR}/workforce", tags=["Workforce Analytics"])
 app.include_router(materials_router, prefix=f"{settings.API_STR}/materials", tags=["Materials"])
 app.include_router(reports_router, prefix=f"{settings.API_STR}/reports", tags=["Reports"])
+app.include_router(reports_engine_router, prefix=f"{settings.API_STR}/reports-engine", tags=["Reports Engine"])
 app.include_router(notifications_router, prefix=f"{settings.API_STR}/notifications", tags=["Notifications"])
 app.include_router(dashboard_router, prefix=f"{settings.API_STR}/dashboard", tags=["Dashboard"])
 app.include_router(payments_router, prefix=f"{settings.API_STR}/payments", tags=["Payments"])
