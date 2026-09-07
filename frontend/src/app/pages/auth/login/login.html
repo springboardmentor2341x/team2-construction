@@ -12,94 +12,149 @@
     </div>
 
     <div class="login-right">
+        <div class="login-scroll-wrapper">
+            <div class="login-card">
 
-        <div class="login-card">
-
-            <div class="brand-header">
-                <img src="/BuildTrack_Logo.png" alt="BuildTrack Logo" class="brand-logo">
-            </div>
-
-            <h2>Welcome Back</h2>
-            <p>Please login to continue to your dashboard</p>
-
-            <!-- Error Alerts -->
-            @if (errorMessage()) {
-              <div class="alert alert-danger py-2.5 px-3 mb-3 rounded-3 small border-0" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage() }}
-              </div>
-            }
-
-            <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input
-                        type="email"
-                        name="email"
-                        [(ngModel)]="email"
-                        required
-                        class="form-control"
-                        placeholder="e.g. admin@buildtrack.com">
+                <div class="brand-header">
+                    <img src="/BuildTrack_Logo.png" alt="BuildTrack Logo" class="brand-logo">
                 </div>
 
-                <div class="form-group mt-3">
-                    <label>Password</label>
-                    <input
-                        type="password"
-                        name="password"
-                        [(ngModel)]="password"
-                        required
-                        class="form-control"
-                        placeholder="••••••••">
+                <div class="welcome-section">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to continue to your BuildTrack dashboard</p>
                 </div>
 
-                <div class="options mt-3">
-                    <div>
-                        <input type="checkbox" id="rememberMe">
-                        <label for="rememberMe" class="ms-1 cursor-pointer">Remember Me</label>
-                    </div>
-                    <a routerLink="/forgot-password" class="fw-semibold text-primary">
-                        Forgot Password?
-                    </a>
-                </div>
-
-                <button class="btn btn-primary w-100 mt-4 d-flex align-items-center justify-content-center gap-2" 
-                        [disabled]="isLoading() || !loginForm.form.valid">
-                    @if (isLoading()) {
-                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                      Logging in...
-                    } @else {
-                      Login
-                    }
-                </button>
-
-                <!-- Demo quick access panel -->
-                <div class="mt-4 demo-badge-container">
-                  <span class="demo-title text-center">
-                    Quick Access Demo Roles
-                  </span>
-                  <div class="d-flex flex-wrap gap-2 justify-content-center">
-                    @for (acc of demoAccounts; track acc.role) {
-                      <button type="button" 
-                              class="demo-btn" 
-                              (click)="selectDemo(acc.email)">
-                        {{ acc.label }}
-                      </button>
-                    }
+                <!-- Error Alerts -->
+                @if (errorMessage()) {
+                  <div class="alert alert-danger py-2.5 px-3 mb-3 rounded-3 small border-0 d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                    <div>{{ errorMessage() }}</div>
                   </div>
-                </div>
+                }
 
-                <div class="register">
-                    Don't have an account?
-                    <a routerLink="/register" class="fw-bold text-primary">
-                        Register
-                    </a>
-                </div>
+                <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
 
-            </form>
+                    <div class="form-group mb-3">
+                        <label>Email Address</label>
+                        <div class="input-icon-wrapper">
+                            <i class="bi bi-person input-icon"></i>
+                            <input
+                                type="email"
+                                name="email"
+                                [(ngModel)]="email"
+                                required
+                                class="form-control with-icon"
+                                placeholder="e.g. admin@buildtrack.com">
+                        </div>
+                    </div>
 
+                    <div class="form-group mb-3">
+                        <label>Password</label>
+                        <div class="input-icon-wrapper">
+                            <i class="bi bi-lock input-icon"></i>
+                            <input
+                                [type]="passwordVisible ? 'text' : 'password'"
+                                name="password"
+                                [(ngModel)]="password"
+                                required
+                                class="form-control with-icon pe-5"
+                                placeholder="••••••••">
+                            <button type="button" class="password-toggle-btn" (click)="togglePasswordVisibility()" aria-label="Toggle password visibility">
+                                <i class="bi" [class.bi-eye]="!passwordVisible" [class.bi-eye-slash]="passwordVisible"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="options mt-2 mb-4 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <input type="checkbox" id="rememberMe" class="form-check-input mt-0">
+                            <label for="rememberMe" class="ms-2 cursor-pointer mb-0">Remember Me</label>
+                        </div>
+                        <a routerLink="/forgot-password" class="forgot-link fw-semibold">
+                            Forgot Password?
+                        </a>
+                    </div>
+
+                    <button class="btn btn-primary w-100 btn-login d-flex align-items-center justify-content-center gap-2" 
+                            [disabled]="isLoading() || !loginForm.form.valid">
+                        @if (isLoading()) {
+                          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                          Signing in...
+                        } @else {
+                          Login
+                        }
+                    </button>
+
+                    <!-- Quick Access Section -->
+                    <div class="quick-access-section mt-5">
+                        <div class="qa-header text-center mb-4">
+                            <h3 class="qa-title">Quick Access</h3>
+                            <p class="qa-subtitle">Try BuildTrack using one of the demo roles below.</p>
+                        </div>
+
+                        <!-- Site & Management Roles -->
+                        <div class="role-group mb-4">
+                            <h4 class="role-group-title text-uppercase">Site & Management Roles</h4>
+                            <div class="role-grid">
+                                @for (acc of siteRoles; track acc.role) {
+                                    <div class="role-card" (click)="selectDemo(acc.email)" tabindex="0">
+                                        <div class="role-card-header">
+                                            <div class="role-avatar">
+                                                <i class="bi bi-person-badge"></i>
+                                            </div>
+                                            <div class="role-name">{{ acc.label }}</div>
+                                        </div>
+                                        <div class="role-card-body">
+                                            <div class="cred-row">
+                                                <small class="cred-label">Demo Username</small>
+                                                <div class="cred-val">{{ acc.email }}</div>
+                                            </div>
+                                            <div class="cred-row">
+                                                <small class="cred-label">Demo Password</small>
+                                                <div class="cred-val">password123</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Field & Project Roles -->
+                        <div class="role-group">
+                            <h4 class="role-group-title text-uppercase">Field & Project Roles</h4>
+                            <div class="role-grid">
+                                @for (acc of fieldRoles; track acc.role) {
+                                    <div class="role-card" (click)="selectDemo(acc.email)" tabindex="0">
+                                        <div class="role-card-header">
+                                            <div class="role-avatar field-avatar">
+                                                <i class="bi bi-person-workspace"></i>
+                                            </div>
+                                            <div class="role-name">{{ acc.label }}</div>
+                                        </div>
+                                        <div class="role-card-body">
+                                            <div class="cred-row">
+                                                <small class="cred-label">Demo Username</small>
+                                                <div class="cred-val">{{ acc.email }}</div>
+                                            </div>
+                                            <div class="cred-row">
+                                                <small class="cred-label">Demo Password</small>
+                                                <div class="cred-val">password123</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="register mt-5 text-center">
+                        Don't have an account? 
+                        <a routerLink="/register" class="fw-bold text-primary text-decoration-none">Register</a>
+                    </div>
+
+                </form>
+            </div>
         </div>
-
     </div>
 
 </div>

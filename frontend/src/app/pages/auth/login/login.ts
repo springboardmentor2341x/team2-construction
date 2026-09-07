@@ -36,19 +36,27 @@ export class Login implements AfterViewInit {
   }
 
   // Demo accounts data for testing
-  demoAccounts = [
+  siteRoles = [
     { label: 'Admin', email: 'admin@buildtrack.com', role: 'admin' },
-    { label: 'Proj Mgr', email: 'pm@buildtrack.com', role: 'project_manager' },
-    { label: 'Site Eng', email: 'engineer@buildtrack.com', role: 'site_engineer' },
+    { label: 'Project Manager', email: 'pm@buildtrack.com', role: 'project_manager' },
+    { label: 'Site Engineer', email: 'engineer@buildtrack.com', role: 'site_engineer' }
+  ];
+
+  fieldRoles = [
     { label: 'Contractor', email: 'contractor@buildtrack.com', role: 'contractor' },
     { label: 'Worker', email: 'worker@buildtrack.com', role: 'worker' },
     { label: 'Client', email: 'client@buildtrack.com', role: 'client' }
   ];
 
+  passwordVisible = false;
+
+  togglePasswordVisibility() {
+    this.passwordVisible = !this.passwordVisible;
+  }
+
   selectDemo(email: string) {
     this.email = email;
-    this.password = 'password123'; // fill a dummy password
-    this.onSubmit();
+    this.password = 'password123'; // fill the actual demo password
   }
 
   onSubmit() {
