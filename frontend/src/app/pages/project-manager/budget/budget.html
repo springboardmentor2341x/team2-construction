@@ -16,29 +16,39 @@
   </div>
 
   <!-- Budget Summary Cards -->
-  <div *ngIf="budgetSummary()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div *ngIf="!isLoading() && !errorMessage() && budgetSummary()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <h3 class="text-sm font-medium text-gray-500">Total Budget</h3>
+      <h3 class="text-sm font-medium text-gray-500">Planned Budget</h3>
       <p class="text-2xl font-bold text-gray-900 mt-2">${{ budgetSummary()?.total_budget | number:'1.2-2' }}</p>
     </div>
     
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <h3 class="text-sm font-medium text-gray-500">Total Spent</h3>
+      <h3 class="text-sm font-medium text-gray-500">Total Allocated</h3>
+      <p class="text-2xl font-bold text-blue-600 mt-2">${{ budgetSummary()?.total_allocated | number:'1.2-2' }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <h3 class="text-sm font-medium text-gray-500">Estimated Cost</h3>
+      <p class="text-2xl font-bold text-purple-600 mt-2">${{ budgetSummary()?.total_estimated | number:'1.2-2' }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <h3 class="text-sm font-medium text-gray-500">Actual Spent</h3>
       <p class="text-2xl font-bold text-red-600 mt-2">${{ budgetSummary()?.total_spent | number:'1.2-2' }}</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <h3 class="text-sm font-medium text-gray-500">Remaining Budget</h3>
+      <h3 class="text-sm font-medium text-gray-500">Remaining</h3>
       <p class="text-2xl font-bold text-green-600 mt-2">${{ budgetSummary()?.remaining_budget | number:'1.2-2' }}</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <h3 class="text-sm font-medium text-gray-500">Burn Rate (Monthly)</h3>
-      <p class="text-2xl font-bold text-yellow-600 mt-2">${{ budgetSummary()?.burn_rate | number:'1.2-2' }}/mo</p>
+      <h3 class="text-sm font-medium text-gray-500">Utilization %</h3>
+      <p class="text-2xl font-bold text-yellow-600 mt-2">{{ budgetSummary()!.total_budget > 0 ? (budgetSummary()!.total_spent / budgetSummary()!.total_budget * 100) : 0 | number:'1.1-1' }}%</p>
     </div>
   </div>
 
-  <div *ngIf="budgetSummary()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div *ngIf="!isLoading() && !errorMessage() && budgetSummary()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     
     <!-- Cost Breakdown -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -90,7 +100,7 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 col-span-2">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-medium text-gray-900">Budget Allocations</h2>
-        <button (click)="openAllocationModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ New Allocation</button>
+        <button type="button" (click)="openAllocationModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ New Allocation</button>
       </div>
       
       <div class="overflow-x-auto">
@@ -111,7 +121,7 @@
                 ${{ alloc.allocated_amount | number:'1.2-2' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                -
+                {{ alloc.allocation_date | date:'shortDate' }}
               </td>
             </tr>
             <tr *ngIf="budgetSummary()?.allocations?.length === 0">
@@ -124,10 +134,10 @@
   </div>
 
   <!-- Cost Estimates -->
-  <div *ngIf="budgetSummary()" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+  <div *ngIf="!isLoading() && !errorMessage() && budgetSummary()" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-medium text-gray-900">Cost Estimates</h2>
-      <button (click)="openEstimateModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ New Estimate</button>
+      <button type="button" (click)="openEstimateModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ New Estimate</button>
     </div>
     
     <div class="overflow-x-auto">
@@ -194,8 +204,23 @@
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="!budgetSummary() && projects().length > 0" class="flex justify-center items-center py-20">
+  <div *ngIf="isLoading()" class="flex justify-center items-center py-20">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading() && errorMessage()" class="flex justify-center items-center py-20">
+    <div class="text-red-600 bg-red-100 p-4 rounded-md shadow-sm border border-red-300">
+      <p class="font-medium text-center">Error</p>
+      <p class="text-sm">{{ errorMessage() }}</p>
+    </div>
+  </div>
+
+  <!-- Empty State (No Budget) -->
+  <div *ngIf="!isLoading() && !errorMessage() && !budgetSummary() && projects().length > 0" class="flex justify-center items-center py-20">
+    <div class="text-gray-500 text-center">
+      <p class="font-medium">No budget has been created for this project yet.</p>
+    </div>
   </div>
 </div>
 
@@ -204,9 +229,9 @@
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeExpenseModal()"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
       <form (ngSubmit)="submitExpense()">
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Record Ad-Hoc Expense</h3>
           
           <div class="space-y-4">
@@ -234,7 +259,7 @@
             </div>
           </div>
         </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
           <button type="submit" [disabled]="!newExpense.category_id || newExpense.amount <= 0 || !newExpense.description" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:bg-gray-400 disabled:cursor-not-allowed">
             Save Expense
           </button>
@@ -252,9 +277,9 @@
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeAllocationModal()"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
       <form (ngSubmit)="submitAllocation()">
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">New Budget Allocation</h3>
           
           <div class="space-y-4">
@@ -270,9 +295,19 @@
               <label class="block text-sm font-medium text-gray-700">Allocated Amount ($)</label>
               <input type="number" [(ngModel)]="newAllocation.allocated_amount" name="allocatedAmount" required min="0.01" step="0.01" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md border px-3 py-2">
             </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Allocation Date</label>
+              <input type="date" [(ngModel)]="newAllocation.allocation_date" name="allocationDate" required class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md border px-3 py-2">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Description</label>
+              <input type="text" [(ngModel)]="newAllocation.description" name="description" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md border px-3 py-2">
+            </div>
           </div>
         </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
           <button type="submit" [disabled]="!newAllocation.category_id || newAllocation.allocated_amount <= 0" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:bg-gray-400 disabled:cursor-not-allowed">
             Save Allocation
           </button>
@@ -290,9 +325,9 @@
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeEstimateModal()"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
       <form (ngSubmit)="submitEstimate()">
-        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">New Cost Estimate</h3>
           
           <div class="space-y-4">
@@ -320,7 +355,7 @@
             </div>
           </div>
         </div>
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
           <button type="submit" [disabled]="!newEstimate.category_id || newEstimate.estimated_amount <= 0 || !newEstimate.activity" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:bg-gray-400 disabled:cursor-not-allowed">
             Save Estimate
           </button>

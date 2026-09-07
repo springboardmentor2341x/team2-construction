@@ -23,8 +23,15 @@ def get_report_types(user: dict = Depends(get_current_user)):
         "success": True,
         "data": [
             {"id": "progress", "name": "Project Progress Report"},
+            {"id": "resource", "name": "Resource Utilization Report"},
+            {"id": "workforce", "name": "Workforce Report"},
+            {"id": "procurement", "name": "Procurement Report"},
             {"id": "budget", "name": "Budget & Cost Report"},
-            # More can be added as needed
+            {"id": "material", "name": "Material & Inventory Report"},
+            {"id": "delay", "name": "Delay Report"},
+            {"id": "milestone", "name": "Milestone Report"},
+            {"id": "activity", "name": "Site Activity Report"},
+            {"id": "comprehensive", "name": "Comprehensive Report"}
         ]
     }
 

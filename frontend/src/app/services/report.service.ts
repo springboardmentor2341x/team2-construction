@@ -20,17 +20,17 @@ export class ReportService {
     return this.http.get(url);
   }
 
-  exportPdf(reportType: string, projectId: string, startDate: string, endDate: string): void {
+  exportPdf(reportType: string, projectId: string, startDate: string, endDate: string): Observable<Blob> {
     let url = `${this.apiUrl}/export/${reportType}/pdf?project_id=${projectId}`;
     if (startDate) url += `&start_date=${startDate}`;
     if (endDate) url += `&end_date=${endDate}`;
-    window.open(url, '_blank');
+    return this.http.get(url, { responseType: 'blob' });
   }
 
-  exportExcel(reportType: string, projectId: string, startDate: string, endDate: string): void {
+  exportExcel(reportType: string, projectId: string, startDate: string, endDate: string): Observable<Blob> {
     let url = `${this.apiUrl}/export/${reportType}/excel?project_id=${projectId}`;
     if (startDate) url += `&start_date=${startDate}`;
     if (endDate) url += `&end_date=${endDate}`;
-    window.open(url, '_blank');
+    return this.http.get(url, { responseType: 'blob' });
   }
 }

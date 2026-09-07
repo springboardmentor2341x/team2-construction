@@ -22,6 +22,10 @@ export class ProjectManagerBudget implements OnInit {
   showExpenseModal = signal(false);
   showAllocationModal = signal(false);
 
+  // Loading and Error states
+  isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
+
   newExpense = {
     category_id: '',
     description: '',
@@ -31,7 +35,9 @@ export class ProjectManagerBudget implements OnInit {
 
   newAllocation = {
     category_id: '',
-    allocated_amount: 0
+    allocated_amount: 0,
+    allocation_date: new Date().toISOString().split('T')[0],
+    description: ''
   };
 
   categories = this.budgetService.categories;
@@ -58,7 +64,17 @@ export class ProjectManagerBudget implements OnInit {
 
   loadBudget() {
     if (this.selectedProjectId()) {
-      this.budgetService.getProjectBudgetSummary(this.selectedProjectId()).subscribe();
+      this.isLoading.set(true);
+      this.errorMessage.set(null);
+      this.budgetService.getProjectBudgetSummary(this.selectedProjectId()).subscribe({
+        next: () => {
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          this.errorMessage.set(err?.error?.detail || 'Unable to load budget information.');
+        }
+      });
     }
   }
 
@@ -92,7 +108,7 @@ export class ProjectManagerBudget implements OnInit {
     if (this.selectedProjectId() && this.newAllocation.category_id && this.newAllocation.allocated_amount > 0) {
       this.budgetService.createBudgetAllocation(this.selectedProjectId(), this.newAllocation).subscribe(() => {
         this.closeAllocationModal();
-        this.newAllocation = { category_id: '', allocated_amount: 0 };
+        this.newAllocation = { category_id: '', allocated_amount: 0, allocation_date: new Date().toISOString().split('T')[0], description: '' };
         this.loadBudget();
       });
     }

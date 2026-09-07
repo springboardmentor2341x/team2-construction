@@ -596,17 +596,7 @@ export class ProjectService {
     this.http.get<{ success: boolean; data: any[] }>('/api/users').subscribe(res => {
       if (res.success && res.data) {
         const users = res.data;
-        const wfMembers = users.filter((u: any) => u.role === 'worker').map((u: any) => ({
-          id: u.profile?.id || u.id,
-          name: u.name,
-          role: u.profile?.role || 'Laborer',
-          assignedProject: 'Vanguard Heights Commercial Tower',
-          status: u.profile?.status || 'Active',
-          phone: u.phone || '',
-          avatar: u.avatar || '',
-          company: u.company || ''
-        }));
-        this.workforceSignal.set(wfMembers);
+        // workforceSignal is now populated from /api/workers in loadModule6Data()
 
         const contractorCompanies = users.filter((u: any) => u.role === 'contractor').map((u: any) => ({
           id: u.profile?.id || u.id,
@@ -1006,10 +996,12 @@ export class ProjectService {
   // ==========================================
   // MODULE 6: WORKFORCE MANAGEMENT API METHODS
   // ==========================================
-  loadModule6Data(projectId?: string, contractorId?: string) {
+  loadModule6Data(projectId?: string, contractorId?: string, date?: string, monthYear?: string) {
     const params: string[] = [];
     if (projectId) params.push(`projectId=${projectId}`);
     if (contractorId) params.push(`contractorId=${contractorId}`);
+    if (date) params.push(`date=${date}`);
+    if (monthYear) params.push(`monthYear=${monthYear}`);
     const query = params.length > 0 ? `?${params.join('&')}` : '';
 
     // Workers

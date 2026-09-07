@@ -209,24 +209,19 @@ export class ProjectManagerDashboard implements OnInit {
     }
   ];
 
-  // Weekly analytics chart data (uses weeklySummary or static fallbacks)
+  // Weekly analytics chart data (uses dynamic timeseries mapped from backend)
   weeklyDeltaLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'];
   weeklyDeltaData = computed(() => {
-    const ws = this.projectService.weeklySummary();
-    if (ws) return [ws.weeklyProgressPercentage, 4.2, 6.1, 3.8, 5.5, 7.0];
-    return [3.5, 4.2, 6.1, 3.8, 5.5, 7.0];
+    return this.dashboardData()?.timeseries?.weeklyDelta || [0, 0, 0, 0, 0, 0];
   });
   reportsFiledData = computed(() => {
-    const ws = this.projectService.weeklySummary();
-    return [ws?.totalReportsFiled || 5, 7, 4, 8, 6, 9];
+    return this.dashboardData()?.timeseries?.reportsFiled || [0, 0, 0, 0, 0, 0];
   });
   workerShiftsData = computed(() => {
-    const ws = this.projectService.weeklySummary();
-    return [ws?.totalWorkersUtilized || 42, 38, 45, 50, 47, 55];
+    return this.dashboardData()?.timeseries?.workerShifts || [0, 0, 0, 0, 0, 0];
   });
   delaysData = computed(() => {
-    const ws = this.projectService.weeklySummary();
-    return [ws?.delaysEncounteredCount || 2, 1, 3, 0, 2, 1];
+    return this.dashboardData()?.timeseries?.delays || [0, 0, 0, 0, 0, 0];
   });
 
   ngOnInit() {

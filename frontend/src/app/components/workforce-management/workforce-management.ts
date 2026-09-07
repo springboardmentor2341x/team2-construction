@@ -23,6 +23,7 @@ export class WorkforceManagementComponent {
     if (this.initialTab) {
       this.activeSubTab.set(this.initialTab);
     }
+    this.projectService.loadModule6Data();
   }
 
   // Filter States
@@ -31,7 +32,7 @@ export class WorkforceManagementComponent {
   selectedContractor = signal<string>('all');
   selectedProject = signal<string>('all');
   selectedStatus = signal<string>('all');
-  selectedDate = signal<string>(new Date().toISOString().split('T')[0]);
+  selectedDate = signal<string>('');
 
   // Modal States
   showRegisterModal = signal<boolean>(false);
@@ -83,7 +84,7 @@ export class WorkforceManagementComponent {
   selectedWorkerIdsForShift: string[] = [];
 
   // Form Fields - Payroll
-  payrollMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  payrollMonth = ''; // default to show all instead of current month
 
   // User Role Scoping helper
   get userRole(): string {
@@ -145,6 +146,34 @@ export class WorkforceManagementComponent {
     const attPct = summary?.attendancePercentage || (total > 0 ? Math.round((present / total) * 100) : 92);
 
     return { total, active, present, absent, onLeave, attPct };
+  });
+
+  // Filtered Attendance computed
+  filteredAttendance = computed(() => {
+    let list = this.projectService.attendanceRecords();
+    const dateStr = this.selectedDate();
+    if (dateStr) {
+      list = list.filter(a => a.date === dateStr);
+    }
+    const proj = this.selectedProject();
+    if (proj !== 'all') {
+      list = list.filter(a => a.projectId === proj);
+    }
+    return list;
+  });
+
+  // Filtered Payroll computed
+  filteredPayroll = computed(() => {
+    let list = this.projectService.payrollRecords();
+    const month = this.payrollMonth;
+    if (month) {
+      list = list.filter(p => p.monthYear === month);
+    }
+    const proj = this.selectedProject();
+    if (proj !== 'all') {
+      list = list.filter(p => p.projectId === proj);
+    }
+    return list;
   });
 
   // Category counts computed

@@ -65,22 +65,75 @@ export class ReportsComponent implements OnInit {
         },
         error: (err) => {
           this.isLoading.set(false);
-          this.errorMsg.set(err.error?.detail || 'An error occurred while generating the report.');
+          let errorMsg = 'An error occurred while generating the report.';
+          if (err.error && err.error.detail) {
+            errorMsg = typeof err.error.detail === 'string' ? err.error.detail : JSON.stringify(err.error.detail);
+          }
+          this.errorMsg.set(errorMsg);
+          console.error('Report Generation Error:', err);
         }
       });
   }
 
   exportPdf() {
     if (!this.selectedProjectId || !this.selectedReportType) return;
-    this.reportService.exportPdf(this.selectedReportType, this.selectedProjectId, this.startDate, this.endDate);
+    
+    this.isLoading.set(true);
+    this.errorMsg.set('');
+    
+    this.reportService.exportPdf(this.selectedReportType, this.selectedProjectId, this.startDate, this.endDate)
+      .subscribe({
+        next: (blob: Blob) => {
+          this.isLoading.set(false);
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `BuildTrack_${this.selectedReportType}_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          this.errorMsg.set('Unable to generate PDF.');
+          console.error('PDF Export Error:', err);
+        }
+      });
   }
 
   exportExcel() {
     if (!this.selectedProjectId || !this.selectedReportType) return;
-    this.reportService.exportExcel(this.selectedReportType, this.selectedProjectId, this.startDate, this.endDate);
+    
+    this.isLoading.set(true);
+    this.errorMsg.set('');
+    
+    this.reportService.exportExcel(this.selectedReportType, this.selectedProjectId, this.startDate, this.endDate)
+      .subscribe({
+        next: (blob: Blob) => {
+          this.isLoading.set(false);
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `BuildTrack_${this.selectedReportType}_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          this.errorMsg.set('Unable to generate Excel.');
+          console.error('Excel Export Error:', err);
+        }
+      });
   }
 
   objectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
+  }
+
+  isDataDictionary(data: any): boolean {
+    return data !== null && typeof data === 'object' && !Array.isArray(data);
   }
 }

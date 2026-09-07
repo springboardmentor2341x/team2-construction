@@ -963,6 +963,8 @@ class BudgetAllocation(Base):
     category_id = Column(String, ForeignKey("budget_categories.id", ondelete="CASCADE"), nullable=False)
     
     allocated_amount = Column(Float, nullable=False, default=0.0)
+    allocation_date = Column(String, nullable=True)
+    description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 

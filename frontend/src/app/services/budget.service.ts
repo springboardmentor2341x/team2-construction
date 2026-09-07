@@ -16,6 +16,8 @@ export interface BudgetAllocation {
   project_id: string;
   category_id: string;
   allocated_amount: number;
+  allocation_date?: string;
+  description?: string;
   created_at: string;
   category?: BudgetCategory;
 }

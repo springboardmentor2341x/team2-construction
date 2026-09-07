@@ -18,12 +18,15 @@
       <!-- 1. LINE / AREA CHART -->
       @if (type === 'line') {
         <svg viewBox="0 0 500 220" width="100%" height="100%" class="svg-line-chart">
-          <!-- Grids -->
-          <line x1="25" y1="25" x2="475" y2="25" class="chart-grid-line" stroke-width="1" />
-          <line x1="25" y1="73" x2="475" y2="73" class="chart-grid-line" stroke-width="1" />
-          <line x1="25" y1="121" x2="475" y2="121" class="chart-grid-line" stroke-width="1" />
-          <line x1="25" y1="169" x2="475" y2="169" class="chart-grid-line" stroke-width="1" />
-          <line x1="25" y1="195" x2="475" y2="195" class="chart-baseline" stroke-width="1.5" /> <!-- Baseline -->
+          <!-- Grids & Y-Axis Labels -->
+          @for (yL of yLabels; track $index) {
+            <line [attr.x1]="35" [attr.y1]="yL.y" [attr.x2]="475" [attr.y2]="yL.y" 
+                  [class]="yL.val === 0 ? 'chart-baseline' : 'chart-grid-line'" 
+                  [attr.stroke-width]="yL.val === 0 ? 1.5 : 1" />
+            <text x="30" [attr.y]="yL.y + 4" text-anchor="end" font-size="10" fill="#6c757d" class="chart-label">
+              {{ yL.val | number:'1.0-1' }}
+            </text>
+          }
 
           <!-- Gradient Definitions -->
           <defs>
@@ -50,6 +53,15 @@
                     (mousemove)="showTooltip($event, pt.label + ': ' + pt.val)"
                     (mouseleave)="hideTooltip()">
             </circle>
+            <!-- X-axis Label -->
+            <text [attr.x]="pt.x" 
+                  [attr.y]="215" 
+                  text-anchor="middle" 
+                  font-size="10" 
+                  fill="#6c757d"
+                  class="chart-label">
+              {{ pt.label }}
+            </text>
           }
         </svg>
       }

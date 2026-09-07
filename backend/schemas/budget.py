@@ -20,6 +20,8 @@ class BudgetCategoryResponse(BudgetCategoryBase):
 class BudgetAllocationBase(BaseModel):
     category_id: str
     allocated_amount: float
+    allocation_date: Optional[str] = None
+    description: Optional[str] = None
 
 class BudgetAllocationCreate(BudgetAllocationBase):
     project_id: str

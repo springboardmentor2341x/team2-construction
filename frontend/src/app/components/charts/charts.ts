@@ -62,6 +62,8 @@ export class ChartsComponent implements OnInit, OnChanges {
   donutSegments: DonutSegment[] = [];
   donutTotal: number = 0;
 
+  yLabels: { y: number; val: number }[] = [];
+
   activeTooltip: { x: number; y: number; text: string; visible: boolean } = {
     x: 0,
     y: 0,
@@ -104,9 +106,17 @@ export class ChartsComponent implements OnInit, OnChanges {
 
     const pointsCount = this.data.length;
     
+    this.yLabels = [
+      { y: 195, val: 0 },
+      { y: 152.5, val: minVal + valRange * 0.25 },
+      { y: 110, val: minVal + valRange * 0.5 },
+      { y: 67.5, val: minVal + valRange * 0.75 },
+      { y: 25, val: maxVal }
+    ];
+
     // Map data to SVG viewbox coords
     this.linePoints = this.data.map((val, i) => {
-      const x = padding + (i / (pointsCount - 1)) * (width - 2 * padding);
+      const x = padding + 15 + (i / (pointsCount - 1)) * (width - 2 * padding - 20);
       // Invert Y coordinate so 0 is at bottom
       const y = height - padding - ((val - minVal) / valRange) * (height - 2 * padding);
       return {

@@ -30,7 +30,7 @@ def get_budget_categories(db: Session = Depends(get_db)):
 
 @router.post("/categories", response_model=BudgetCategoryResponse)
 def create_budget_category(data: BudgetCategoryCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    if current_user.get("role") != "Administrator":
+    if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Only Admins can create budget categories")
     cat = BudgetCategory(id=f"CAT-{uuid.uuid4().hex[:6].upper()}", name=data.name, description=data.description)
     db.add(cat)
@@ -44,9 +44,9 @@ def get_project_budget_summary(project_id: str, db: Session = Depends(get_db), c
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    if current_user.get("role") not in ["Administrator", "Project Manager"]:
+    if current_user.get("role") not in ["admin", "project_manager"]:
         raise HTTPException(status_code=403, detail="Not authorized to view financial data")
-    if current_user.get("role") == "Project Manager" and project.manager_id != current_user.get("sub"):
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
         raise HTTPException(status_code=403, detail="Not authorized to view financial data for this project")
 
     # Fetch dynamic expenses
@@ -59,7 +59,7 @@ def get_project_budget_summary(project_id: str, db: Session = Depends(get_db), c
     utilizations = db.query(ResourceUtilization).filter(ResourceUtilization.project_id == project_id).all()
     for u in utilizations:
         if u.resource and hasattr(u.resource, 'hourly_cost') and u.resource.hourly_cost:
-            eq_costs += (u.hours_used * u.resource.hourly_cost)
+            eq_costs += (u.operating_hours * u.resource.hourly_cost)
     equipment_costs = eq_costs
     
     # Ad-hoc expenses
@@ -97,19 +97,31 @@ def get_project_budget_summary(project_id: str, db: Session = Depends(get_db), c
     )
 
 @router.get("/projects/{project_id}/allocations", response_model=List[BudgetAllocationResponse])
-def get_budget_allocations(project_id: str, db: Session = Depends(get_db)):
+def get_budget_allocations(project_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized for this project")
     return db.query(BudgetAllocation).filter(BudgetAllocation.project_id == project_id).all()
 
 @router.post("/projects/{project_id}/allocations", response_model=BudgetAllocationResponse)
 def create_budget_allocation(project_id: str, data: BudgetAllocationCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    if current_user.get("role") not in ["Administrator", "Project Manager"]:
+    if current_user.get("role") not in ["admin", "project_manager"]:
         raise HTTPException(status_code=403, detail="Not authorized")
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized for this project")
     
     alloc = BudgetAllocation(
         id=f"BA-{uuid.uuid4().hex[:6].upper()}",
         project_id=project_id,
         category_id=data.category_id,
-        allocated_amount=data.allocated_amount
+        allocated_amount=data.allocated_amount,
+        allocation_date=data.allocation_date,
+        description=data.description
     )
     db.add(alloc)
     db.commit()
@@ -118,8 +130,13 @@ def create_budget_allocation(project_id: str, data: BudgetAllocationCreate, db: 
 
 @router.post("/projects/{project_id}/expenses", response_model=ExpenseRecordResponse)
 def create_expense(project_id: str, data: ExpenseRecordCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    if current_user.get("role") not in ["Administrator", "Project Manager"]:
+    if current_user.get("role") not in ["admin", "project_manager"]:
         raise HTTPException(status_code=403, detail="Not authorized")
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized for this project")
     
     expense = ExpenseRecord(
         id=f"EXP-{uuid.uuid4().hex[:6].upper()}",
@@ -137,12 +154,22 @@ def create_expense(project_id: str, data: ExpenseRecordCreate, db: Session = Dep
 
 @router.get("/projects/{project_id}/cost-estimates", response_model=List[CostEstimateResponse])
 def get_cost_estimates(project_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized for this project")
     return db.query(CostEstimate).filter(CostEstimate.project_id == project_id).all()
 
 @router.post("/projects/{project_id}/cost-estimates", response_model=CostEstimateResponse)
 def create_cost_estimate(project_id: str, data: CostEstimateCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    if current_user.get("role") not in ["Administrator", "Project Manager"]:
+    if current_user.get("role") not in ["admin", "project_manager"]:
         raise HTTPException(status_code=403, detail="Not authorized")
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized for this project")
     
     estimate = CostEstimate(
         id=f"EST-{uuid.uuid4().hex[:6].upper()}",

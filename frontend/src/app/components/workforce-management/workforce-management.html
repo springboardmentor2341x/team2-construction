@@ -171,7 +171,7 @@
             <h3 class="panel-title"><i class="bi bi-calendar-event"></i> Recent Attendance</h3>
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            @for (att of projectService.attendanceRecords().slice(0, 5); track att.id) {
+            @for (att of filteredAttendance().slice(0, 5); track att.id) {
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding-bottom: 0.4rem; border-bottom: 1px solid #f1f5f9;">
                 <div>
                   <div style="font-weight: 600;">{{ att.workerName || att.workerId }}</div>
@@ -353,7 +353,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (att of projectService.attendanceRecords(); track att.id) {
+            @for (att of filteredAttendance(); track att.id) {
               <tr>
                 <td>
                   <div style="font-weight: 600;">{{ att.workerName || att.workerId }}</div>
@@ -457,7 +457,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (p of projectService.payrollRecords(); track p.id) {
+            @for (p of filteredPayroll(); track p.id) {
               <tr>
                 <td>
                   <div style="font-weight: 600;">{{ p.workerName || p.workerId }}</div>
