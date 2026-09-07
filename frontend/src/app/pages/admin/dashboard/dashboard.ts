@@ -33,6 +33,9 @@ export class AdministratorDashboard {
       next: (res) => {
         if (res.success && res.data) {
           this.dashboardData.set(res.data);
+          this.usersRegistry.set(res.data.users || []);
+          this.workforceData.set(res.data.workforce || []);
+          this.contractorsData.set(res.data.contractors || []);
         }
       },
       error: (err) => console.error("Error loading admin dashboard:", err)
@@ -43,38 +46,14 @@ export class AdministratorDashboard {
     return this.queryParams()?.['module'] || 'overview';
   }
 
-  // Administrators custom user registry state (for role updates)
-  usersRegistry = signal<User[]>([
-    { id: '1', email: 'admin@buildtrack.com', name: 'Usha Admin', role: 'admin', company: 'BuildTrack Corp' },
-    { id: '2', email: 'pm@buildtrack.com', name: 'Shradha S', role: 'project_manager', company: 'Apex Builders' },
-    { id: '3', email: 'engineer@buildtrack.com', name: 'Sathvik S', role: 'site_engineer', company: 'Apex Builders' },
-    { id: '4', email: 'contractor@buildtrack.com', name: 'Gaurav K', role: 'contractor', company: 'Vance Concrete Ltd' },
-    { id: '5', email: 'worker@buildtrack.com', name: 'Jyoti S', role: 'worker', company: 'Vance Concrete Ltd' },
-    { id: '6', email: 'client@buildtrack.com', name: 'Abhishek S', role: 'client', company: 'Vanguard Realty' }
-  ]);
+  // Dynamic User Registry state (mapped from backend)
+  usersRegistry = signal<any[]>([]);
 
-  // Static fallback workforce data shown when backend has no data
-  staticWorkforce: WorkforceMember[] = [
-    { id: 'wf1', name: 'Ramesh Kumar', role: 'Mason', assignedProject: 'Vanguard Heights Tower', phone: '+91-9812345678', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Ramesh+Kumar&background=0d6efd&color=fff' },
-    { id: 'wf2', name: 'Priya Nair', role: 'Electrician', assignedProject: 'Riverfront Residency II', phone: '+91-9823456789', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Priya+Nair&background=198754&color=fff' },
-    { id: 'wf3', name: 'Suresh Patil', role: 'Plumber', assignedProject: 'Metro Transit Hub', phone: '+91-9834567890', status: 'On Leave', avatar: 'https://ui-avatars.com/api/?name=Suresh+Patil&background=ffc107&color=000' },
-    { id: 'wf4', name: 'Kavita Sharma', role: 'Site Supervisor', assignedProject: 'Vanguard Heights Tower', phone: '+91-9845678901', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Kavita+Sharma&background=0dcaf0&color=fff' },
-    { id: 'wf5', name: 'Mohan Das', role: 'Welder', assignedProject: 'Eco-Resort Suites', phone: '+91-9856789012', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Mohan+Das&background=6f42c1&color=fff' },
-    { id: 'wf6', name: 'Deepa Mehta', role: 'Carpenter', assignedProject: 'Metro Transit Hub', phone: '+91-9867890123', status: 'Inactive', avatar: 'https://ui-avatars.com/api/?name=Deepa+Mehta&background=dc3545&color=fff' },
-    { id: 'wf7', name: 'Arjun Singh', role: 'Safety Officer', assignedProject: 'Riverfront Residency II', phone: '+91-9878901234', status: 'Active', avatar: 'https://ui-avatars.com/api/?name=Arjun+Singh&background=fd7e14&color=fff' },
-    { id: 'wf8', name: 'Lakshmi Rao', role: 'Scaffolding Expert', assignedProject: 'Eco-Resort Suites', phone: '+91-9889012345', status: 'On Leave', avatar: 'https://ui-avatars.com/api/?name=Lakshmi+Rao&background=20c997&color=fff' },
-  ];
+  // Dynamic workforce data
+  workforceData = signal<any[]>([]);
 
-  // Static fallback contractor data
-  staticContractors: ContractorCompany[] = [
-    { id: 'c1', name: 'Vance Concrete Ltd', contactPerson: 'Gaurav Kumar', specialty: 'Foundation & Concrete Works', activeProjects: 3, status: 'Active' },
-    { id: 'c2', name: 'Apex Steel Fabricators', contactPerson: 'Rajiv Mehta', specialty: 'Structural Steel & Rebar', activeProjects: 2, status: 'Active' },
-    { id: 'c3', name: 'SunBright Electricals', contactPerson: 'Sheela Rao', specialty: 'Electrical & MEP Works', activeProjects: 4, status: 'Active' },
-    { id: 'c4', name: 'ProPipe Plumbing Co.', contactPerson: 'Dilip Joshi', specialty: 'Plumbing & Drainage', activeProjects: 2, status: 'Under Review' },
-    { id: 'c5', name: 'QuickBuild Masonry', contactPerson: 'Anita Desai', specialty: 'Brick & Block Masonry', activeProjects: 1, status: 'Active' },
-    { id: 'c6', name: 'SafeGuard HVAC Pvt.', contactPerson: 'Sanjay Patel', specialty: 'HVAC & Ventilation', activeProjects: 2, status: 'Active' },
-    { id: 'c7', name: 'TerraFirm Groundworks', contactPerson: 'Prakash Nair', specialty: 'Excavation & Groundworks', activeProjects: 0, status: 'Suspended' },
-  ];
+  // Dynamic contractor data
+  contractorsData = signal<any[]>([]);
 
   // Form Fields - User Management
   newUserName = '';
@@ -146,17 +125,18 @@ export class AdministratorDashboard {
     return data?.projects?.map((p: any) => parseFloat((p.spent / 1_000_000).toFixed(2))) || [];
   });
 
-  // Computed workforce: use backend data if available, else static
-  workforceData = computed(() => {
-    const live = this.projectService.workforce();
-    return live.length > 0 ? live : this.staticWorkforce;
+  projectStatusLabels = computed(() => {
+    const counts = this.dashboardData()?.projectMonitoring?.projectsByStatus;
+    if (!counts) return ['In Progress', 'Planning', 'Completed', 'Delayed'];
+    return Object.keys(counts);
+  });
+  
+  projectStatusData = computed(() => {
+    const counts = this.dashboardData()?.projectMonitoring?.projectsByStatus;
+    if (!counts) return [2, 1, 0, 1];
+    return Object.values(counts) as number[];
   });
 
-  // Computed contractors: use backend data if available, else static
-  contractorsData = computed(() => {
-    const live = this.projectService.contractors();
-    return live.length > 0 ? live : this.staticContractors;
-  });
 
   // Admin settings variables
   currencySymbol = '$';
