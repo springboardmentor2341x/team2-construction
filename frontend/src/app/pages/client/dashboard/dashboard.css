@@ -1,0 +1,16 @@
+.timeline-step {
+  padding-bottom: 24px;
+}
+
+.step-marker {
+  z-index: 2;
+  box-shadow: 0 0 0 4px #e0e7ff;
+}
+
+.table-hover tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8fafc;
+}

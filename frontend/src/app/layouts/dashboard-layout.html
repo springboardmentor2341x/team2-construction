@@ -1,0 +1,27 @@
+<div class="app-layout-container">
+  
+  <!-- Fixed Navbar -->
+  <app-navbar (toggleSidebar)="toggleSidebar()"></app-navbar>
+
+  <!-- Sidebar and Main Panel -->
+  <div class="app-body">
+    
+    <!-- Collapsible Sidebar -->
+    <app-sidebar [collapsed]="sidebarCollapsed"></app-sidebar>
+
+    <!-- Main Scroll Panel -->
+    <main class="main-content d-flex flex-column min-vh-100" [class.sidebar-collapsed]="sidebarCollapsed">
+      
+      <div class="content-viewport flex-grow-1 p-4">
+        <!-- Routed page modules rendered here -->
+        <router-outlet></router-outlet>
+      </div>
+
+      <!-- Main Footer -->
+      <app-footer></app-footer>
+
+    </main>
+
+  </div>
+
+</div>

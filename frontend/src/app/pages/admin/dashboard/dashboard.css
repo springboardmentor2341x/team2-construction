@@ -1,0 +1,21 @@
+.form-select-sm {
+  font-size: 13px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.table-hover tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.bg-light {
+  background-color: #f8fafc !important;
+}
+
+.list-group-item {
+  border-color: rgba(0, 0, 0, 0.05);
+}

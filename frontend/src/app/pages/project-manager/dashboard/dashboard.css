@@ -1,0 +1,28 @@
+.bg-light-subtle {
+  background-color: #f8fafc;
+}
+
+.timeline-step {
+  padding-bottom: 24px;
+}
+
+.step-marker {
+  z-index: 2;
+  box-shadow: 0 0 0 4px #e0e7ff;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.tracking-wider {
+  letter-spacing: 0.05em;
+}
+
+.object-fit-cover {
+  object-fit: cover;
+}
+
+.min-h-200 {
+  min-height: 200px;
+}

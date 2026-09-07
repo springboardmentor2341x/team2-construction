@@ -1,0 +1,43 @@
+.navbar {
+  height: 70px;
+  z-index: 1040;
+}
+
+.btn-light {
+  background-color: #f8f9fa;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-light:hover, .btn-light.active {
+  background-color: #e9ecef;
+  transform: scale(1.05);
+}
+
+.max-height-300 {
+  max-height: 300px;
+}
+
+.dropdown-menu {
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+
+.dropdown-item {
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  font-size: 14px;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f3f9;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

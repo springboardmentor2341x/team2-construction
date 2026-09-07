@@ -1,0 +1,142 @@
+<div class="register-container">
+
+    <div class="register-left">
+        <div class="carousel-container">
+            @for (img of carouselImages; track img; let i = $index) {
+              <div class="carousel-slide" [class.active]="i === currentImageIndex()">
+                <img [src]="img" alt="Construction Site" class="carousel-img">
+              </div>
+            }
+            <div class="carousel-overlay"></div>
+        </div>
+
+        <div class="overlay">
+            <h1>BuildTrack</h1>
+            <p>Join the construction project management platform of the future.</p>
+            <div class="features">
+                <div>✔ Allocate tasks & resource schedules</div>
+                <div>✔ Review real-time site activity reports</div>
+                <div>✔ Fast and secure invoice tracking</div>
+                <div>✔ Real-time status communication</div>
+            </div>
+        </div>
+
+        <div class="carousel-indicators">
+            @for (img of carouselImages; track img; let i = $index) {
+              <button type="button" 
+                      class="indicator-dot" 
+                      [class.active]="i === currentImageIndex()" 
+                      (click)="setSlide(i)"
+                      [attr.aria-label]="'Go to slide ' + (i + 1)">
+              </button>
+            }
+        </div>
+    </div>
+
+    <div class="register-right">
+
+        <div class="register-card my-4">
+
+            <h2>Create Account</h2>
+            <p>Fill out the credentials to sign up</p>
+
+            @if (errorMessage()) {
+              <div class="alert alert-danger py-2.5 px-3 mb-3 rounded-3 small border-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage() }}
+              </div>
+            }
+
+            <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+
+                <div class="row">
+                  <div class="col-md-6 form-group">
+                      <label>Full Name *</label>
+                      <input
+                          type="text"
+                          name="name"
+                          [(ngModel)]="name"
+                          required
+                          class="form-control"
+                          placeholder="e.g. Your Name">
+                  </div>
+
+                  <div class="col-md-6 form-group mt-3 mt-md-0">
+                      <label>Email Address *</label>
+                      <input
+                          type="email"
+                          name="email"
+                          [(ngModel)]="email"
+                          required
+                          class="form-control"
+                          placeholder="yourname@buildtrack.com">
+                  </div>
+                </div>
+
+                <div class="row mt-3">
+                  <div class="col-md-6 form-group">
+                      <label>Password *</label>
+                      <input
+                          type="password"
+                          name="password"
+                          [(ngModel)]="password"
+                          required
+                          class="form-control"
+                          placeholder="••••••••">
+                  </div>
+
+                  <div class="col-md-6 form-group mt-3 mt-md-0">
+                      <label>Platform Role *</label>
+                      <select class="form-select form-control" name="role" [(ngModel)]="role" required>
+                        @for (r of rolesList; track r.value) {
+                          <option [value]="r.value">{{ r.label }}</option>
+                        }
+                      </select>
+                  </div>
+                </div>
+
+                <div class="row mt-3">
+                  <div class="col-md-6 form-group">
+                      <label>Company / Organization</label>
+                      <input
+                          type="text"
+                          name="company"
+                          [(ngModel)]="company"
+                          class="form-control"
+                          placeholder="e.g. Acme Construction">
+                  </div>
+
+                  <div class="col-md-6 form-group mt-3 mt-md-0">
+                      <label>Phone Number</label>
+                      <input
+                          type="tel"
+                          name="phone"
+                          [(ngModel)]="phone"
+                          class="form-control"
+                          placeholder="e.g. +91 555-1234">
+                  </div>
+                </div>
+
+                <button class="btn btn-primary w-100 mt-4 d-flex align-items-center justify-content-center gap-2" 
+                        [disabled]="isLoading() || !registerForm.form.valid">
+                    @if (isLoading()) {
+                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      Registering...
+                    } @else {
+                      Create Account
+                    }
+                </button>
+
+                <div class="login-link text-center mt-3">
+                    Already have an account?
+                    <a routerLink="/login" class="fw-bold text-primary">
+                        Login
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

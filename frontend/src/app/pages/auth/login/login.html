@@ -1,0 +1,105 @@
+<div class="login-container">
+
+    <div class="login-left">
+        <video #bgVideo autoplay loop [muted]="isMuted()" playsinline class="bg-video" (ended)="bgVideo.play()" (pause)="bgVideo.play()">
+            <source src="/CcV.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <button type="button" class="audio-control-btn" (click)="toggleMute()" aria-label="Toggle background music">
+            <i class="bi" [class.bi-volume-mute-fill]="isMuted()" [class.bi-volume-up-fill]="!isMuted()"></i>
+            <span>{{ isMuted() ? 'Audio Off' : 'Audio On' }}</span>
+        </button>
+    </div>
+
+    <div class="login-right">
+
+        <div class="login-card">
+
+            <div class="brand-header">
+                <img src="/BuildTrack_Logo.png" alt="BuildTrack Logo" class="brand-logo">
+            </div>
+
+            <h2>Welcome Back</h2>
+            <p>Please login to continue to your dashboard</p>
+
+            <!-- Error Alerts -->
+            @if (errorMessage()) {
+              <div class="alert alert-danger py-2.5 px-3 mb-3 rounded-3 small border-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage() }}
+              </div>
+            }
+
+            <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input
+                        type="email"
+                        name="email"
+                        [(ngModel)]="email"
+                        required
+                        class="form-control"
+                        placeholder="e.g. admin@buildtrack.com">
+                </div>
+
+                <div class="form-group mt-3">
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        name="password"
+                        [(ngModel)]="password"
+                        required
+                        class="form-control"
+                        placeholder="••••••••">
+                </div>
+
+                <div class="options mt-3">
+                    <div>
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe" class="ms-1 cursor-pointer">Remember Me</label>
+                    </div>
+                    <a routerLink="/forgot-password" class="fw-semibold text-primary">
+                        Forgot Password?
+                    </a>
+                </div>
+
+                <button class="btn btn-primary w-100 mt-4 d-flex align-items-center justify-content-center gap-2" 
+                        [disabled]="isLoading() || !loginForm.form.valid">
+                    @if (isLoading()) {
+                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      Logging in...
+                    } @else {
+                      Login
+                    }
+                </button>
+
+                <!-- Demo quick access panel -->
+                <div class="mt-4 demo-badge-container">
+                  <span class="demo-title text-center">
+                    Quick Access Demo Roles
+                  </span>
+                  <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    @for (acc of demoAccounts; track acc.role) {
+                      <button type="button" 
+                              class="demo-btn" 
+                              (click)="selectDemo(acc.email)">
+                        {{ acc.label }}
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="register">
+                    Don't have an account?
+                    <a routerLink="/register" class="fw-bold text-primary">
+                        Register
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

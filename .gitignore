@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Angular / Build output
+.angular/
+**/.angular/
+dist/
+**/dist/
+
+# Python Cache & Databases
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.db
+*.sqlite
+*.sqlite3
+
+# Local History and IDE
+.lh/
+.vscode/
+.idea/
+
+# Environment files
+.env
+*.env
+**/.env
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
