@@ -3,6 +3,7 @@ import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 
 // Public/Auth Pages
+import { LandingComponent } from './pages/public/landing/landing';
 import { Login } from './pages/auth/login/login';
 import { Register } from './pages/auth/register/register';
 import { ForgotPassword } from './pages/auth/forgot-password/forgot-password';
@@ -37,6 +38,9 @@ import { Profile } from './pages/profile/profile';
 import { Settings } from './pages/settings/settings';
 
 export const routes: Routes = [
+  // Landing Page
+  { path: '', component: LandingComponent, pathMatch: 'full' },
+
   // Public/Auth routes
   { path: 'login', component: Login },
   { path: 'register', component: Register },

@@ -1,0 +1,535 @@
+<!-- Hero Slider Section -->
+<section class="hero-slider-section" (mouseenter)="onSliderMouseEnter()" (mouseleave)="onSliderMouseLeave()">
+  
+  <!-- Navbar overlay -->
+  <nav class="navbar navbar-expand-lg fixed-top overlay-navbar">
+    <div class="container px-lg-5">
+      <a class="navbar-brand d-flex align-items-center" routerLink="/">
+        <img src="/BuildTrack_Logo.png" alt="BuildTrack Logo" class="navbar-logo" style="height: 80px; width: auto; margin-top: 5px;">
+      </a>
+      
+      <div class="d-flex ms-auto gap-3 align-items-center">
+        <a routerLink="/login" class="btn btn-login-stylish px-4 rounded-pill fw-medium">Login</a>
+        <a routerLink="/login" class="btn btn-get-started px-4 rounded-pill fw-semibold text-white">Get Started <i class="bi bi-arrow-right ms-1"></i></a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Slider Images -->
+  <div class="slider-container">
+    <div *ngFor="let slide of slides; let i = index" 
+         class="slide bg-image" 
+         [class.active]="i === currentSlide"
+         [ngStyle]="{'background-image': 'url(' + slide.url + ')'}">
+      <div class="slide-overlay"></div>
+    </div>
+  </div>
+
+  <!-- Centered Hero Text (Fixed over all slides) -->
+  <div class="hero-center-content text-center text-white w-100">
+    <div class="container px-lg-5">
+      <h1 class="display-3 fw-bold mb-3 hero-title text-shadow-sm">
+        Smarter Construction.<br>
+        <span class="text-primary hero-accent">Better Control.</span>
+      </h1>
+      <p class="lead mb-4 mx-auto max-w-700 text-shadow-sm opacity-90 fw-medium">
+        BuildTrack brings projects, people, resources, materials, costs, and site progress together in one connected platform.
+      </p>
+      <a routerLink="/login" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-semibold shadow-lg hover-lift">Get Started <i class="bi bi-arrow-right ms-1"></i></a>
+      
+      <!-- Hero Floating Info Card -->
+      <div class="row justify-content-center mt-5 d-none d-md-flex position-relative z-3">
+        <div class="col-12 col-lg-10">
+          <div class="hero-floating-cards glass-card rounded-4 shadow-lg p-3 d-flex justify-content-between text-start mx-auto align-items-center" style="max-width: 900px; backdrop-filter: blur(12px); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="d-flex align-items-center px-2 px-lg-3 flex-fill">
+              <i class="bi bi-shield-check text-primary fs-3 me-3"></i>
+              <div>
+                <h6 class="fw-bold mb-0 text-white">Centralized Management</h6>
+                <p class="small mb-0 text-white-50 lh-sm mt-1">All project info in one place</p>
+              </div>
+            </div>
+            <div class="border-start border-white-50" style="height: 40px; opacity: 0.3;"></div>
+            <div class="d-flex align-items-center px-2 px-lg-3 flex-fill">
+              <i class="bi bi-eye text-primary fs-3 me-3"></i>
+              <div>
+                <h6 class="fw-bold mb-0 text-white">Real-Time Visibility</h6>
+                <p class="small mb-0 text-white-50 lh-sm mt-1">Track progress as it happens</p>
+              </div>
+            </div>
+            <div class="border-start border-white-50" style="height: 40px; opacity: 0.3;"></div>
+            <div class="d-flex align-items-center px-2 px-lg-3 flex-fill">
+              <i class="bi bi-graph-up-arrow text-primary fs-3 me-3"></i>
+              <div>
+                <h6 class="fw-bold mb-0 text-white">Better Decisions</h6>
+                <p class="small mb-0 text-white-50 lh-sm mt-1">Data-driven project insights</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slider Controls -->
+  <button class="slider-arrow arrow-prev" (click)="prevSlide()" aria-label="Previous Slide">
+    <i class="bi bi-chevron-left"></i>
+  </button>
+  <button class="slider-arrow arrow-next" (click)="nextSlide()" aria-label="Next Slide">
+    <i class="bi bi-chevron-right"></i>
+  </button>
+
+  <!-- Slider Bottom Info -->
+  <div class="slider-bottom-info w-100 text-white pb-4 px-4 px-lg-5">
+    <div class="d-flex justify-content-between align-items-end w-100">
+      
+      <!-- Bottom Left -->
+      <div class="d-none d-md-block text-shadow-sm opacity-90 fw-medium">
+        <div class="fs-5 mb-1">0{{ currentSlide + 1 }} / 07</div>
+        <div class="small">Building a Better Tomorrow <div class="bottom-line d-inline-block ms-2 align-middle"></div></div>
+      </div>
+
+      <!-- Pagination Dots -->
+      <div class="slider-pagination d-flex gap-2 pb-2">
+        <button *ngFor="let slide of slides; let i = index" 
+                class="dot-btn" 
+                [class.active]="i === currentSlide"
+                (click)="goToSlide(i)"
+                [attr.aria-label]="'Go to slide ' + (i + 1)">
+        </button>
+      </div>
+
+
+
+    </div>
+  </div>
+</section>
+
+<!-- Section: What is BuildTrack? -->
+<section class="py-7 bg-white" id="what-is">
+  <div class="container px-lg-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-5" #animateOnScroll>
+        <div class="animate-fade-up pe-lg-4">
+          <span class="text-primary text-uppercase fw-bold mb-2 d-block small tracking-wide">ABOUT BUILDTRACK</span>
+          <h2 class="display-5 fw-bold mb-4 text-heading">What is BuildTrack?</h2>
+          <p class="text-muted fs-6 mb-5 opacity-90">
+            BuildTrack is a construction project management and site monitoring platform that brings project activities, people, resources, materials, costs, and reports into one centralized system, helping teams build better and deliver on time.
+          </p>
+          <a routerLink="/about" class="btn btn-primary rounded-pill px-4 fw-medium hover-lift">Learn More <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-7" #animateOnScroll>
+        <div class="image-wrapper animate-slide-left position-relative">
+          <img src="/construction2.jpg" alt="Construction Site" class="img-fluid rounded-4 shadow-lg w-100 object-fit-cover" style="height: 400px;">
+          
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section: Why BuildTrack? -->
+<section class="py-7 bg-light-blue" id="why">
+  <div class="container px-lg-5">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-4" #animateOnScroll>
+        <div class="animate-fade-up">
+          <span class="text-primary text-uppercase fw-bold mb-2 d-block small tracking-wide">WHY BUILDTRACK?</span>
+          <h2 class="display-6 fw-bold mb-4 text-heading lh-sm">Construction is complex.<br>Managing it shouldn't be.</h2>
+          <p class="text-muted fs-6 mb-4 opacity-90">
+            From site activities to project planning, there are many moving parts. BuildTrack simplifies construction management by connecting people, processes, and information.
+          </p>
+          <a routerLink="/impact" class="btn btn-primary rounded-pill px-4 fw-medium hover-lift">Our Impact <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="row g-3">
+          <!-- Problem Cards -->
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up position-relative" style="height: 260px;">
+              <img src="/construction2.jpg" alt="Scattered Information" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Scattered<br>Information</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up delay-100 position-relative" style="height: 260px;">
+              <img src="/construction3.jpg" alt="Progress Tracking" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Progress Tracking<br>Challenges</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up delay-200 position-relative" style="height: 260px;">
+              <img src="/construction8.jpg" alt="Workforce" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-people"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Workforce<br>Coordination</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up delay-300 position-relative" style="height: 260px;">
+              <img src="/construction4.jpg" alt="Equipment" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-gear"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Equipment<br>Availability</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up position-relative" style="height: 260px;">
+              <img src="/construction1.jpg" alt="Materials" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Material<br>Delays</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up delay-100 position-relative" style="height: 260px;">
+              <img src="/construction6.jpg" alt="Procurement" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-truck"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Procurement<br>Bottlenecks</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up delay-200 position-relative" style="height: 260px;">
+              <img src="/construction5.jpg" alt="Budget" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-database"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Budget<br>Visibility</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3" #animateOnScroll>
+            <div class="problem-card rounded-4 shadow-sm overflow-hidden animate-fade-up delay-300 position-relative" style="height: 260px;">
+              <img src="/construction7.jpg" alt="Communication" class="img-fluid w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-0">
+              <div class="problem-card-overlay position-absolute top-0 start-0 w-100 h-100 z-1" style="background: linear-gradient(to bottom, transparent 40%, rgba(15,23,42,0.9) 100%);"></div>
+              <div class="position-absolute bottom-0 start-0 w-100 p-3 z-2 d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-2 shadow-sm" style="width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.2);">
+                  <i class="bi bi-chat-dots"></i>
+                </div>
+                <div class="fw-bold text-white small lh-sm">Communication<br>Gaps</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section: Who Can Use BuildTrack? -->
+<section class="py-7 bg-white" id="who">
+  <div class="container px-lg-5">
+    <div class="mb-5" #animateOnScroll>
+      <div class="animate-fade-up">
+        <span class="text-primary text-uppercase fw-bold mb-2 d-block small tracking-wide">BUILT FOR EVERYONE</span>
+        <h2 class="display-6 fw-bold mb-2 text-heading">Who Can Use BuildTrack?</h2>
+        <p class="text-muted fs-6 mb-0 opacity-90 max-w-700">From administrators to on-site workers, BuildTrack helps every stakeholder stay connected and informed.</p>
+      </div>
+    </div>
+    
+    <div class="row g-4">
+      <div class="col-12 col-md-4 col-lg-2" #animateOnScroll>
+        <div class="role-card bg-white rounded-4 shadow-sm text-center p-4 h-100 animate-fade-up border">
+          <div class="role-icon-wrapper mx-auto mb-3">
+            <i class="bi bi-person-badge fs-2 text-primary"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-2">Admin</h6>
+          <p class="text-muted small mb-0 lh-sm">Manage users, projects and system activities.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 col-lg-2" #animateOnScroll>
+        <div class="role-card bg-white rounded-4 shadow-sm text-center p-4 h-100 animate-fade-up delay-100 border">
+          <div class="role-icon-wrapper mx-auto mb-3">
+            <i class="bi bi-briefcase fs-2 text-primary"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-2">Project Manager</h6>
+          <p class="text-muted small mb-0 lh-sm">Monitor progress, resources, costs and teams.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 col-lg-2" #animateOnScroll>
+        <div class="role-card bg-white rounded-4 shadow-sm text-center p-4 h-100 animate-fade-up delay-200 border">
+          <div class="role-icon-wrapper mx-auto mb-3">
+            <i class="bi bi-tools fs-2 text-primary"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-2">Site Engineer</h6>
+          <p class="text-muted small mb-0 lh-sm">Record site progress and activities.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 col-lg-2" #animateOnScroll>
+        <div class="role-card bg-white rounded-4 shadow-sm text-center p-4 h-100 animate-fade-up delay-300 border">
+          <div class="role-icon-wrapper mx-auto mb-3">
+            <i class="bi bi-cone-striped fs-2 text-primary"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-2">Contractor</h6>
+          <p class="text-muted small mb-0 lh-sm">Manage assigned workforce and resources.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 col-lg-2" #animateOnScroll>
+        <div class="role-card bg-white rounded-4 shadow-sm text-center p-4 h-100 animate-fade-up delay-400 border">
+          <div class="role-icon-wrapper mx-auto mb-3">
+            <i class="bi bi-person-video2 fs-2 text-primary"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-2">Worker</h6>
+          <p class="text-muted small mb-0 lh-sm">View assignments, shifts and attendance.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 col-lg-2" #animateOnScroll>
+        <div class="role-card bg-white rounded-4 shadow-sm text-center p-4 h-100 animate-fade-up delay-500 border">
+          <div class="role-icon-wrapper mx-auto mb-3">
+            <i class="bi bi-building fs-2 text-primary"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-2">Client</h6>
+          <p class="text-muted small mb-0 lh-sm">Stay updated on project progress and reports.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section: How It Works -->
+<section class="py-7 bg-very-light-blue" id="workflow">
+  <div class="container px-lg-5">
+    <div class="mb-5" #animateOnScroll>
+      <div class="animate-fade-up">
+        <span class="text-primary text-uppercase fw-bold mb-2 d-block small tracking-wide">HOW IT WORKS</span>
+        <h2 class="display-6 fw-bold text-heading">From the Construction Site to the<br>Management Desk</h2>
+      </div>
+    </div>
+
+    <div class="workflow-container mt-5" #animateOnScroll>
+      <div class="row g-4 position-relative">
+        <!-- Connecting Line -->
+        <div class="workflow-line d-none d-lg-block"></div>
+        
+        <div class="col-12 col-lg-2 animate-fade-up z-1 text-center workflow-step">
+          <div class="workflow-icon bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-hammer fs-4"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-1">Site Activity</h6>
+          <p class="text-muted small mb-0">Daily site updates</p>
+        </div>
+        
+        <div class="col-12 col-lg-2 animate-fade-up delay-100 z-1 text-center workflow-step">
+          <div class="workflow-icon bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-graph-up text-white fs-4"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-1">Progress Updates</h6>
+          <p class="text-muted small mb-0">Track work and workforce</p>
+        </div>
+        
+        <div class="col-12 col-lg-2 animate-fade-up delay-200 z-1 text-center workflow-step">
+          <div class="workflow-icon bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-truck text-white fs-4"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-1">Resource Updates</h6>
+          <p class="text-muted small mb-0">Equipment and materials</p>
+        </div>
+        
+        <div class="col-12 col-lg-2 animate-fade-up delay-300 z-1 text-center workflow-step">
+          <div class="workflow-icon bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-display text-white fs-4"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-1">Project Monitoring</h6>
+          <p class="text-muted small mb-0">Real-time visibility</p>
+        </div>
+        
+        <div class="col-12 col-lg-2 animate-fade-up delay-400 z-1 text-center workflow-step">
+          <div class="workflow-icon bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-currency-dollar text-white fs-4"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-1">Cost Tracking</h6>
+          <p class="text-muted small mb-0">Monitor budgets</p>
+        </div>
+        
+        <div class="col-12 col-lg-2 animate-fade-up delay-500 z-1 text-center workflow-step">
+          <div class="workflow-icon bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm">
+            <i class="bi bi-file-earmark-bar-graph text-white fs-4"></i>
+          </div>
+          <h6 class="fw-bold text-heading mb-1">Reports & Decisions</h6>
+          <p class="text-muted small mb-0">Better project outcomes</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section: Key Benefits -->
+<section class="py-7 bg-white" id="benefits">
+  <div class="container px-lg-5">
+    <div class="mb-5" #animateOnScroll>
+      <div class="animate-fade-up">
+        <span class="text-primary text-uppercase fw-bold mb-2 d-block small tracking-wide">KEY BENEFITS</span>
+        <h2 class="display-6 fw-bold mb-2 text-heading">Built for Better Project Decisions.</h2>
+      </div>
+    </div>
+    
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4" #animateOnScroll>
+        <div class="d-flex align-items-start benefit-row animate-fade-up">
+          <i class="bi bi-eye text-primary fs-3 me-3 mt-n1"></i>
+          <div>
+            <h6 class="fw-bold text-heading mb-1">Better Visibility</h6>
+            <p class="text-muted small mb-0">Know what's happening across your projects.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" #animateOnScroll>
+        <div class="d-flex align-items-start benefit-row animate-fade-up delay-100">
+          <i class="bi bi-people text-primary fs-3 me-3 mt-n1"></i>
+          <div>
+            <h6 class="fw-bold text-heading mb-1">Better Coordination</h6>
+            <p class="text-muted small mb-0">Keep teams connected.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" #animateOnScroll>
+        <div class="d-flex align-items-start benefit-row animate-fade-up delay-200">
+          <i class="bi bi-lightning-charge text-primary fs-3 me-3 mt-n1"></i>
+          <div>
+            <h6 class="fw-bold text-heading mb-1">Faster Decisions</h6>
+            <p class="text-muted small mb-0">Get the right information when you need it.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" #animateOnScroll>
+        <div class="d-flex align-items-start benefit-row animate-fade-up delay-100">
+          <i class="bi bi-stopwatch text-primary fs-3 me-3 mt-n1"></i>
+          <div>
+            <h6 class="fw-bold text-heading mb-1">Reduced Delays</h6>
+            <p class="text-muted small mb-0">Identify and resolve issues earlier.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" #animateOnScroll>
+        <div class="d-flex align-items-start benefit-row animate-fade-up delay-200">
+          <i class="bi bi-gear text-primary fs-3 me-3 mt-n1"></i>
+          <div>
+            <h6 class="fw-bold text-heading mb-1">Resource Optimization</h6>
+            <p class="text-muted small mb-0">Use resources efficiently.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" #animateOnScroll>
+        <div class="d-flex align-items-start benefit-row animate-fade-up delay-300">
+          <i class="bi bi-currency-dollar text-primary fs-3 me-3 mt-n1"></i>
+          <div>
+            <h6 class="fw-bold text-heading mb-1">Cost Control</h6>
+            <p class="text-muted small mb-0">Track and manage project spending.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section: Image Showcase -->
+<section class="py-7 bg-light-blue" id="showcase">
+  <div class="container px-lg-5">
+    <div class="d-flex justify-content-between align-items-end mb-4" #animateOnScroll>
+      <div class="animate-fade-up">
+        <span class="text-primary text-uppercase fw-bold mb-2 d-block small tracking-wide">IN ACTION</span>
+        <h2 class="display-6 fw-bold mb-0 text-heading">Building a Better Tomorrow</h2>
+      </div>
+      <div class="d-none d-md-block animate-fade-up text-muted small">
+        Real projects. Real progress. Real impact.
+      </div>
+    </div>
+    
+    <div class="gallery-wrapper" #animateOnScroll>
+      <div class="row flex-nowrap overflow-auto pb-3 gallery-row custom-scrollbar animate-fade-up">
+        <div class="col-9 col-md-4 col-lg-2-4 gallery-col">
+          <div class="gallery-img-container rounded-4 overflow-hidden shadow-sm">
+            <img src="/construction1.jpg" alt="Construction Crane" class="img-fluid w-100 h-100 object-fit-cover">
+          </div>
+        </div>
+        <div class="col-9 col-md-4 col-lg-2-4 gallery-col">
+          <div class="gallery-img-container rounded-4 overflow-hidden shadow-sm">
+            <img src="/construction3.jpg" alt="Construction Engineers" class="img-fluid w-100 h-100 object-fit-cover">
+          </div>
+        </div>
+        <div class="col-9 col-md-4 col-lg-2-4 gallery-col">
+          <div class="gallery-img-container rounded-4 overflow-hidden shadow-sm">
+            <img src="/construction4.jpg" alt="Excavator" class="img-fluid w-100 h-100 object-fit-cover">
+          </div>
+        </div>
+        <div class="col-9 col-md-4 col-lg-2-4 gallery-col">
+          <div class="gallery-img-container rounded-4 overflow-hidden shadow-sm">
+            <img src="/construction5.jpg" alt="Construction Team" class="img-fluid w-100 h-100 object-fit-cover">
+          </div>
+        </div>
+        <div class="col-9 col-md-4 col-lg-2-4 gallery-col">
+          <div class="gallery-img-container rounded-4 overflow-hidden shadow-sm">
+            <img src="/construction7.jpg" alt="Modern Building" class="img-fluid w-100 h-100 object-fit-cover">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="py-8 section-cta position-relative text-center text-white" #animateOnScroll>
+  <div class="cta-bg animate-fade-up">
+    <img src="/construction1.jpg" alt="Construction Background" class="cta-img w-100 h-100 object-fit-cover">
+    <div class="cta-overlay"></div>
+  </div>
+  <div class="container position-relative z-1 animate-fade-up delay-100">
+    <h2 class="display-5 fw-bold mb-3">Build Better. Manage Smarter.</h2>
+    <p class="lead mb-5 opacity-90 mx-auto" style="max-width: 500px;">Take control of your construction projects with BuildTrack.</p>
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+      <a routerLink="/login" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-semibold shadow-lg hover-lift">Get Started <i class="bi bi-arrow-right ms-1"></i></a>
+      <a routerLink="/login" class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill fw-semibold hover-lift">Login</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer py-3 bg-navy text-white">
+  <div class="container px-lg-5">
+    <div class="row align-items-center">
+      <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+        <a class="d-inline-flex align-items-center text-decoration-none" routerLink="/">
+          <img src="/BuildTrack_Logo.png" alt="BuildTrack Logo" class="footer-logo">
+        </a>
+      </div>
+      <div class="col-md-4 text-center mb-3 mb-md-0">
+        <span class="footer-text opacity-75">Construction Project Management & Site Monitoring Platform</span>
+      </div>
+      <div class="col-md-4 text-center text-md-end">
+        <span class="footer-text opacity-75">&copy; 2026 BuildTrack. All rights reserved.</span>
+      </div>
+    </div>
+  </div>
+</footer>
