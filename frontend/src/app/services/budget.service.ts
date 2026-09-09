@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 
-const environment = { apiUrl: 'http://localhost:8000' };
+const environment = { apiUrl: '' };
 
 export interface BudgetCategory {
   id: string;
@@ -108,6 +108,48 @@ export class BudgetService {
 
   createCostEstimate(projectId: string, estimate: { category_id: string, activity: string, description: string, estimated_amount: number }): Observable<CostEstimate> {
     return this.http.post<CostEstimate>(`${this.apiUrl}/projects/${projectId}/cost-estimates`, estimate, { headers: this.getHeaders() }).pipe(
+      tap(() => this.getProjectBudgetSummary(projectId).subscribe())
+    );
+  }
+
+  updatePlannedBudget(projectId: string, total_budget: number): Observable<ProjectBudgetSummary> {
+    return this.http.put<ProjectBudgetSummary>(`${this.apiUrl}/projects/${projectId}/planned-budget`, { total_budget }, { headers: this.getHeaders() }).pipe(
+      tap(data => this.budgetSummary.set(data))
+    );
+  }
+
+  updateBudgetAllocation(projectId: string, allocationId: string, data: any): Observable<BudgetAllocation> {
+    return this.http.put<BudgetAllocation>(`${this.apiUrl}/allocations/${allocationId}`, data, { headers: this.getHeaders() }).pipe(
+      tap(() => this.getProjectBudgetSummary(projectId).subscribe())
+    );
+  }
+
+  deleteBudgetAllocation(projectId: string, allocationId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/allocations/${allocationId}`, { headers: this.getHeaders() }).pipe(
+      tap(() => this.getProjectBudgetSummary(projectId).subscribe())
+    );
+  }
+
+  updateExpense(projectId: string, expenseId: string, data: any): Observable<ExpenseRecord> {
+    return this.http.put<ExpenseRecord>(`${this.apiUrl}/expenses/${expenseId}`, data, { headers: this.getHeaders() }).pipe(
+      tap(() => this.getProjectBudgetSummary(projectId).subscribe())
+    );
+  }
+
+  deleteExpense(projectId: string, expenseId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/expenses/${expenseId}`, { headers: this.getHeaders() }).pipe(
+      tap(() => this.getProjectBudgetSummary(projectId).subscribe())
+    );
+  }
+
+  updateCostEstimate(projectId: string, estimateId: string, data: any): Observable<CostEstimate> {
+    return this.http.put<CostEstimate>(`${this.apiUrl}/cost-estimates/${estimateId}`, data, { headers: this.getHeaders() }).pipe(
+      tap(() => this.getProjectBudgetSummary(projectId).subscribe())
+    );
+  }
+
+  deleteCostEstimate(projectId: string, estimateId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/cost-estimates/${estimateId}`, { headers: this.getHeaders() }).pipe(
       tap(() => this.getProjectBudgetSummary(projectId).subscribe())
     );
   }

@@ -12,7 +12,8 @@ from schemas.budget import (
     BudgetCategoryResponse, BudgetCategoryCreate,
     BudgetAllocationResponse, BudgetAllocationCreate,
     ExpenseRecordResponse, ExpenseRecordCreate,
-    ProjectBudgetSummary, CostEstimateResponse, CostEstimateCreate
+    ProjectBudgetSummary, CostEstimateResponse, CostEstimateCreate,
+    BudgetAllocationUpdate, ExpenseRecordUpdate, CostEstimateUpdate, PlannedBudgetUpdate
 )
 from models import BudgetCategory, BudgetAllocation, ExpenseRecord, ProcurementInvoice, PayrollRecord, ResourceUtilization, CostEstimate
 
@@ -184,3 +185,108 @@ def create_cost_estimate(project_id: str, data: CostEstimateCreate, db: Session 
     db.commit()
     db.refresh(estimate)
     return estimate
+
+@router.put("/projects/{project_id}/planned-budget", response_model=ProjectBudgetSummary)
+def update_planned_budget(project_id: str, data: PlannedBudgetUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") not in ["admin", "project_manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized for this project")
+    
+    project.budget = data.total_budget
+    db.commit()
+    return get_project_budget_summary(project_id, db, current_user)
+
+@router.put("/allocations/{allocation_id}", response_model=BudgetAllocationResponse)
+def update_budget_allocation(allocation_id: str, data: BudgetAllocationUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    alloc = db.query(BudgetAllocation).filter(BudgetAllocation.id == allocation_id).first()
+    if not alloc:
+        raise HTTPException(status_code=404, detail="Allocation not found")
+    project = db.query(Project).filter(Project.id == alloc.project_id).first()
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if data.category_id is not None: alloc.category_id = data.category_id
+    if data.allocated_amount is not None: alloc.allocated_amount = data.allocated_amount
+    if data.allocation_date is not None: alloc.allocation_date = data.allocation_date
+    if data.description is not None: alloc.description = data.description
+    
+    db.commit()
+    db.refresh(alloc)
+    return alloc
+
+@router.delete("/allocations/{allocation_id}")
+def delete_budget_allocation(allocation_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    alloc = db.query(BudgetAllocation).filter(BudgetAllocation.id == allocation_id).first()
+    if not alloc:
+        raise HTTPException(status_code=404, detail="Allocation not found")
+    project = db.query(Project).filter(Project.id == alloc.project_id).first()
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    db.delete(alloc)
+    db.commit()
+    return {"success": True}
+
+@router.put("/expenses/{expense_id}", response_model=ExpenseRecordResponse)
+def update_expense(expense_id: str, data: ExpenseRecordUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    exp = db.query(ExpenseRecord).filter(ExpenseRecord.id == expense_id).first()
+    if not exp:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    project = db.query(Project).filter(Project.id == exp.project_id).first()
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if data.category_id is not None: exp.category_id = data.category_id
+    if data.description is not None: exp.description = data.description
+    if data.amount is not None: exp.amount = data.amount
+    if data.expense_date is not None: exp.expense_date = data.expense_date
+    if data.status is not None: exp.status = data.status
+    
+    db.commit()
+    db.refresh(exp)
+    return exp
+
+@router.delete("/expenses/{expense_id}")
+def delete_expense(expense_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    exp = db.query(ExpenseRecord).filter(ExpenseRecord.id == expense_id).first()
+    if not exp:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    project = db.query(Project).filter(Project.id == exp.project_id).first()
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    db.delete(exp)
+    db.commit()
+    return {"success": True}
+
+@router.put("/cost-estimates/{estimate_id}", response_model=CostEstimateResponse)
+def update_cost_estimate(estimate_id: str, data: CostEstimateUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    est = db.query(CostEstimate).filter(CostEstimate.id == estimate_id).first()
+    if not est:
+        raise HTTPException(status_code=404, detail="Cost estimate not found")
+    project = db.query(Project).filter(Project.id == est.project_id).first()
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if data.category_id is not None: est.category_id = data.category_id
+    if data.activity is not None: est.activity = data.activity
+    if data.description is not None: est.description = data.description
+    if data.estimated_amount is not None: est.estimated_amount = data.estimated_amount
+    
+    db.commit()
+    db.refresh(est)
+    return est
+
+@router.delete("/cost-estimates/{estimate_id}")
+def delete_cost_estimate(estimate_id: str, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    est = db.query(CostEstimate).filter(CostEstimate.id == estimate_id).first()
+    if not est:
+        raise HTTPException(status_code=404, detail="Cost estimate not found")
+    project = db.query(Project).filter(Project.id == est.project_id).first()
+    if current_user.get("role") == "project_manager" and project.manager_id != current_user.get("sub"):
+        raise HTTPException(status_code=403, detail="Not authorized")
+    db.delete(est)
+    db.commit()
+    return {"success": True}

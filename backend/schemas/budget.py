@@ -26,6 +26,12 @@ class BudgetAllocationBase(BaseModel):
 class BudgetAllocationCreate(BudgetAllocationBase):
     project_id: str
 
+class BudgetAllocationUpdate(BaseModel):
+    category_id: Optional[str] = None
+    allocated_amount: Optional[float] = None
+    allocation_date: Optional[str] = None
+    description: Optional[str] = None
+
 class BudgetAllocationResponse(BudgetAllocationBase):
     id: str
     project_id: str
@@ -47,6 +53,13 @@ class ExpenseRecordBase(BaseModel):
 
 class ExpenseRecordCreate(ExpenseRecordBase):
     project_id: str
+
+class ExpenseRecordUpdate(BaseModel):
+    category_id: Optional[str] = None
+    description: Optional[str] = None
+    amount: Optional[float] = None
+    expense_date: Optional[datetime] = None
+    status: Optional[str] = None
 
 class ExpenseRecordResponse(ExpenseRecordBase):
     id: str
@@ -70,6 +83,12 @@ class CostEstimateBase(BaseModel):
 class CostEstimateCreate(CostEstimateBase):
     pass
 
+class CostEstimateUpdate(BaseModel):
+    category_id: Optional[str] = None
+    activity: Optional[str] = None
+    description: Optional[str] = None
+    estimated_amount: Optional[float] = None
+
 class CostEstimateResponse(CostEstimateBase):
     id: str
     project_id: str
@@ -81,6 +100,10 @@ class CostEstimateResponse(CostEstimateBase):
 
     class Config:
         from_attributes = True
+
+
+class PlannedBudgetUpdate(BaseModel):
+    total_budget: float
 
 
 class ProjectBudgetSummary(BaseModel):
