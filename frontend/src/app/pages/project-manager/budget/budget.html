@@ -9,7 +9,7 @@
               (change)="onProjectChange($event)">
         <option *ngFor="let p of projects()" [value]="p.id">{{ p.name }} ({{ p.id }})</option>
       </select>
-      <button (click)="openExpenseModal()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
+      <button type="button" (click)="openExpenseModal()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
         Record Expense
       </button>
     </div>
@@ -20,34 +20,34 @@
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <div class="flex justify-between items-start">
         <h3 class="text-sm font-medium text-gray-500">Planned Budget</h3>
-        <button (click)="openPlannedBudgetModal()" class="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+        <button type="button" (click)="openPlannedBudgetModal()" class="text-xs text-blue-600 hover:text-blue-800">Edit</button>
       </div>
-      <p class="text-2xl font-bold text-gray-900 mt-2">${{ budgetSummary()?.total_budget | number:'1.2-2' }}</p>
+      <p class="text-2xl font-bold text-gray-900 mt-2">{{ budgetSummary()?.total_budget | currency:'USD':'symbol':'1.2-2' }}</p>
     </div>
     
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <h3 class="text-sm font-medium text-gray-500">Total Allocated</h3>
-      <p class="text-2xl font-bold text-blue-600 mt-2">${{ budgetSummary()?.total_allocated | number:'1.2-2' }}</p>
+      <p class="text-2xl font-bold text-blue-600 mt-2">{{ budgetSummary()?.total_allocated | currency:'USD':'symbol':'1.2-2' }}</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <h3 class="text-sm font-medium text-gray-500">Estimated Cost</h3>
-      <p class="text-2xl font-bold text-purple-600 mt-2">${{ budgetSummary()?.total_estimated | number:'1.2-2' }}</p>
+      <p class="text-2xl font-bold text-purple-600 mt-2">{{ budgetSummary()?.total_estimated | currency:'USD':'symbol':'1.2-2' }}</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <h3 class="text-sm font-medium text-gray-500">Actual Spent</h3>
-      <p class="text-2xl font-bold text-red-600 mt-2">${{ budgetSummary()?.total_spent | number:'1.2-2' }}</p>
+      <p class="text-2xl font-bold text-red-600 mt-2">{{ budgetSummary()?.total_spent | currency:'USD':'symbol':'1.2-2' }}</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <h3 class="text-sm font-medium text-gray-500">Remaining</h3>
-      <p class="text-2xl font-bold text-green-600 mt-2">${{ budgetSummary()?.remaining_budget | number:'1.2-2' }}</p>
+      <p class="text-2xl font-bold text-green-600 mt-2">{{ budgetSummary()?.remaining_budget | currency:'USD':'symbol':'1.2-2' }}</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <h3 class="text-sm font-medium text-gray-500">Utilization %</h3>
-      <p class="text-2xl font-bold text-yellow-600 mt-2">{{ budgetSummary()!.total_budget > 0 ? (budgetSummary()!.total_spent / budgetSummary()!.total_budget * 100) : 0 | number:'1.1-1' }}%</p>
+      <p class="text-2xl font-bold text-yellow-600 mt-2">{{ (budgetSummary()!.total_budget > 0 ? (budgetSummary()!.total_spent / budgetSummary()!.total_budget * 100) : 0) | number:'1.2-2' }}%</p>
     </div>
   </div>
 
@@ -60,7 +60,7 @@
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="text-gray-500">Labor Costs (Payroll)</span>
-            <span class="font-medium text-gray-900">${{ budgetSummary()?.labor_costs | number:'1.2-2' }}</span>
+            <span class="font-medium text-gray-900">{{ budgetSummary()?.labor_costs | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
             <div class="bg-blue-600 h-2 rounded-full" [style.width.%]="budgetSummary()!.total_spent > 0 ? (budgetSummary()!.labor_costs / budgetSummary()!.total_spent * 100) : 0"></div>
@@ -70,7 +70,7 @@
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="text-gray-500">Material Costs (Procurement)</span>
-            <span class="font-medium text-gray-900">${{ budgetSummary()?.material_costs | number:'1.2-2' }}</span>
+            <span class="font-medium text-gray-900">{{ budgetSummary()?.material_costs | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
             <div class="bg-green-500 h-2 rounded-full" [style.width.%]="budgetSummary()!.total_spent > 0 ? (budgetSummary()!.material_costs / budgetSummary()!.total_spent * 100) : 0"></div>
@@ -80,7 +80,7 @@
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="text-gray-500">Equipment & Maintenance</span>
-            <span class="font-medium text-gray-900">${{ budgetSummary()?.equipment_costs | number:'1.2-2' }}</span>
+            <span class="font-medium text-gray-900">{{ budgetSummary()?.equipment_costs | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
             <div class="bg-yellow-500 h-2 rounded-full" [style.width.%]="budgetSummary()!.total_spent > 0 ? (budgetSummary()!.equipment_costs / budgetSummary()!.total_spent * 100) : 0"></div>
@@ -90,7 +90,7 @@
         <div>
           <div class="flex justify-between text-sm mb-1">
             <span class="text-gray-500">Ad-Hoc / Other Expenses</span>
-            <span class="font-medium text-gray-900">${{ budgetSummary()?.other_costs | number:'1.2-2' }}</span>
+            <span class="font-medium text-gray-900">{{ budgetSummary()?.other_costs | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2">
             <div class="bg-red-500 h-2 rounded-full" [style.width.%]="budgetSummary()!.total_spent > 0 ? (budgetSummary()!.other_costs / budgetSummary()!.total_spent * 100) : 0"></div>
@@ -128,8 +128,8 @@
                 {{ alloc.allocation_date | date:'shortDate' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="editAllocation(alloc)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                <button (click)="deleteAllocation(alloc.id)" class="text-red-600 hover:text-red-900">Delete</button>
+                <button type="button" (click)="editAllocation(alloc)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+                <button type="button" (click)="deleteAllocation(alloc.id)" class="text-red-600 hover:text-red-900">Delete</button>
               </td>
             </tr>
             <tr *ngIf="budgetSummary()?.allocations?.length === 0">
@@ -168,8 +168,8 @@
             <td class="px-6 py-4 text-sm text-gray-500">{{ est.description }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${{ est.estimated_amount | number:'1.2-2' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button (click)="editEstimate(est)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-              <button (click)="deleteEstimate(est.id)" class="text-red-600 hover:text-red-900">Delete</button>
+              <button type="button" (click)="editEstimate(est)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+              <button type="button" (click)="deleteEstimate(est.id)" class="text-red-600 hover:text-red-900">Delete</button>
             </td>
           </tr>
           <tr *ngIf="budgetSummary()?.cost_estimates?.length === 0">
@@ -209,8 +209,8 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button (click)="editExpense(exp)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-              <button (click)="deleteExpense(exp.id)" class="text-red-600 hover:text-red-900">Delete</button>
+              <button type="button" (click)="editExpense(exp)" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+              <button type="button" (click)="deleteExpense(exp.id)" class="text-red-600 hover:text-red-900">Delete</button>
             </td>
           </tr>
           <tr *ngIf="budgetSummary()?.expenses?.length === 0">
@@ -247,7 +247,7 @@
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeExpenseModal()"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div class="relative z-10 inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
       <form (ngSubmit)="submitExpense()">
         <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Record Ad-Hoc Expense</h3>
@@ -295,7 +295,7 @@
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeAllocationModal()"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div class="relative z-10 inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
       <form (ngSubmit)="submitAllocation()">
         <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">New Budget Allocation</h3>
@@ -343,7 +343,7 @@
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closeEstimateModal()"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div class="relative z-10 inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
       <form (ngSubmit)="submitEstimate()">
         <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">New Cost Estimate</h3>
@@ -391,7 +391,7 @@
   <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="closePlannedBudgetModal()"></div>
     <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+    <div class="relative z-10 inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
       <form (ngSubmit)="submitPlannedBudget()">
         <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Update Planned Budget</h3>

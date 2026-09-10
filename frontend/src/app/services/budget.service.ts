@@ -95,19 +95,22 @@ export class BudgetService {
   }
 
   createBudgetAllocation(projectId: string, allocation: { category_id: string, allocated_amount: number }): Observable<BudgetAllocation> {
-    return this.http.post<BudgetAllocation>(`${this.apiUrl}/projects/${projectId}/allocations`, allocation, { headers: this.getHeaders() }).pipe(
+    const data = { ...allocation, project_id: projectId };
+    return this.http.post<BudgetAllocation>(`${this.apiUrl}/projects/${projectId}/allocations`, data, { headers: this.getHeaders() }).pipe(
       tap(() => this.getProjectBudgetSummary(projectId).subscribe())
     );
   }
 
   createExpense(projectId: string, expense: { category_id: string, description: string, amount: number, expense_date: string }): Observable<ExpenseRecord> {
-    return this.http.post<ExpenseRecord>(`${this.apiUrl}/projects/${projectId}/expenses`, expense, { headers: this.getHeaders() }).pipe(
+    const data = { ...expense, project_id: projectId };
+    return this.http.post<ExpenseRecord>(`${this.apiUrl}/projects/${projectId}/expenses`, data, { headers: this.getHeaders() }).pipe(
       tap(() => this.getProjectBudgetSummary(projectId).subscribe())
     );
   }
 
   createCostEstimate(projectId: string, estimate: { category_id: string, activity: string, description: string, estimated_amount: number }): Observable<CostEstimate> {
-    return this.http.post<CostEstimate>(`${this.apiUrl}/projects/${projectId}/cost-estimates`, estimate, { headers: this.getHeaders() }).pipe(
+    const data = { ...estimate, project_id: projectId };
+    return this.http.post<CostEstimate>(`${this.apiUrl}/projects/${projectId}/cost-estimates`, data, { headers: this.getHeaders() }).pipe(
       tap(() => this.getProjectBudgetSummary(projectId).subscribe())
     );
   }
