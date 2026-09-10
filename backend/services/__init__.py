@@ -10,7 +10,7 @@ from models import (
     DailyProgressReport, DailyReportMaterial, Milestone, DelayRecord, SiteActivityLog,
     ResourceCategory, Resource, ResourceAllocation, ResourceUtilization, MaintenanceRecord,
     WorkforceCategory, WorkerAssignment, Shift, ShiftAssignment, PayrollRecord,
-    ProcurementInvoice, ExpenseRecord
+    ProcurementInvoice, ExpenseRecord, CostEstimate
 )
 from core.security import get_password_hash, verify_password, create_access_token
 
@@ -669,7 +669,7 @@ class DashboardService:
         eq_costs = 0
         for u in db.query(ResourceUtilization).filter(ResourceUtilization.project_id.in_(all_proj_ids)).all():
             if u.resource and hasattr(u.resource, 'hourly_cost') and u.resource.hourly_cost:
-                eq_costs += (u.hours_used * u.resource.hourly_cost)
+                eq_costs += (u.operating_hours * u.resource.hourly_cost)
                 
         other_costs = sum(e.amount for e in db.query(ExpenseRecord).filter(ExpenseRecord.project_id.in_(all_proj_ids), ExpenseRecord.status == "Approved").all() if e.amount)
         
@@ -690,9 +690,9 @@ class DashboardService:
                     "budget": p.budget,
                     "spent": p.spent,
                     "location": p.location,
-                    "clientName": p.client_name,
-                    "manager": p.manager.name if p.manager else "Unassigned",
-                    "progress": p.progress,
+                    "clientName": p.client_name or "Not Assigned",
+                    "manager": p.manager.name if p.manager else "Not Assigned",
+                    "progress": p.progress or 0,
                     "status": p.status
                 } for p in projects
             ],
@@ -734,8 +734,8 @@ class DashboardService:
             "contractors": [
                 {
                     "id": c.id,
-                    "name": c.user.full_name if c.user else "Unknown",
-                    "contactPerson": c.user.email if c.user else "Unknown",
+                    "name": (c.user.company if c.user and c.user.company else "Unknown"),
+                    "contactPerson": c.user.name if c.user else "Unknown",
                     "specialty": c.specialty,
                     "activeProjects": len(set([w.assigned_project_id for w in c.workers if w.assigned_project_id])),
                     "status": c.status
@@ -745,9 +745,9 @@ class DashboardService:
                 {
                     "id": u.id,
                     "email": u.email,
-                    "name": u.full_name,
+                    "name": u.name,
                     "role": u.role.name if u.role else "unknown",
-                    "company": "BuildTrack"
+                    "company": u.company or "BuildTrack"
                 } for u in users
             ]
         }
@@ -782,7 +782,7 @@ class DashboardService:
         eq_costs = 0
         for u in db.query(ResourceUtilization).filter(ResourceUtilization.project_id.in_(proj_ids)).all():
             if u.resource and hasattr(u.resource, 'hourly_cost') and u.resource.hourly_cost:
-                eq_costs += (u.hours_used * u.resource.hourly_cost)
+                eq_costs += (u.operating_hours * u.resource.hourly_cost)
         other_costs = sum(e.amount for e in db.query(ExpenseRecord).filter(ExpenseRecord.project_id.in_(proj_ids), ExpenseRecord.status == "Approved").all() if e.amount)
         
         total_estimated = sum(c.estimated_amount for c in db.query(CostEstimate).filter(CostEstimate.project_id.in_(proj_ids)).all() if c.estimated_amount)
@@ -842,7 +842,7 @@ class DashboardService:
                     "spent": p.spent, 
                     "progress": p.progress, 
                     "status": p.status, 
-                    "manager": p.manager.full_name if p.manager else "Unknown"
+                    "manager": p.manager.name if p.manager else "Unknown"
                 } 
                 for p in managed
             ],

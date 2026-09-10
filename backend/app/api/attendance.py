@@ -8,7 +8,7 @@ from core.permissions import RoleChecker
 router = APIRouter()
 attendance_service = AttendanceService()
 
-@router.get("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
+@router.get("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
 def get_attendance(
     workerId: str = None,
     projectId: str = None,
@@ -75,7 +75,7 @@ def get_attendance_detail(attendance_id: str, db: Session = Depends(get_db)):
     }
     return {"success": True, "data": res}
 
-@router.post("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor"]))])
+@router.post("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor"]))])
 def log_attendance(data: ExtendedAttendanceCreate, db: Session = Depends(get_db)):
     record = attendance_service.log_attendance(db, data.model_dump())
     return {

@@ -21,7 +21,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
     return payload.get("sub")
 
 # Materials
-@router.get("/")
+@router.get("")
 def get_materials(db: Session = Depends(get_db)):
     mats = materials_service.get_all_materials(db)
     res = [{
@@ -49,7 +49,7 @@ def get_material(id: str, db: Session = Depends(get_db)):
         }
     }
 
-@router.post("/", dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
+@router.post("", dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
 def create_material(data: MaterialCreate, db: Session = Depends(get_db)):
     m = materials_service.create_material(db, data.model_dump())
     return {"success": True, "data": {"id": m.id}}

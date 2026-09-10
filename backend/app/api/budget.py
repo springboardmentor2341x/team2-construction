@@ -23,9 +23,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     payload = decode_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
-    db_user = db.query(User).filter(User.email == payload.get("sub")).first()
-    if db_user:
-        payload["user_id"] = db_user.id
+    payload["user_id"] = payload.get("sub")
     return payload
 
 @router.get("/categories", response_model=List[BudgetCategoryResponse])

@@ -30,7 +30,7 @@ def format_user(user: User) -> dict:
         "profile": profile
     }
 
-@router.get("/", response_model=UserListResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
+@router.get("", response_model=UserListResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
 def get_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     formatted = [format_user(u) for u in users]
@@ -43,7 +43,7 @@ def get_user(id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return {"success": True, "data": format_user(user)}
 
-@router.post("/", response_model=SingleUserResponse, dependencies=[Depends(RoleChecker(["admin"]))])
+@router.post("", response_model=SingleUserResponse, dependencies=[Depends(RoleChecker(["admin"]))])
 def create_user(data: UserCreate, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == data.email).first()
     if existing:

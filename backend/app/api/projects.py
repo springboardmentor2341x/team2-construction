@@ -38,9 +38,17 @@ def format_proj(p) -> dict:
     }
 
 # Core CRUD
-@router.get("/")
-def get_projects(db: Session = Depends(get_db)):
+@router.get("")
+def get_projects(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+        
     projs = proj_service.get_all_projects(db)
+    
+    if payload.get("role") == "project_manager":
+        projs = [p for p in projs if p.manager_id == payload.get("sub")]
+        
     # Include all required relationship fields for Angular frontend loadAllData parsing
     formatted = []
     for p in projs:
@@ -102,7 +110,7 @@ def get_project(id: str, db: Session = Depends(get_db)):
     p = proj_service.get_project_by_id(db, id)
     return {"success": True, "data": format_proj(p)}
 
-@router.post("/")
+@router.post("")
 def create_project(data: ProjectCreate, db: Session = Depends(get_db)):
     proj = proj_service.create_project(db, data.model_dump())
     return {"success": True, "data": format_proj(proj)}

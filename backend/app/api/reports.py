@@ -18,7 +18,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
         raise HTTPException(status_code=401, detail="Invalid token")
     return payload.get("sub")
 
-@router.get("/")
+@router.get("")
 def get_reports(projectId: Optional[str] = None, db: Session = Depends(get_db)):
     reports = reports_service.get_reports(db, projectId)
     res = []
@@ -39,7 +39,7 @@ def get_reports(projectId: Optional[str] = None, db: Session = Depends(get_db)):
         })
     return {"success": True, "data": res}
 
-@router.post("/", dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer"]))])
+@router.post("", dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer"]))])
 def create_report(data: DailyReportCreate, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     payload = data.model_dump()
     # parse date string to datetime object

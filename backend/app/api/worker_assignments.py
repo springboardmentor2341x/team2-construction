@@ -12,7 +12,7 @@ from core.permissions import RoleChecker
 router = APIRouter()
 workforce_service = WorkforceService()
 
-@router.get("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
+@router.get("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
 def get_assignments(
     workerId: Optional[str] = None,
     projectId: Optional[str] = None,
@@ -43,7 +43,7 @@ def get_assignments(
     } for a in assignments]
     return {"success": True, "data": res}
 
-@router.post("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "contractor"]))])
+@router.post("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "contractor"]))])
 def allocate_worker(data: WorkerAssignmentCreate, db: Session = Depends(get_db)):
     assign = workforce_service.create_assignment(db, data.model_dump())
     return {

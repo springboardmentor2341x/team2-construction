@@ -17,7 +17,7 @@ payroll_service = PayrollService()
 def get_current_user_claims(token: str = Depends(oauth2_scheme)):
     return decode_token(token)
 
-@router.get("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "contractor", "client"]))])
+@router.get("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "contractor", "client"]))])
 def get_payroll_records(
     workerId: Optional[str] = None,
     projectId: Optional[str] = None,
@@ -82,7 +82,7 @@ def get_payroll_detail(payroll_id: str, db: Session = Depends(get_db)):
     }
     return {"success": True, "data": res}
 
-@router.post("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "contractor"]))])
+@router.post("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "contractor"]))])
 def generate_payroll(data: PayrollRecordCreate, db: Session = Depends(get_db)):
     record = payroll_service.generate_or_update_payroll(db, data.model_dump())
     return {

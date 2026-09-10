@@ -16,7 +16,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
         raise HTTPException(status_code=401, detail="Invalid token")
     return payload.get("sub")
 
-@router.get("/", response_model=List[NotificationResponse])
+@router.get("", response_model=List[NotificationResponse])
 def get_notifications(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
@@ -43,7 +43,7 @@ def mark_all_read(user_id: str = Depends(get_current_user_id), db: Session = Dep
     notifications_service.mark_all_as_read(db, user_id)
     return {"success": True, "message": "All notifications marked as read"}
 
-@router.post("/")
+@router.post("")
 def trigger_notification(data: NotificationCreate, db: Session = Depends(get_db)):
     # In a real app this should probably be internal-only, but keeping for backward compatibility
     note = notifications_service.create_notification(db, data)

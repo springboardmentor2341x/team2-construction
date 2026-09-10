@@ -12,7 +12,7 @@ from core.permissions import RoleChecker
 router = APIRouter()
 shift_service = ShiftService()
 
-@router.get("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
+@router.get("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
 def get_shifts(
     projectId: Optional[str] = None,
     status: Optional[str] = None,
@@ -80,7 +80,7 @@ def get_shift_detail(shift_id: str, db: Session = Depends(get_db)):
     }
     return {"success": True, "data": res}
 
-@router.post("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer"]))])
+@router.post("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer"]))])
 def create_shift(data: ShiftCreate, db: Session = Depends(get_db)):
     shift = shift_service.create_shift(db, data.model_dump())
     return {

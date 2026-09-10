@@ -36,7 +36,7 @@ def create_category(data: WorkforceCategoryCreate, db: Session = Depends(get_db)
     cat = workforce_service.create_category(db, data.model_dump())
     return {"success": True, "message": "Category created successfully", "data": {"id": cat.id, "name": cat.name}}
 
-@router.get("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
+@router.get("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager", "site_engineer", "contractor", "client"]))])
 def get_workers(
     categoryId: Optional[str] = None,
     contractorId: Optional[str] = None,
@@ -113,7 +113,7 @@ def get_worker_detail(worker_id: str, db: Session = Depends(get_db)):
     }
     return {"success": True, "data": res}
 
-@router.post("/", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
+@router.post("", response_model=GenericResponse, dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
 def register_worker(data: WorkerCreate, db: Session = Depends(get_db)):
     worker = workforce_service.create_worker(db, data.model_dump())
     return {

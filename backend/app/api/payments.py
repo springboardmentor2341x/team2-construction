@@ -9,7 +9,7 @@ from typing import Optional
 router = APIRouter()
 payments_service = PaymentsService()
 
-@router.get("/")
+@router.get("")
 def get_payslips(workerId: Optional[str] = None, db: Session = Depends(get_db)):
     payslips = payments_service.get_payslips(db, workerId)
     res = [{
@@ -25,7 +25,7 @@ def get_payslips(workerId: Optional[str] = None, db: Session = Depends(get_db)):
     } for p in payslips]
     return {"success": True, "data": res}
 
-@router.post("/", dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
+@router.post("", dependencies=[Depends(RoleChecker(["admin", "project_manager"]))])
 def create_payslip(data: WorkerPayslipCreate, db: Session = Depends(get_db)):
     payslip = payments_service.create_payslip(db, data.model_dump())
     return {"success": True, "data": {"id": payslip.id}}
