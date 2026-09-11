@@ -9,7 +9,7 @@ import { AuthService } from './auth.service';
 export class DashboardService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private apiUrl = 'http://localhost:8000/dashboard';
+  private apiUrl = '/api/dashboard';
 
   private getHeaders() {
     return new HttpHeaders({
@@ -27,7 +27,7 @@ export class DashboardService {
   }
 
   exportAnalyticsReport(reportType: string, projectId: string, format: string): Observable<Blob> {
-    const url = `http://localhost:8000/reports/analytics/export?report_type=${reportType}&project_id=${projectId}&format=${format}`;
+    const url = `/api/reports/analytics/export?report_type=${reportType}&project_id=${projectId}&format=${format}`;
     return this.http.get(url, { headers: this.getHeaders(), responseType: 'blob' });
   }
 }

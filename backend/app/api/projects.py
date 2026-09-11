@@ -75,7 +75,9 @@ def get_projects(db: Session = Depends(get_db), token: str = Depends(oauth2_sche
                 "endDate": wp.end_date.isoformat(),
                 "progress": wp.progress,
                 "status": wp.status,
-                "assignedToId": wp.assigned_to_id
+                "assignedToId": wp.assigned_to_id,
+                "assignedTo": wp.assigned_to.name if wp.assigned_to else "Unassigned",
+                "assignedToRole": wp.assigned_to.role.name if (wp.assigned_to and wp.assigned_to.role) else "contractor"
             } for wp in p.work_packages],
             "sitePhotos": [{
                 "id": ph.id,
@@ -226,7 +228,24 @@ def create_feedback(projectId: str, data: FeedbackCreate, db: Session = Depends(
 
 # Nested Documents
 @router.get("/{projectId}/documents")
-def get_documents(projectId: str, db: Session = Depends(get_db)):
+def get_documents(projectId: str, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+        
+    user_id = payload.get("sub")
+    from models import User
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+        
+    proj = proj_service.get_project(db, projectId)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    if user.role.name == "client" and proj.client_name != user.company:
+        raise HTTPException(status_code=403, detail="Forbidden: You cannot access documents for this project")
+
     docs = proj_service.get_documents(db, projectId)
     res = [{
         "id": d.id,

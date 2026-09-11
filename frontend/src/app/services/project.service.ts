@@ -26,7 +26,8 @@ export interface WorkPackage {
   projectName: string;
   title: string;
   description: string;
-  assignedTo: string; // Worker or Contractor
+  assignedTo: string; // Worker or Contractor user name
+  assignedToId?: string; // Worker or Contractor user ID
   assignedToRole: 'contractor' | 'worker';
   startDate: string;
   endDate: string;
@@ -506,6 +507,17 @@ export class ProjectService {
     this.loadAllData();
   }
 
+  loadDocumentsForProject(projectId: string) {
+    this.http.get<{ success: boolean; data: ProjectDocument[] }>(`/api/projects/${projectId}/documents`).subscribe(res => {
+      if (res.success && res.data) {
+        this.documentsSignal.update(docs => {
+          const filtered = docs.filter(d => d.projectId !== projectId);
+          return [...filtered, ...res.data];
+        });
+      }
+    });
+  }
+
   loadAllData() {
     this.http.get<{ success: boolean; data: any[] }>('/api/projects').subscribe(res => {
       if (res.success && res.data) {
@@ -532,8 +544,9 @@ export class ProjectService {
           projectName: p.name,
           title: wp.title,
           description: wp.description,
-          assignedTo: wp.assignedToId || 'Unassigned',
-          assignedToRole: 'contractor',
+          assignedTo: wp.assignedTo || wp.assignedToId || 'Unassigned',
+          assignedToId: wp.assignedToId || '',
+          assignedToRole: (wp.assignedToRole || 'contractor') as 'contractor' | 'worker',
           startDate: wp.startDate?.split('T')[0],
           endDate: wp.endDate?.split('T')[0],
           progress: wp.progress,

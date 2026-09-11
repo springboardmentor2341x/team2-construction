@@ -92,6 +92,10 @@
                     </span>
                   </td>
                 </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">No projects found.</td>
+                </tr>
               }
             </tbody>
           </table>
@@ -186,6 +190,10 @@
                           <i class="bi bi-trash-fill"></i>
                         </button>
                       </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="5" class="text-center text-muted py-4">No users found.</td>
                     </tr>
                   }
                 </tbody>
@@ -330,6 +338,16 @@
                           [class.bg-danger]="c.status === 'Suspended'">
                       {{ c.status }}
                     </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    @if (hasApiError()) {
+                      Unable to load subcontractor companies.
+                    } @else {
+                      No subcontractor companies found.
+                    }
                   </td>
                 </tr>
               }

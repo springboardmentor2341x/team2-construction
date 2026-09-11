@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -27,18 +27,29 @@ export class ClientDashboard {
     return this.queryParams()?.['module'] || 'progress';
   }
 
-  // Active Client Name (Abhishek S)
-  clientName = 'Abhishek S';
+  // Active Client Name (from auth service)
+  clientName = computed(() => this.authService.currentUser()?.name || 'Client');
 
   // Form Fields - Feedback
   fbRating = 5;
   fbMessage = '';
   fbProjectName = 'Vanguard Heights Commercial Tower';
 
-  // Client Projects (Projects matching Vanguard Realty / Abhishek S)
-  clientProjects = computed(() => 
-    this.projectService.projects().filter(p => p.clientName === 'Vanguard Realty')
-  );
+  // Client Projects (Projects matching the logged-in client's company)
+  clientProjects = computed(() => {
+    const userCompany = this.authService.currentUser()?.company;
+    if (!userCompany) return [];
+    return this.projectService.projects().filter(p => p.clientName === userCompany);
+  });
+
+  constructor() {
+    effect(() => {
+      const projects = this.clientProjects();
+      projects.forEach(p => {
+        this.projectService.loadDocumentsForProject(p.id);
+      });
+    });
+  }
 
   totalBudget = computed(() => 
     this.clientProjects().reduce((sum, p) => sum + p.budget, 0)
@@ -70,7 +81,7 @@ export class ClientDashboard {
 
   // Feedback history from this client
   clientFeedbacks = computed(() => 
-    this.projectService.feedback().filter(fb => fb.clientName === this.clientName)
+    this.projectService.feedback().filter(fb => fb.clientName === this.clientName())
   );
 
   submitFeedback() {
@@ -80,7 +91,7 @@ export class ClientDashboard {
     }
 
     this.projectService.submitFeedback({
-      clientName: this.clientName,
+      clientName: this.clientName(),
       projectName: this.fbProjectName,
       rating: Number(this.fbRating),
       message: this.fbMessage

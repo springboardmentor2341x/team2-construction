@@ -28,6 +28,8 @@ export class AdministratorDashboard {
   queryParams = toSignal(this.route.queryParams);
   dashboardData = signal<any>(null);
 
+  hasApiError = signal<boolean>(false);
+
   ngOnInit() {
     this.dashboardService.getAdminDashboard().subscribe({
       next: (res) => {
@@ -36,9 +38,13 @@ export class AdministratorDashboard {
           this.usersRegistry.set(res.data.users || []);
           this.workforceData.set(res.data.workforce || []);
           this.contractorsData.set(res.data.contractors || []);
+          this.hasApiError.set(false);
         }
       },
-      error: (err) => console.error("Error loading admin dashboard:", err)
+      error: (err) => {
+        console.error("Error loading admin dashboard:", err);
+        this.hasApiError.set(true);
+      }
     });
   }
 

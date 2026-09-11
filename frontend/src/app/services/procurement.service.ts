@@ -98,7 +98,7 @@ export interface Invoice {
   providedIn: 'root'
 })
 export class ProcurementService {
-  private apiUrl = 'http://localhost:8000/api/v1';
+  private apiUrl = '/api';
 
   constructor(private http: HttpClient) { }
 

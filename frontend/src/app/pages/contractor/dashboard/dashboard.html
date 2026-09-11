@@ -4,7 +4,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h2 class="fw-bold text-dark mb-1">Contractor Work Station</h2>
-      <p class="text-muted mb-0">{{ contractorName }} &bull; Track structural work scopes, crew rosters, and inventory supplies.</p>
+      <p class="text-muted mb-0">{{ contractorName() }} &bull; Track structural work scopes, crew rosters, and inventory supplies.</p>
     </div>
     <div>
       <span class="badge bg-secondary p-2 fs-6 border rounded-3 text-dark bg-light">
@@ -25,7 +25,7 @@
       <app-dashboard-card title="Contractor Crew Size" [value]="contractorWorkers().length" icon="bi-people-fill" colorType="info" subtitle="On-site Workers"></app-dashboard-card>
     </div>
     <div class="col-sm-6 col-md-3">
-      <app-dashboard-card title="Average Packages Done" value="62%" icon="bi-speedometer2" colorType="success" trendValue="+8%" trendDirection="up"></app-dashboard-card>
+      <app-dashboard-card title="Average Packages Done" [value]="averageProgress() + '%'" icon="bi-speedometer2" colorType="success"></app-dashboard-card>
     </div>
   </div>
 
@@ -51,7 +51,8 @@
                 </div>
                 <p class="text-muted small mb-2">{{ wp.description }}</p>
                 <small class="text-secondary d-block" style="font-size: 11px;">
-                  Timeline: {{ wp.startDate }} &bull; {{ wp.endDate }}
+                  <i class="bi bi-folder2 me-1"></i>{{ wp.projectName }} &bull;
+                  {{ wp.startDate }} &rarr; {{ wp.endDate }}
                 </small>
               </div>
 
@@ -59,6 +60,12 @@
                 <div class="d-flex justify-content-between w-100 mb-1 small text-muted">
                   <span>Report Progress</span>
                   <span class="fw-bold">{{ wp.progress }}%</span>
+                </div>
+                <!-- Progress bar -->
+                <div class="progress w-100 mb-1" style="height: 6px;">
+                  <div class="progress-bar" [style.width]="wp.progress + '%'"
+                       [class.bg-success]="wp.progress >= 100"
+                       [class.bg-primary]="wp.progress < 100"></div>
                 </div>
                 <!-- Interactive slider range -->
                 <input type="range" 
@@ -70,6 +77,11 @@
                        #progressSlider
                        (change)="updatePackageProgress(wp.id, +progressSlider.value)">
               </div>
+            </div>
+          } @empty {
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+              No work packages assigned yet.
             </div>
           }
         </div>
@@ -156,24 +168,66 @@
 
   @if (activeModule === 'progress') {
     <div class="card border-0 shadow-sm rounded-3">
-      <div class="card-body p-4 text-center">
-        <h5 class="fw-bold text-dark text-start mb-4">Work Progress Analytics</h5>
-        
-        <div class="row g-4 justify-content-center">
-          <div class="col-md-5">
-            <div class="p-4 border rounded-3 bg-light">
-              <div class="fs-1 fw-bold text-primary mb-2">94%</div>
-              <h6 class="fw-bold text-dark">Concrete Placement Rate</h6>
-              <p class="text-muted small">Vance Concrete continues ahead of schedule on Level 8 columns.</p>
+      <div class="card-body p-4">
+        <h5 class="fw-bold text-dark mb-4">Work Progress Analytics</h5>
+
+        <!-- Summary stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="p-3 border rounded-3 bg-light text-center">
+              <div class="fs-2 fw-bold text-primary mb-1">{{ averageProgress() }}%</div>
+              <small class="text-muted">Average Progress</small>
             </div>
           </div>
-          <div class="col-md-5">
-            <div class="p-4 border rounded-3 bg-light">
-              <div class="fs-1 fw-bold text-success mb-2">98.2%</div>
-              <h6 class="fw-bold text-dark">Safety Compliance Index</h6>
-              <p class="text-muted small">No structural safety warnings or hazard stops filed for Vance Concrete crew.</p>
+          <div class="col-md-4">
+            <div class="p-3 border rounded-3 bg-light text-center">
+              <div class="fs-2 fw-bold text-success mb-1">
+                {{ contractorWorkPackages().length > 0 ? contractorWorkPackages()[0].progress : 0 }}%
+              </div>
+              <small class="text-muted">Latest Package Progress</small>
             </div>
           </div>
+          <div class="col-md-4">
+            <div class="p-3 border rounded-3 bg-light text-center">
+              <div class="fs-2 fw-bold text-info mb-1">{{ contractorWorkers().length }}</div>
+              <small class="text-muted">Active Crew Members</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Per work package progress -->
+        <h6 class="fw-semibold text-dark mb-3">Package-Level Progress</h6>
+        <div class="d-flex flex-column gap-3">
+          @for (wp of contractorWorkPackages(); track wp.id) {
+            <div class="p-3 border rounded-3 bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                  <span class="fw-semibold text-dark">{{ wp.title }}</span>
+                  <small class="text-muted ms-2">{{ wp.projectName }}</small>
+                </div>
+                <span class="badge"
+                      [class.bg-success]="wp.status === 'Completed'"
+                      [class.bg-primary]="wp.status === 'In Progress'"
+                      [class.bg-warning]="wp.status === 'Pending'">{{ wp.status }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="progress flex-grow-1" style="height: 10px;">
+                  <div class="progress-bar"
+                       [style.width]="wp.progress + '%'"
+                       [class.bg-success]="wp.progress >= 100"
+                       [class.bg-warning]="wp.progress > 0 && wp.progress < 100"
+                       [class.bg-secondary]="wp.progress === 0"></div>
+                </div>
+                <span class="fw-bold text-dark" style="min-width:40px;">{{ wp.progress }}%</span>
+              </div>
+              <small class="text-muted d-block mt-1">Due: {{ wp.endDate }}</small>
+            </div>
+          } @empty {
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-bar-chart fs-3 d-block mb-2"></i>
+              No work packages to show progress for.
+            </div>
+          }
         </div>
       </div>
     </div>

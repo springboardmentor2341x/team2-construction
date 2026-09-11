@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ProjectService } from '../../../services/project.service';
+import { AuthService } from '../../../services/auth.service';
 import { DashboardCardComponent } from '../../../components/dashboard-card/dashboard-card';
 
 import { WorkforceManagementComponent } from '../../../components/workforce-management/workforce-management';
@@ -17,6 +18,7 @@ import { WorkforceManagementComponent } from '../../../components/workforce-mana
 })
 export class ContractorDashboard {
   projectService = inject(ProjectService);
+  authService = inject(AuthService);
   route = inject(ActivatedRoute);
 
   queryParams = toSignal(this.route.queryParams);
@@ -25,8 +27,20 @@ export class ContractorDashboard {
     return this.queryParams()?.['module'] || 'work';
   }
 
-  // Active Contractor Company context (Vance Concrete Ltd)
-  contractorName = 'Vance Concrete Ltd';
+  // Logged-in user context — driven by AuthService, not hardcoded
+  currentUser = this.authService.currentUser;
+
+  // The contractor's user name (e.g. 'Gaurav K') — used for work-package and material-request filtering
+  contractorUserName = computed(() => this.currentUser()?.name || '');
+
+  // The contractor's company name (e.g. 'Vance Concrete Ltd') — displayed in header
+  contractorName = computed(() => this.currentUser()?.company || this.currentUser()?.name || '');
+
+  // The logged-in user's ID (e.g. 'u4') — used for ID-based filtering
+  contractorUserId = computed(() => this.currentUser()?.id || '');
+
+  // The logged-in user's profile ID (e.g. 'c1') — used for assigning workers
+  contractorProfileId = computed(() => this.currentUser()?.profile?.id || '');
 
   // Form Fields - Material Request
   reqMaterialId = 'M-01';
@@ -40,20 +54,44 @@ export class ContractorDashboard {
   // Selectable list for contractor specialties
   workerRoles = ['Mason', 'Ironworker', 'Concrete Finisher', 'Formwork Carpenter', 'General Laborer'];
 
-  // Subcontractor Work Packages
-  contractorWorkPackages = computed(() => 
-    this.projectService.workPackages().filter(wp => wp.assignedTo === this.contractorName)
-  );
+  // Subcontractor Work Packages — filter by user name (from API: assignedTo = User.name)
+  contractorWorkPackages = computed(() => {
+    const userName = this.contractorUserName();
+    const userId = this.contractorUserId();
+    return this.projectService.workPackages().filter(wp =>
+      wp.assignedTo === userName || wp.assignedToId === userId
+    );
+  });
 
-  // Material requests submitted by this contractor
-  contractorRequests = computed(() => 
-    this.projectService.materialRequests().filter(req => req.requestedBy === this.contractorName)
-  );
+  // Material requests submitted by this contractor — filter by user name (API returns requestedBy = User.name)
+  contractorRequests = computed(() => {
+    const userName = this.contractorUserName();
+    return this.projectService.materialRequests().filter(req =>
+      req.requestedBy === userName
+    );
+  });
 
-  // Workers belonging to this contractor
-  contractorWorkers = computed(() => 
-    this.projectService.workforce().filter(w => w.company === this.contractorName || w.assignedProject === 'Vanguard Heights Commercial Tower')
-  );
+  // Workers belonging to this contractor — filter by contractorName field (API returns contractorName = User.name of the contractor)
+  contractorWorkers = computed(() => {
+    const userName = this.contractorUserName();
+    return this.projectService.workforce().filter(w =>
+      w.contractorName === userName
+    );
+  });
+
+  // Average progress across all assigned work packages
+  averageProgress = computed(() => {
+    const wps = this.contractorWorkPackages();
+    if (wps.length === 0) return 0;
+    const total = wps.reduce((sum, wp) => sum + (wp.progress || 0), 0);
+    return Math.round(total / wps.length);
+  });
+
+  // Projects this contractor is working on (derived from their work packages)
+  contractorProjects = computed(() => {
+    const projectIds = [...new Set(this.contractorWorkPackages().map(wp => wp.projectId))];
+    return this.projectService.projects().filter(p => projectIds.includes(p.id));
+  });
 
   submitMaterialRequest() {
     const mat = this.projectService.materials().find(m => m.id === this.reqMaterialId);
@@ -62,12 +100,16 @@ export class ContractorDashboard {
       return;
     }
 
+    // Use the first contractor project or fall back to P-101
+    const firstProject = this.contractorProjects()[0];
+    const projectName = firstProject?.name || 'Vanguard Heights Commercial Tower';
+
     this.projectService.submitMaterialRequest({
       materialId: mat.id,
       materialName: mat.name,
       quantity: this.reqQty,
-      requestedBy: this.contractorName,
-      projectName: 'Vanguard Heights Commercial Tower'
+      requestedBy: this.contractorUserName(),
+      projectName
     });
 
     this.reqQty = 50; // reset
@@ -80,18 +122,27 @@ export class ContractorDashboard {
       return;
     }
 
-    this.projectService.addWorkforceMember({
-      name: this.newWorkerName,
-      role: this.newWorkerRole,
-      assignedProject: 'Vanguard Heights Commercial Tower',
-      phone: this.newWorkerPhone,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
-      company: this.contractorName
-    });
+    const firstProject = this.contractorProjects()[0];
+    const projectId = firstProject?.id || 'P-101';
 
-    this.newWorkerName = '';
-    this.newWorkerPhone = '';
-    alert('Worker added and assigned to Vanguard Heights!');
+    this.projectService.registerWorker({
+      name: this.newWorkerName,
+      contactInfo: this.newWorkerPhone,
+      categoryId: 'CAT-SKILLED',
+      skillWorkType: this.newWorkerRole,
+      contractorId: this.contractorProfileId(),
+      assignedProjectId: projectId,
+      payRate: 500,
+      status: 'Active'
+    }).subscribe({
+      next: () => {
+        this.newWorkerName = '';
+        this.newWorkerPhone = '';
+        alert('Worker added and assigned!');
+        this.projectService.loadModule6Data();
+      },
+      error: () => alert('Failed to add worker')
+    });
   }
 
   updatePackageProgress(wpId: string, progressVal: number) {

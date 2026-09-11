@@ -32,17 +32,18 @@ export class WorkerDashboard {
   // Form Fields - Daily Status Comment
   statusComment = '';
 
-  // Filter tasks assigned to this worker (Jyoti S)
-  workerName = 'Jyoti S';
+  // Filter tasks assigned to this worker
+  workerName = computed(() => this.authService.currentUser()?.name || 'Worker');
 
   workerTasks = computed(() => 
-    this.projectService.workPackages().filter(wp => wp.assignedTo === this.workerName)
+    this.projectService.workPackages().filter(wp => wp.assignedTo === this.workerName())
   );
 
-  // Filter payslips for this worker (Jyoti S's id is WF-01)
-  workerPayslips = computed(() => 
-    this.projectService.payslips().filter(pay => pay.workerId === 'WF-01')
-  );
+  // Filter payslips for this worker (backend filters it securely)
+  workerPayslips = computed(() => {
+    const profileId = this.authService.currentUser()?.profile?.id;
+    return this.projectService.payslips().filter(pay => !profileId || pay.workerId === profileId);
+  });
 
   toggleClock() {
     if (!this.isClockedIn()) {
@@ -67,7 +68,7 @@ export class WorkerDashboard {
     this.projectService.addDailyLog({
       projectId: 'P-101',
       date: new Date().toISOString().split('T')[0],
-      workDone: `Workforce Status Update [${this.workerName}]: ${this.statusComment}`,
+      workDone: `Workforce Status Update [${this.workerName()}]: ${this.statusComment}`,
       weather: 'Cloudy, 22°C',
       siteEngineer: 'Sathvik S',
       materialsUsed: []
